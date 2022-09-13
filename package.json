@@ -7,7 +7,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "compile": "tsc",
-    "publicate": "npm publish",
+    "publicate": "yarn publish",
     "test": "node src/test.ts"
   },
   "keywords": [
