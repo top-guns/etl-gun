@@ -1,13 +1,13 @@
 {
   "name": "rxjs-etl-kit",
-  "version": "1.0.1",
+  "version": "1.0.7",
   "description": "ETL extension for rxjs library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
     "compile": "tsc",
-    "publish": "npm publish",
+    "publicate": "npm publish",
     "test": "node src/test.ts"
   },
   "keywords": [
