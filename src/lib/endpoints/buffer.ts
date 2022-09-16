@@ -9,12 +9,16 @@ export class BufferEndpoint<T = any> extends Endpoint<T> {
         this.buffer = [...values];
     }
 
-    public createReadStream(): Observable<T> {
+    public find(): Observable<T> {
         return from(this.buffer);
     }
 
     public async push(value: T) {
         this.buffer.push(value); 
+    }
+
+    public async clear() {
+        this.buffer = [];
     }
 
     public sort(compareFn: ((v1: T, v2: T) => number | boolean) | undefined = undefined): void {

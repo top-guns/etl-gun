@@ -14,6 +14,7 @@
     "rxjs",
     "etl",
     "typescript",
+    "javascript",
     "lib",
     "node"
   ],

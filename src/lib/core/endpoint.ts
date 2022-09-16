@@ -2,7 +2,8 @@ import { Observable } from "rxjs";
 
 export class Endpoint<T> {
 
-    public createReadStream(): Observable<T> {
+    //public createReadStream(): Observable<T> {
+    public find(): Observable<T> {
         throw new Error("Method not implemented.");
     }
 

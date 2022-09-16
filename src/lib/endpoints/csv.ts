@@ -13,7 +13,7 @@ export class CsvEndpoint extends Endpoint<string[]> {
         this.delimiter = delimiter;
     }
 
-    public createReadStream(skipEmptyLines = false, skipFirstLine: boolean = false): Observable<string[]> {
+    public find(skipEmptyLines = false, skipFirstLine: boolean = false): Observable<string[]> {
         return new Observable<string[]>((subscriber) => {
             fs.createReadStream(this.filename)
             .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
