@@ -1,5 +1,6 @@
-import { lastValueFrom, Observable } from "rxjs";
+import { lastValueFrom, Observable, forkJoin } from "rxjs";
 
-export async function run<T>(observable: Observable<T>) {
-    await lastValueFrom<T>(observable);
+export async function run(...observables: Observable<any>[]) {
+    const observable = forkJoin([...observables]);
+    await lastValueFrom<any>(observable);
 }
