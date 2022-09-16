@@ -1,11 +1,11 @@
 {
   "name": "rxjs-etl-kit",
-  "version": "1.0.7",
+  "version": "1.0.10",
   "description": "ETL extension for rxjs library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/test.ts",
     "compile": "tsc",
     "publicate": "yarn publish",
     "test": "node src/test.ts"
@@ -14,12 +14,14 @@
     "rxjs",
     "etl",
     "typescript",
-    "lib"
+    "lib",
+    "node"
   ],
   "author": "Berezhnoy I.A.",
   "license": "Apache-2.0",
   "dependencies": {
     "csv": "^6.2.0",
+    "pg": "^8.8.0",
     "rxjs": "^7.5.6"
   },
   "devDependencies": {
