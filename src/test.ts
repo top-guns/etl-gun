@@ -1,5 +1,5 @@
 import { interval, map, take } from "rxjs";
-import { BufferEndpoint, PostgresEndpoint, log, push } from './lib';
+import * as etl from './lib';
 
 
 console.log("START");
@@ -9,25 +9,22 @@ async function f() {
 
 
         const timer$ = interval(1000);
-        const buf = new BufferEndpoint<number>();
-        const table = new PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm");
+        const buf = new etl.BufferEndpoint<number>();
+        const bufArrays = new etl.BufferEndpoint<any[]>([0,1], [2,3], [3,6]);
+        const table = new etl.PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm");
 
-        let Src2Buf$ = table.find().pipe(
-            take(5),
-            //map(v => ({v})),
-            //map(v => ([v])),
-            //take(3),
-            //numerate(5),
-            log(),
-            //map(v => parseInt(v[0]) * 2),
-            map(v => v.id),
-            //map(v => v[0]),
-            push(buf)
-        );
+        let tt$ = timer$.pipe(
+            etl.numerate("index", "value", 10),
+            //map(v => (v.)), 
+            
+            //etl.log(),
+            etl.join(table.find().pipe(take(2))),
+            //etl.join(bufArrays.find()),
+            etl.log()
+        )
 
-        //await run(Src2Buf$);
-        await Src2Buf$.toPromise();
-        console.log("Src2Buf$ end");
+        await etl.run(tt$);// .toPromise();
+        console.log("END");
 
 
     }
