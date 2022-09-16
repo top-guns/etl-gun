@@ -1,3 +1,4 @@
 export { log } from './log';
-export { pushIndex, addIndex, numerate } from './numerate';
+export { numerate, numerateArrays, numerateObjects } from './numerate';
 export { push } from './push';
+export { join, joinArrays, joinObjects } from './join';

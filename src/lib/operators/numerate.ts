@@ -1,6 +1,6 @@
 import { map, OperatorFunction } from "rxjs";
 
-export function pushIndex<T extends {push: any}>(fromIndex: number = 0): OperatorFunction<T, T> {
+export function numerateArrays<T extends {push: any}>(fromIndex: number = 0): OperatorFunction<T, T> {
     let index = fromIndex - 1;
 
     return map<T, T>(value => {
@@ -10,7 +10,7 @@ export function pushIndex<T extends {push: any}>(fromIndex: number = 0): Operato
     });
 }
 
-export function addIndex<T extends object>(fromIndex: number = 0): OperatorFunction<T, T & {index: number}> {
+export function numerateObjects<T extends Record<string, any>>(fromIndex: number = 0): OperatorFunction<T, T & {index: number}> {
     let index = fromIndex - 1;
 
     return map<T, T & {index: number}>(value => {
@@ -20,22 +20,33 @@ export function addIndex<T extends object>(fromIndex: number = 0): OperatorFunct
     });
 }
 
-export function numerate<T extends object, R = T & {index: number}>(fromIndex: number = 0): OperatorFunction<T, R> {
+export function numerate<T, R = any>(indexField: string = "", valueField: string = "", fromIndex: number = 0): OperatorFunction<T, R> {
     let index = fromIndex - 1;
 
     return map<T, R>(value => {
+        index++;
+
         if (Array.isArray(value)) {
-            index++;
             value.push(index);
-            return value as T & {index: number};
+            return value as any;
         }
 
-        if (typeof value === 'object') {
-            let v: any = value as any;
-            v.index = index;
-            return v;
+        if (indexField) {
+            if (valueField) {
+                let res: any = {};
+                res[indexField] = index;
+                res[valueField] = value;
+                return res;
+            }
+
+            if (typeof value === 'object') {
+                (value as any)[indexField] = index;
+                return value as any;
+            }
+
+            throw new Error("You should specify value field name in the numerate.");
         }
 
-        throw new Error("Operator 'numerate' cannot be used with scalar type operand. Type of operand is '" + typeof value + "'.");
+        return [value, index] as any;
     });
 }
