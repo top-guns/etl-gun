@@ -23,8 +23,6 @@ RxJS-ETL-Kit is a platform that employs RxJS observables, allowing developers to
     * [Transform](#transform)
     * [Load](#load)
     * [Chaining](#chaining)
-    * [Scheduling](#scheduling)
-    * [Notifications](#notifications)
 * [API Reference](#api-reference)
     * [Endpoints](#databases)
         * [BufferEndpoint](#bufferendpoint)
@@ -134,10 +132,6 @@ Loading of data to the destination endpoint performs with **push** operator.
 Chaning of data transformation performs with **pipe** method of the input data stream.
 
 Chaning of several streams performs by using **await** under the **run** procedure.
-
-## Scheduling
-
-## Notifications
 
 ---
 
