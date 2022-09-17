@@ -13,13 +13,21 @@
   "keywords": [
     "rxjs",
     "etl",
+    "extract",
+    "transform",
+    "load",
     "typescript",
     "javascript",
     "lib",
     "node",
+    "nodejs",
     "csv",
     "json",
-    "database"
+    "jsonpath",
+    "xml",
+    "xpath",
+    "database",
+    "postgresql"
   ],
   "author": "Berezhnoy I.A.",
   "license": "MIT",
