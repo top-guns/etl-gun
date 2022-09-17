@@ -7,7 +7,7 @@ export class Endpoint<T> {
         throw new Error("Method not implemented.");
     }
 
-    public async push(value: T) {
+    public async push(value: T, ...params: any[]) {
         throw new Error("Method not implemented.");
     }
 
