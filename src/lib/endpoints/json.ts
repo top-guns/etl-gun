@@ -42,7 +42,6 @@ export class JsonEndpoint extends Endpoint<any> {
                         }
                     }
                 }
-
                 subscriber.complete();
             }
             catch(err) {
@@ -56,7 +55,7 @@ export class JsonEndpoint extends Endpoint<any> {
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
     public readByJsonPath(jsonPath?: string): Observable<any>;
-    public readByJsonPath(jsonPath?: string[]): Observable<any>;
+    public readByJsonPath(jsonPaths?: string[]): Observable<any>;
     public readByJsonPath(jsonPath: any = ''): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
@@ -69,9 +68,14 @@ export class JsonEndpoint extends Endpoint<any> {
                             subscriber.next(value);
                         });
                     }
-                    else subscriber.next(result);
+                    else if (typeof result == 'object') {
+                        for (let key in result) {
+                            if (result.hasOwnProperty(key)) {
+                                subscriber.next(result[key]);
+                            }
+                        }
+                    }
                 }
-
                 subscriber.complete();
             }
             catch(err) {
@@ -83,21 +87,23 @@ export class JsonEndpoint extends Endpoint<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public get(path: string = ''): Observable<any> {
-        return new Observable<any>((subscriber) => {
-            try {
-                if (this.autoload) this.load();
+    public get(path: string = ''): any {
+        if (this.autoload) this.load();
+        path = path.trim();
+        let result: any = path ? get(this.json, path) : this.json;
+        return result;
+    }
 
-                path = path.trim();
-                let result: any = path ? get(this.json, path) : this.json;
-                if (result) subscriber.next(result);
-
-                subscriber.complete();
-            }
-            catch(err) {
-                subscriber.error(err);
-            }
-        });
+    // Uses complex JSONPath standart for path syntax
+    // About path syntax read https://www.npmjs.com/package/jsonpath-plus
+    // path example: '$.store.book[*].author'
+    // use path '$' for the root object
+    public getByJsonPath(jsonPath?: string): any;
+    public getByJsonPath(jsonPaths?: string[]): any;
+    public getByJsonPath(jsonPath: any = ''): any {
+        if (this.autoload) this.load();
+        let result: any = JSONPath({path: jsonPath, json: this.json, wrap: false});
+        return result;
     }
 
     // Pushes value to the array specified by simple path
