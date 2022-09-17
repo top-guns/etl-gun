@@ -1,6 +1,6 @@
-# RxJS-ETL-Kit
+# RxJs-ETL-Kit
 
-RxJS-ETL-Kit is a platform that employs RxJS observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
+RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
@@ -44,12 +44,12 @@ RxJS-ETL-Kit is a platform that employs RxJS observables, allowing developers to
 
 # Why / when would I need this?
 
-**RxJS-ETL-Kit** is a simple **ETL glue** represented as an extention to the **RxJS** library. 
-Typically, you'd use **RxJS-ETL-Kit** to help with your existing ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
+**RxJs-ETL-Kit** is a simple **ETL glue** represented as an extention to the **RxJs** library. 
+Typically, you'd use **RxJs-ETL-Kit** to help with your existing ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
 
 You can use javascript and typescript to use it.
 
-**RxJS-ETL-Kit** will **NOT** help you with "big data" - it executes on the one computer and is not supports clustering.
+**RxJs-ETL-Kit** will **NOT** help you with "big data" - it executes on the one computer and is not supports clustering.
 
 Here's somne ways to use it:
 
@@ -57,7 +57,7 @@ Here's somne ways to use it:
 2. Run some queries in database
 3. Do some processing the files (e.g. rename or even filter content of some files)
 
-You can find many examples of using **RxJS-ETL-Kit** in the API section of this readme file.
+You can find many examples of using **RxJs-ETL-Kit** in the API section of this readme file.
 
 ---
 
@@ -75,7 +75,7 @@ yarn add rxjs-etl-kit
 
 # Usage
 
-Require the RxJS-ETL-Kit library in the desired file to make it accessible.
+Require the RxJs-ETL-Kit library in the desired file to make it accessible.
 
 Introductory example: postgresql -> .csv
 ```js
@@ -100,7 +100,7 @@ await run(sourceToDest$);
 # Features
 
 * Extract data from the different source endpoints, for example PostgreSql, .csv-files
-* Transform data with **RxJS** and **RxJS-ETL-Kit** operators
+* Transform data with **RxJs** and **RxJs-ETL-Kit** operators
 * Load data to the different destination endpoints, for example PostgreSql, .csv-files
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
 
@@ -120,7 +120,7 @@ Data extraction from the source endpoint performs with **read** endpoint method,
 
 ## Transform
 
-Use any **RxJS** and **RxJS-ETL-Kit** operators inside **pipe** method of the input stream to transform the input data.
+Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe** method of the input stream to transform the input data.
 
 To complex data transformation you can use the **BufferEndpoint** class, which can store data and have **forEach** and some other methods to manipolate with data in it.
 
@@ -238,7 +238,7 @@ etl.run(logUsers$)
 
 ## Operators
 
-Apart from operators from this library, you can use any operators of **RxJS** library.
+Apart from operators from this library, you can use any operators of **RxJs** library.
 
 ### log
 
@@ -249,10 +249,10 @@ Prints the value from the stream to the console.
 Example
 
 ```js
-const rxjs = require('rxjs');
+const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
-let stream$ = rxjs.interval(1000).pipe(
+let stream$ = rx.interval(1000).pipe(
     etl.log()
 );
 
@@ -268,10 +268,10 @@ This operator is analog of **where** operation in SQL and is synonym of the **fi
 Example
 
 ```js
-const rxjs = require('rxjs');
+const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
-let stream$ = rxjs.interval(1000).pipe(
+let stream$ = rx.interval(1000).pipe(
     etl.where(v => v % 2 === 0),
     etl.log()
 );
@@ -287,12 +287,12 @@ This operator call the **Endpoint.push** method to push value from stream to the
 Example
 
 ```js
-const rxjs = require('rxjs');
+const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
 let csv = etl.CsvEndpoint('test.csv');
 
-let stream$ = rxjs.interval(1000).pipe(
+let stream$ = rx.interval(1000).pipe(
     etl.push(csv)
 );
 
