@@ -29,6 +29,7 @@ RxJS-ETL-Kit is a platform that employs RxJS observables, allowing developers to
     * [Endpoints](#databases)
         * [BufferEndpoint](#bufferendpoint)
         * [CsvEndpoint](#csvendpoint)
+        * [JsonEndpoint](#jsonendpoint)
         * [PostgresEndpoint](#postgresendpoint)
     * [Operators](#operators)
         * [log](#log)
@@ -80,8 +81,8 @@ Require the RxJS-ETL-Kit library in the desired file to make it accessible.
 
 Introductory example: postgresql -> .csv
 ```js
-const {PostgresEndpoint, CsvEndpoint, Header, log, push, run} = require('rxjs-etl-kit');
-const {map} = require('rxjs');
+const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require('rxjs-etl-kit');
+const { map } = require('rxjs');
 
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");
@@ -176,7 +177,7 @@ etl.run(bufferToCsv$)
 
 <a name="csv" href="#csv">#</a> etl.<b>CsvEndpoint</b>([<i>options</i>])
 
-Parses incoming csv text file into individual records. Every record is csv-string and presented ad array of values.
+Parses source csv file into individual records or write record to the end of destination csv file. Every record is csv-string and presented as array of values.
 
 Example
 
@@ -191,6 +192,33 @@ let logCsvRows$ = csv.read().pipe(
 
 etl.run(logCsvRows$)
 ```
+
+### JsonEndpoint
+
+<a name="json" href="#csv">#</a> etl.<b>JsonEndpoint</b>([<i>options</i>])
+
+Read and write json file with buffering it in memory. You can get objects from json by path specifing in JSONPath format or to jodash simple path maner (see logash 'get' function).
+
+Example
+
+```js
+const etl = require('rxjs-etl-kit');
+const { tap } = require('rxjs');
+
+let json = etl.CsvEndpoint('test.json');
+
+let logJsonAuthors$ = json.readByJsonPath('$.store.book[*].author').pipe(
+    etl.log()
+);
+
+let logJsonBookNames$ = json.read('store.book').pipe(
+    tap(book => console.log(book.name))
+);
+
+await etl.run(logJsonAuthors$, logJsonBookNames$);
+```
+
+
 
 ### PostgresEndpoint
 
@@ -342,8 +370,8 @@ etl.run(stream$)
 This class can store array of column names and convert object to array or array to object representation..
 
 ```js
-const {PostgresEndpoint, CsvEndpoint, Header, log, push, run} = require('rxjs-etl-kit');
-const {map} = require('rxjs');
+const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require('rxjs-etl-kit');
+const { map } = require('rxjs');
 
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");

@@ -16,12 +16,17 @@
     "typescript",
     "javascript",
     "lib",
-    "node"
+    "node",
+    "csv",
+    "json",
+    "database"
   ],
   "author": "Berezhnoy I.A.",
   "license": "MIT",
   "dependencies": {
     "csv": "^6.2.0",
+    "jsonpath-plus": "^7.2.0",
+    "lodash": "^4.17.21",
     "pg": "^8.8.0",
     "rxjs": "^7.5.6"
   },
