@@ -86,11 +86,12 @@ const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1
 const dest = new CsvEndpoint("users.csv");
 const header = new Header(["id", "name", "login", "email"]);
 
-let sourceToDest$ = source.read().pipe(
+const sourceToDest$ = source.read().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
 );
+
 await run(sourceToDest$);
  ```
 
