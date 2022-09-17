@@ -7,16 +7,17 @@ export class PostgresEndpoint<T = Record<string, any>> extends Endpoint<T> {
     protected pool: any;
 
     constructor(table: string, url: string);
-    constructor(table: string, pool: any) {
+    constructor(table: string, pool: any);
+    constructor(table: string, connection: any) {
         super();
         this.table = table;
 
-        if (typeof pool == "string") {
-            const config = { connectionString: pool };
+        if (typeof connection == "string") {
+            const config = { connectionString: connection };
             this.pool = new pg.Pool(config);
         }
         else {
-            this.pool = pool;
+            this.pool = connection;
         }
     }
 
