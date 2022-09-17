@@ -1,7 +1,7 @@
 import * as fs from "fs";
-import { Endpoint } from "../core/endpoint";
-import { parse } from "csv-parse";
 import { Observable } from 'rxjs';
+import { parse } from "csv-parse";
+import { Endpoint } from "../core/endpoint";
 
 export class CsvEndpoint extends Endpoint<string[]> {
     protected filename: string;
@@ -13,21 +13,25 @@ export class CsvEndpoint extends Endpoint<string[]> {
         this.delimiter = delimiter;
     }
 
-    public read(skipEmptyLines = false, skipFirstLine: boolean = false): Observable<string[]> {
+    public read(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]> {
         return new Observable<string[]>((subscriber) => {
-            fs.createReadStream(this.filename)
-            .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
-            .on("data", (row: string[]) => {
-                if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) return;
-                subscriber.next(row);
-            })
-            .on("end", () => {
-                subscriber.complete();
-            })
-            .on('error', (err) => {
+            try {
+                fs.createReadStream(this.filename)
+                .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
+                .on("data", (row: string[]) => {
+                    if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) return;
+                    subscriber.next(row);
+                })
+                .on("end", () => {
+                    subscriber.complete();
+                })
+                .on('error', (err) => {
+                    subscriber.error(err);
+                }); 
+            }
+            catch(err) {
                 subscriber.error(err);
-            }); 
-
+            }
         });
     }
 
