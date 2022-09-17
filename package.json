@@ -19,7 +19,7 @@
     "node"
   ],
   "author": "Berezhnoy I.A.",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "dependencies": {
     "csv": "^6.2.0",
     "pg": "^8.8.0",
