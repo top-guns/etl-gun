@@ -9,7 +9,7 @@ export class BufferEndpoint<T = any> extends Endpoint<T> {
         this.buffer = [...values];
     }
 
-    public find(): Observable<T> {
+    public read(): Observable<T> {
         return from(this.buffer);
     }
 

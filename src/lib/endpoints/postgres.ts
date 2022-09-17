@@ -20,7 +20,7 @@ export class PostgresEndpoint<T = Record<string, any>> extends Endpoint<T> {
         }
     }
 
-    public find(where: string | {} = ''): Observable<T> {
+    public read(where: string | {} = ''): Observable<T> {
         return new Observable<T>((subscriber) => {
             try {
                 let params = [];

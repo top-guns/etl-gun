@@ -18,8 +18,8 @@ async function f() {
             //map(v => (v.)), 
             
             //etl.log(),
-            etl.join(table.find().pipe(take(2))),
-            //etl.join(bufArrays.find()),
+            etl.join(table.read().pipe(take(2))),
+            //etl.join(bufArrays.read()),
             etl.log()
         )
 
