@@ -25,7 +25,7 @@ RxJS-ETL-Kit is a platform that employs RxJS observables, allowing developers to
     * [Chaining](#chaining)
     * [Scheduling](#scheduling)
     * [Notifications](#notifications)
-* [API](#api)
+* [API Reference](#api-reference)
     * [Endpoints](#databases)
         * [BufferEndpoint](#bufferendpoint)
         * [CsvEndpoint](#csvendpoint)
@@ -140,7 +140,7 @@ Chaning of several streams performs by using **await** under the **run** procedu
 
 ---
 
-# API
+# API Reference
 
 ## Endpoints
 
