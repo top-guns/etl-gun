@@ -1,8 +1,15 @@
 import * as fs from "fs";
-import { Observable } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
 import { get } from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
 import { Endpoint } from "../core/endpoint";
+
+export type ReadOptions = {
+    // foundedOnly is default
+    searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
+    addRelativePathAsField?: string;
+}
+
 
 export class JsonEndpoint extends Endpoint<any> {
     protected filename: string;
@@ -23,21 +30,34 @@ export class JsonEndpoint extends Endpoint<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public read(pathToCollection: string = ''): Observable<any> {
+    public read(path: string = '', options: ReadOptions = {}): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
                 if (this.autoload) this.load();
 
-                pathToCollection = pathToCollection.trim();
-                let result: any = this.get(pathToCollection);
+                path = path.trim();
+                let result: any = this.get(path);
                 if (result) {
-                    if (Array.isArray(result)) {
-                        result.forEach(value => subscriber.next(result))
+                    if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
+                        if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
+                        subscriber.next(result);
                     }
-                    else if (typeof result == 'object') {
-                        for (let key in result) {
-                            if (result.hasOwnProperty(key)) {
-                                subscriber.next(result[key]);
+                    if (options.searchReturns == 'foundedWithDescendants') {
+                        this.sendElementWithChildren(result, subscriber, options, '');
+                    }
+                    if (options.searchReturns == 'foundedImmediateChildrenOnly') {
+                        if (Array.isArray(result)) {
+                            result.forEach((value, i) => {
+                                if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
+                                subscriber.next(value);
+                            });
+                        }
+                        else if (typeof result === 'object') {
+                            for (let key in result) {
+                                if (result.hasOwnProperty(key)) {
+                                    if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
+                                    subscriber.next(result[key]);
+                                }
                             }
                         }
                     }
@@ -54,27 +74,42 @@ export class JsonEndpoint extends Endpoint<any> {
     // About path syntax read https://www.npmjs.com/package/jsonpath-plus
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
-    public readByJsonPath(jsonPath?: string): Observable<any>;
-    public readByJsonPath(jsonPaths?: string[]): Observable<any>;
-    public readByJsonPath(jsonPath: any = ''): Observable<any> {
+    public readByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
+    public readByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
+    public readByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
                 if (this.autoload) this.load();
 
-                let result: any = JSONPath({path: jsonPath, json: this.json, wrap: false});
-                if (result) {
-                    if (Array.isArray(result)) {
-                        result.forEach(value => {
-                            subscriber.next(value);
-                        });
-                    }
-                    else if (typeof result == 'object') {
-                        for (let key in result) {
-                            if (result.hasOwnProperty(key)) {
-                                subscriber.next(result[key]);
+                let result: any = JSONPath({path: jsonPath, json: this.json, wrap: true});
+                if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
+                    result.forEach(value => {
+                        if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``; 
+                        subscriber.next(value);
+                    });
+                }
+                if (options.searchReturns == 'foundedWithDescendants') {
+                    result.forEach(value => {
+                        this.sendElementWithChildren(value, subscriber, options, ``);
+                    });
+                }
+                if (options.searchReturns == 'foundedImmediateChildrenOnly') {
+                    result.forEach(value => {
+                        if (Array.isArray(value)) {
+                            value.forEach((child, i) => {
+                                if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
+                                subscriber.next(child);
+                            });
+                        }
+                        else if (typeof value === 'object') {
+                            for (let key in value) {
+                                if (value.hasOwnProperty(key)) {
+                                    if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
+                                    subscriber.next(value[key]);
+                                }
                             }
                         }
-                    }
+                    });
                 }
                 subscriber.complete();
             }
@@ -82,6 +117,26 @@ export class JsonEndpoint extends Endpoint<any> {
                 subscriber.error(err);
             }
         });
+    }
+
+    protected sendElementWithChildren(element: any, subscriber: Subscriber<any>, options: ReadOptions = {}, relativePath = '') {
+        if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
+        subscriber.next(element);
+
+        if (Array.isArray(element)) {
+            element.forEach((child, i) => {
+                this.sendElementWithChildren(child, subscriber, options, `${relativePath}[${i}]`);
+            });
+        }
+        else if (typeof element === 'object') {
+            for (let key in element) {
+                if (element.hasOwnProperty(key)) {
+                    if (Array.isArray(element[key]) || typeof element[key] === 'object') {
+                        this.sendElementWithChildren(element[key], subscriber, options, relativePath ? `${relativePath}.${key}` : `${key}`);
+                    }
+                }
+            }
+        }
     }
 
     // Uses simple path syntax from lodash.get function

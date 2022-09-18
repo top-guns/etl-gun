@@ -17,7 +17,8 @@ async function f() {
 
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
-        let test$ = xml.read('/store/book/author').pipe(
+        // xml.read('/store/book/author')
+        let test$ = json.readByJsonPath('store.book[*]').pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
             
@@ -25,7 +26,7 @@ async function f() {
             //etl.join(table.read().pipe(take(2))),
             //etl.join(bufArrays.read()),
 
-            map(v => v.firstChild.nodeValue),
+            //map(v => v.firstChild.nodeValue),
             etl.log(),
         )
 
@@ -35,7 +36,7 @@ async function f() {
 
     }
     catch (err) {
-        console.log(err);
+        console.log("ERROR: ", err);
     }
 }
 f();
