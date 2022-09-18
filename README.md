@@ -225,7 +225,7 @@ getByJsonPath(jsonPath: string): any;
 // path: where value will be added as child, specified in lodash simple path manner
 // fieldname: name of the field to which the value will be added, 
 //            and flag - is we add value to array or to object
-async push(value: any, path: string = '', fieldname: string = '');
+async push(value: any, path?: string, fieldname?: string);
 
 // Clear the json file and write an empty object to it
 async clear();
