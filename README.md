@@ -28,6 +28,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [BufferEndpoint](#bufferendpoint)
         * [CsvEndpoint](#csvendpoint)
         * [JsonEndpoint](#jsonendpoint)
+        * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
     * [Operators](#operators)
         * [log](#log)
@@ -200,20 +201,40 @@ Example
 const etl = require('rxjs-etl-kit');
 const { tap } = require('rxjs');
 
-let json = etl.CsvEndpoint('test.json');
+let json = etl.JsonEndpoint('test.json');
 
-let logJsonAuthors$ = json.readByJsonPath('$.store.book[*].author').pipe(
-    etl.log()
-);
-
-let logJsonBookNames$ = json.read('store.book').pipe(
+let printJsonBookNames$ = json.read('store.book').pipe(
     tap(book => console.log(book.name))
 );
 
-await etl.run(logJsonAuthors$, logJsonBookNames$);
+let printJsonAuthors$ = json.readByJsonPath('$.store.book[*].author').pipe(
+    etl.log()
+);
+
+await etl.run(printJsonAuthors$, printJsonBookNames$);
 ```
 
+### XmlEndpoint
 
+<a name="xml" href="#xml">#</a> etl.<b>XmlEndpoint</b>([<i>options</i>])
+
+Read and write XML document with buffering it in memory. You can get nodes from XML by path specifing in XPath format.
+
+Example
+
+```js
+const etl = require('rxjs-etl-kit');
+const { map } = require('rxjs');
+
+let xml = etl.XmlEndpoint('test.xml');
+
+let printXmlAuthors$ = json.read('/store/book/author').pipe(
+    map(v => v.firstChild.nodeValue),
+    etl.log()
+);
+
+await etl.run(printXmlAuthors$);
+```
 
 ### PostgresEndpoint
 
