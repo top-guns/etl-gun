@@ -10,7 +10,6 @@ export type ReadOptions = {
     addRelativePathAsField?: string;
 }
 
-
 export class JsonEndpoint extends Endpoint<any> {
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -22,9 +21,9 @@ export class JsonEndpoint extends Endpoint<any> {
         super();
         this.filename = filename;
         this.encoding = encoding;
-        this.load();
         this.autosave = autosave;
         this.autoload = autoload;
+        this.load();
     }
 
     // Uses simple path syntax from lodash.get function
@@ -33,8 +32,6 @@ export class JsonEndpoint extends Endpoint<any> {
     public read(path: string = '', options: ReadOptions = {}): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
-                if (this.autoload) this.load();
-
                 path = path.trim();
                 let result: any = this.get(path);
                 if (result) {
@@ -79,9 +76,7 @@ export class JsonEndpoint extends Endpoint<any> {
     public readByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
-                if (this.autoload) this.load();
-
-                let result: any = JSONPath({path: jsonPath, json: this.json, wrap: true});
+                let result: any = this.getByJsonPath(jsonPath);
                 if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                     result.forEach(value => {
                         if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``; 
@@ -157,7 +152,7 @@ export class JsonEndpoint extends Endpoint<any> {
     public getByJsonPath(jsonPaths?: string[]): any;
     public getByJsonPath(jsonPath: any = ''): any {
         if (this.autoload) this.load();
-        let result: any = JSONPath({path: jsonPath, json: this.json, wrap: false});
+        let result: any = JSONPath({path: jsonPath, json: this.json, wrap: true});
         return result;
     }
 
