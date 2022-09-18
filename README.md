@@ -191,11 +191,74 @@ etl.run(logCsvRows$)
 
 ### JsonEndpoint
 
-<a name="json" href="#csv">#</a> etl.<b>JsonEndpoint</b>([<i>options</i>])
+Read and write json file with buffering it in memory. You can get objects from json by path specifing in JSONPath format or in lodash simple path manner (see logash 'get' function documentation).
 
-Read and write json file with buffering it in memory. You can get objects from json by path specifing in JSONPath format or to jodash simple path maner (see logash 'get' function).
+Constructor:
 
-Example
+```js
+// filename: full or relative name of the json file
+// autosave: save json from memory to the file after every change
+// autoload: load json from the file to memory before every get or search operation
+// encoding: file encoding
+public JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding)
+```
+
+Methods:
+
+```js
+// Find and send to observable child objects by specified path
+// path: search path in lodash simple path manner
+// jsonPath: search path in JSONPath format
+// options: see below
+read(path: string, options?: ReadOptions): Observable<any>
+readByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>
+```
+
+```js
+// Find and return child object by specified path
+// path: search path in lodash simple path manner
+// jsonPath: search path in JSONPath format
+get(path: string): any
+getByJsonPath(jsonPath: string): any
+```
+
+```js
+// If fieldname is specified, the function find the object by path and add value as its field
+// If fieldname is not specified, the function find the array by path and push value to it
+// value: what will be added to the json
+// path: where value will be added as child, specified in lodash simple path manner
+// fieldname: name of the field to which the value will be added, and flag - is we add value to array or to object
+async push(value: any, path: string = '', fieldname: string = ''): Promise<void>
+```
+
+```js
+// Clear the json file and write an empty object to it
+async clear()
+```
+
+```js
+// Reload the json to the memory from the file
+load()
+```
+
+```js
+// Save the json from the memory to the file
+save()
+```
+
+Types:
+
+```js
+type ReadOptions = {
+    searchReturns?: 'foundedOnly'           // Default value, means that only search results objects will be sended to observable by the function
+        | 'foundedImmediateChildrenOnly'    // Only the immidiate children of search results objects will be sended to observable 
+        | 'foundedWithDescendants';         // Recursive send all objects from the object tree of every search result, including search result object itself
+
+    addRelativePathAsField?: string;        // If specified, the relative path will be added to the sended objects as addRelativePathAsField field 
+}
+```
+
+Example:
 
 ```js
 const etl = require('rxjs-etl-kit');
@@ -207,7 +270,7 @@ let printJsonBookNames$ = json.read('store.book').pipe(
     tap(book => console.log(book.name))
 );
 
-let printJsonAuthors$ = json.readByJsonPath('$.store.book[*].author').pipe(
+let printJsonAuthors$ = json.readByJsonPath('$.store.book[*].author', {searchReturns: 'foundedOnly', addRelativePathAsField: "path"}).pipe(
     etl.log()
 );
 
@@ -216,7 +279,7 @@ await etl.run(printJsonAuthors$, printJsonBookNames$);
 
 ### XmlEndpoint
 
-<a name="xml" href="#xml">#</a> etl.<b>XmlEndpoint</b>([<i>options</i>])
+<a name="xml" href="#xml">#</a> etl.<b>XmlEndpoint</b>(<i>filename, autosave?, autoload?, encoding?</i>)
 
 Read and write XML document with buffering it in memory. You can get nodes from XML by path specifing in XPath format.
 
