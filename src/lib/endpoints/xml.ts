@@ -1,8 +1,15 @@
 import * as fs from "fs";
-import { Observable } from 'rxjs';
+import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
-import { DOMParser, XMLSerializer } from 'xmldom';
+//import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
+import 'xmldom-ts';
 import { Endpoint } from "../core/endpoint";
+
+export type ReadOptions = {
+    // foundedOnly is default
+    searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
+    addRelativePathAsAttribute?: string;
+}
 
 // Every node contains:
 // .attributes, .parentNode and .childNodes, which forms nodes hierarchy
@@ -12,7 +19,7 @@ import { Endpoint } from "../core/endpoint";
 export class XmlEndpoint extends Endpoint<any> {
     protected filename: string;
     protected encoding: BufferEncoding;
-    protected xmlDocument: any;
+    protected xmlDocument: Document;
     protected autosave: boolean;
     protected autoload: boolean;
 
@@ -20,26 +27,21 @@ export class XmlEndpoint extends Endpoint<any> {
         super();
         this.filename = filename;
         this.encoding = encoding;
-        this.load();
         this.autosave = autosave;
         this.autoload = autoload;
+        this.load();
     }
 
-    public read(xpathToCollection: string = ''): Observable<any> {
+    public read(xpath: string = '', options: ReadOptions = {}): Observable<Node> {
         return new Observable<any>((subscriber) => {
             try {
-                if (this.autoload) this.load();
-                let nodes: any = this.get(xpathToCollection);
-                if (nodes) {
-                    if (Array.isArray(nodes)) {
-                        nodes.forEach(value => {
-                            subscriber.next(value);
-                        });
+                let selectedValue: XPath.SelectedValue = this.get(xpath);
+                if (selectedValue) {
+                    if (Array.isArray(selectedValue)) {
+                        selectedValue.forEach(value => this.processOneSelectedValue(value, options, '', subscriber));
                     }
-                    else if (typeof nodes == 'object') {
-                        for (let i = 0; i < nodes.childNodes.length; i++) {
-                            subscriber.next(nodes.childNodes[i]);
-                        }
+                    else {
+                        this.processOneSelectedValue(selectedValue, options, '', subscriber);
                     }
                 }
                 subscriber.complete();
@@ -50,12 +52,60 @@ export class XmlEndpoint extends Endpoint<any> {
         });
     }
 
+    protected processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>) {
+        const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
+
+        if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
+            if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+            subscriber.next(selectedValue);
+            return;
+        }
+
+        if (options.searchReturns == 'foundedWithDescendants') {
+            this.sendElementWithChildren(selectedValue, subscriber, options, relativePath);
+            return;
+        }
+
+        if (options.searchReturns == 'foundedImmediateChildrenOnly' && element) {
+            element.childNodes.forEach((value, i) => {
+                const childElement = (value as Element).tagName ? value as Element : undefined;
+                let childPath = '';
+                if (childElement) {
+                    childPath = relativePath ? relativePath + `/${element.tagName}[${i}]` : `${element.tagName}[${i}]`;
+                } 
+                if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
+                subscriber.next(value);
+            });
+        }
+    }
+
+    protected sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, options: ReadOptions = {}, relativePath = '') {
+        let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
+        if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+        subscriber.next(selectedValue);
+
+        if (element && element.hasChildNodes()) {
+            const tagIndexes: Record<string, number> = {};
+            element.childNodes.forEach((childNode, i) => {
+                let childElement = (childNode as any).tagName ? childNode as Element : undefined;
+                if (childElement) {
+                    if (!tagIndexes[childElement.tagName]) tagIndexes[childElement.tagName] = 0;
+                    let childPath = `${childElement.tagName}[${tagIndexes[childElement.tagName]}]`;
+                    if (relativePath) childPath = relativePath + '/' + childPath;
+
+                    this.sendElementWithChildren(childElement, subscriber, options, childPath);
+
+                    tagIndexes[childElement.tagName]++;
+                }
+            })
+        }
+    }
+
     // Uses simple path syntax from lodash.get function
     // path example: '/store/book/author'
     // use xpath '' for the root object
-    public get(xpath: string = ''): any {
+    public get(xpath: string = ''): XPath.SelectedValue {
         if (this.autoload) this.load();
-        xpath = xpath.trim();
         let result: any = xpath ? XPath.select(xpath, this.xmlDocument) : this.xmlDocument;
         return result;
     }
@@ -63,27 +113,104 @@ export class XmlEndpoint extends Endpoint<any> {
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
     public async push(value: any, xpath: string = '', attribute: string = '') {
-        const node = this.get(xpath);
+        const selectedValue = this.get(xpath);
+        let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
+        if (!node) throw new Error('Unexpected result of xpath in push method. Should by Node, but we have: ' + selectedValue.toString());
 
-        if (attribute) node.setAttribute(attribute, value);
-        else node.appendChild(value);
+        if (node.nodeType === node.TEXT_NODE) {
+            node.nodeValue = value;
+            return;
+        }
+        if (node.nodeType === node.ELEMENT_NODE) {
+            let element: Element = (node as any).tagName ? node as Element : undefined;
+            if (!element) throw new Error('Unexpected result of xpath in push method. Should by Node, but we have: ' + selectedValue.toString());
+
+            if (attribute) element.setAttribute(attribute, value);
+            else {
+                element.appendChild(value);
+            }
+            return;
+        }
 
         if (this.autosave) this.save();
     }
 
     public async clear() {
-        this.xmlDocument = new DOMParser().parseFromString("");
+        this.xmlDocument = new DOMParser().parseFromString("", 'text/xml'); // ??? Test it !!!
         if (this.autosave) this.save();
     }
 
     public load() {
         const text = fs.readFileSync(this.filename).toString(this.encoding);
-        this.xmlDocument = new DOMParser().parseFromString(text);
+        this.xmlDocument = new DOMParser().parseFromString(text, 'text/xml');
     }
 
     public save() {
-        const text = XMLSerializer.serializeToString(this.xmlDocument);
+        const text = new XMLSerializer().serializeToString(this.xmlDocument);
         fs.writeFile(this.filename, text, function(){});
+    }
+
+    public logNode() {
+        return tap<any>(v => {
+            let node: Node = v.nodeType ? v as Node : undefined;
+            let element: Element = v.nodeType === node.ELEMENT_NODE ? v as Element : undefined;
+
+            if (!node) {
+                console.log(v);
+                return;
+            }
+
+            let printedObject: any = {
+                nodeType: this.getNodeTypeNameByValue(node.nodeType),
+            }
+            
+            if (v.nodeValue) printedObject.nodeValue = v.nodeValue;
+            if (v.nodeName) printedObject.nodeName = v.nodeName;
+            if (v.localName) printedObject.localName = v.localName;
+            if (v.lineNumber) printedObject.lineNumber = v.lineNumber;
+            if (v.columnNumber) printedObject.columnNumber = v.columnNumber;
+            if (v.namespaceURI) printedObject.namespaceURI = v.namespaceURI;
+            if (v.prefix) printedObject.prefix = v.prefix;
+            if (v._data) printedObject._data = v._data;
+            if (v.tagName) printedObject.tagName = v.tagName;
+            
+            if (node.hasChildNodes()) printedObject.childNodes = `[${node.childNodes.length}]`;
+            if (element) {
+                if (element.hasAttributes()) {
+                    printedObject.attributes = [];
+                    for (let i = 0; i < element.attributes.length; i++) {
+                        const attr = element.attributes.item(i);
+                        printedObject.attributes.push({
+                            name: attr.name,
+                            textContent: attr.textContent
+                        });
+                    }
+                }
+            }
+
+            console.log(printedObject);
+        });
+    }
+
+    protected getNodeTypeNameByValue(value: number) {
+        const NodeTypeValues = {
+            ELEMENT_NODE: 1,
+            ATTRIBUTE_NODE: 2,
+            TEXT_NODE: 3,
+            CDATA_SECTION_NODE: 4,
+            ENTITY_REFERENCE_NODE: 5,
+            ENTITY_NODE: 6,
+            PROCESSING_INSTRUCTION_NODE: 7,
+            COMMENT_NODE: 8,
+            DOCUMENT_NODE: 9,
+            DOCUMENT_TYPE_NODE: 10,
+            DOCUMENT_FRAGMENT_NODE: 11,
+            NOTATION_NODE: 12
+        }
+
+        for (let key in NodeTypeValues) {
+            if (NodeTypeValues.hasOwnProperty(key) && NodeTypeValues[key] == value) return key;
+        }
     }
 }
 
