@@ -1,4 +1,4 @@
-import { interval, map, take } from "rxjs";
+import { interval, map, take, tap } from "rxjs";
 import * as etl from './lib';
 
 
@@ -13,10 +13,11 @@ async function f() {
         const bufArrays = new etl.BufferEndpoint<any[]>([0,1], [2,3], [3,6]);
         const table = new etl.PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm");
         const json = new etl.JsonEndpoint('data/test.json');
+        const xml = new etl.XmlEndpoint('data/test.xml');
 
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
-        let test$ = json.read('store.bicycle').pipe(
+        let test$ = xml.read('/store/book/author').pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
             
@@ -24,7 +25,8 @@ async function f() {
             //etl.join(table.read().pipe(take(2))),
             //etl.join(bufArrays.read()),
 
-            etl.log()
+            map(v => v.firstChild.nodeValue),
+            etl.log(),
         )
 
         await etl.run(test$);// .toPromise();
