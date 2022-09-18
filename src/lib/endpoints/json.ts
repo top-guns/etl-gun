@@ -23,13 +23,13 @@ export class JsonEndpoint extends Endpoint<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public read(pathToArray: string = ''): Observable<any> {
+    public read(pathToCollection: string = ''): Observable<any> {
         return new Observable<any>((subscriber) => {
             try {
                 if (this.autoload) this.load();
 
-                pathToArray = pathToArray.trim();
-                let result: any = pathToArray ? get(this.json, pathToArray) : this.json;
+                pathToCollection = pathToCollection.trim();
+                let result: any = this.get(pathToCollection);
                 if (result) {
                     if (Array.isArray(result)) {
                         result.forEach(value => subscriber.next(result))
@@ -108,10 +108,9 @@ export class JsonEndpoint extends Endpoint<any> {
 
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
-    public async push(value: any, path: string = '', fieldname: String = '') {
-        const obj = get(this.json, path);
+    public async push(value: any, path: string = '', fieldname: string = '') {
+        const obj = this.get(path);
 
-        // update property
         if (fieldname) obj[fieldname] = value;
         else obj.push(value);
 
