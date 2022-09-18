@@ -212,36 +212,27 @@ Methods:
 // options: see below
 read(path: string, options?: ReadOptions): Observable<any>
 readByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>
-```
 
-```js
 // Find and return child object by specified path
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
 get(path: string): any
 getByJsonPath(jsonPath: string): any
-```
 
-```js
 // If fieldname is specified, the function find the object by path and add value as its field
 // If fieldname is not specified, the function find the array by path and push value to it
 // value: what will be added to the json
 // path: where value will be added as child, specified in lodash simple path manner
-// fieldname: name of the field to which the value will be added, and flag - is we add value to array or to object
+// fieldname: name of the field to which the value will be added, 
+//            and flag - is we add value to array or to object
 async push(value: any, path: string = '', fieldname: string = ''): Promise<void>
-```
 
-```js
 // Clear the json file and write an empty object to it
 async clear()
-```
 
-```js
 // Reload the json to the memory from the file
 load()
-```
 
-```js
 // Save the json from the memory to the file
 save()
 ```
