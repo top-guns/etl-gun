@@ -200,7 +200,7 @@ Constructor:
 // autosave: save json from memory to the file after every change
 // autoload: load json from the file to memory before every get or search operation
 // encoding: file encoding
-JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding)
+JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding);
 ```
 
 Methods:
@@ -210,14 +210,14 @@ Methods:
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
 // options: see below
-read(path: string, options?: ReadOptions): Observable<any>
-readByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>
+read(path: string, options?: ReadOptions): Observable<any>;
+readByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>;
 
 // Find and return child object by specified path
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
-get(path: string): any
-getByJsonPath(jsonPath: string): any
+get(path: string): any;
+getByJsonPath(jsonPath: string): any;
 
 // If fieldname is specified, the function find the object by path and add value as its field
 // If fieldname is not specified, the function find the array by path and push value to it
@@ -225,16 +225,16 @@ getByJsonPath(jsonPath: string): any
 // path: where value will be added as child, specified in lodash simple path manner
 // fieldname: name of the field to which the value will be added, 
 //            and flag - is we add value to array or to object
-async push(value: any, path: string = '', fieldname: string = ''): Promise<void>
+async push(value: any, path: string = '', fieldname: string = '');
 
 // Clear the json file and write an empty object to it
-async clear()
+async clear();
 
 // Reload the json to the memory from the file
-load()
+load();
 
 // Save the json from the memory to the file
-save()
+save();
 ```
 
 Types:
