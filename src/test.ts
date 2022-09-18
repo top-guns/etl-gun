@@ -18,7 +18,7 @@ async function f() {
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
         // xml.read('/store/book/author')
-        let test$ = json.readByJsonPath('store.book[*]').pipe(
+        let test$ = json.readByJsonPath('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsField: "path"}).pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
             

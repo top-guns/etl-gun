@@ -200,7 +200,7 @@ Constructor:
 // autosave: save json from memory to the file after every change
 // autoload: load json from the file to memory before every get or search operation
 // encoding: file encoding
-public JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding)
+JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding)
 ```
 
 Methods:
