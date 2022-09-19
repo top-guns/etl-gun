@@ -24,7 +24,9 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
     * [Load](#load)
     * [Chaining](#chaining)
 * [API Reference](#api-reference)
-    * [Endpoints](#databases)
+    * [Core](#core)
+        * [Endpoint](#endpoint)
+    * [Endpoints](#endpoints)
         * [BufferEndpoint](#bufferendpoint)
         * [CsvEndpoint](#csvendpoint)
         * [JsonEndpoint](#jsonendpoint)
@@ -100,10 +102,11 @@ await run(sourceToDest$);
 
 # Features
 
-* Extract data from the different source endpoints, for example PostgreSql, .csv-files
+* Extract data from the different source endpoints, for example PostgreSql, csv, json, xml
 * Transform data with **RxJs** and **RxJs-ETL-Kit** operators
-* Load data to the different destination endpoints, for example PostgreSql, .csv-files
+* Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
+* Whith endpoint events mechanism you can handle differently stream events, for example stream start/end, error and other (see [Endpoint](#endpoint))
 
 ---
 
