@@ -139,15 +139,77 @@ Chaning of several streams performs by using **await** under the **run** procedu
 
 # API Reference
 
+## Core
+
+### Endpoint
+
+Base class for all endpoints. Declares public interface of endpoint and implements event mechanism.
+
+Methods:
+
+```js
+// Read data from the endpoint and create data stream to process it
+read(): Observable<any>;
+
+// Add value to the data of endpoint (usually to the end of stream)
+// value: what will be added to the endpoint data
+async push(value: any);
+
+// Clear data of the endpoint
+async clear();
+
+// Add listener of specified event
+// event: which event we want to listen
+//        Events values:
+//        'start' - fires at the start of stream
+//        'end'   - at the end of stream
+//        'data'  - for every data value in the stream 
+//        'error' - on error
+//        'skip'  - when the endpoint skip some data value
+//        'up'    - when the endpoint go to the parent element while the tree data processing
+//        'down'  - when the endpoint go to the child element while the tree data processing
+// listener: callback function to handle events
+on(event: string, listener: (...data: any[]) => void);
+```
+
 ## Endpoints
 
 ### BufferEndpoint
 
-<a name="buffer" href="#buffer">#</a> etl.<b>BufferEndpoint</b>([<i>options</i>])
+Buffer to store values in memory and perform complex operations on it. 
+This is a generic class and you can specify type of data which will be stored in the endpoint.
 
-Buffer to store values in memory and perform complex operations on it.
+Constructor:
 
-Example
+```js
+// values: You can specify start data which will be placed to endpoint buffer
+BufferEndpoint(...values: T[]);
+```
+
+Methods:
+
+```js
+// Create the observable object and send data from the buffer to it
+read(): Observable<T>;
+
+// Pushes the value to the buffer 
+// value: what will be added to the buffer
+async push(value: T);
+
+// Clear endpoint data buffer
+async clear();
+
+// Sort buffer data
+// compareFn: You can spacify the comparison function which returns number 
+//            (for example () => v1 - v2, it is behaviour equals to Array.sort())
+//            or which returns boolean (for example () => v1 > v2)
+sort(compareFn: (v1: T, v2: T) => number | boolean);
+
+// This function is equals to Array.forEach
+forEach(callbackfn: (value: T, index: number, array: T[]) => void);
+```
+
+Example:
 
 ```js
 const etl = require('rxjs-etl-kit');
@@ -171,11 +233,33 @@ etl.run(bufferToCsv$)
 
 ### CsvEndpoint
 
-<a name="csv" href="#csv">#</a> etl.<b>CsvEndpoint</b>([<i>options</i>])
+Parses source csv file into individual records or write record to the end of destination csv file. Every record is csv-string and presented by array of values.
 
-Parses source csv file into individual records or write record to the end of destination csv file. Every record is csv-string and presented as array of values.
+Constructor:
 
-Example
+```js
+// filename: full or relative name of the csv file
+// delimiter: delimiter of values in one string of file data, equals to ',' by default
+CsvEndpoint(filename: string, delimiter?: string);
+```
+
+Methods:
+
+```js
+// Create the observable object and send file data to it string by string
+// skipFirstLine: skip the first line in the file, useful for skip header
+// skipEmptyLines: skip all empty lines in file
+read(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]>;
+
+// Add row to the end of file with specified value 
+// value: what will be added to the file
+async push(value: string[]);
+
+// Clear the csv file
+async clear();
+```
+
+Example:
 
 ```js
 const etl = require('rxjs-etl-kit');
@@ -292,12 +376,42 @@ await etl.run(printXmlAuthors$);
 
 ### PostgresEndpoint
 
-<a name="postgres" href="#postgres">#</a> etl.<b>PostgresEndpoint</b>([<i>options</i>])
-
 Presents the table from the PostgreSQL database. 
-Connection to the database can be performed using connection string or through existing pool.
+Connection to the database can be performed using connection string or through the existing pool.
 
-Example
+Constructor:
+
+```js
+// table: Table name in database
+// url: Connection string
+// pool: You can specify the existing connection pool instead of new connection creation
+PostgresEndpoint(table: string, url: string);
+PostgresEndpoint(table: string, pool: any);
+```
+
+Methods:
+
+```js
+// Create the observable object and send data from the database table to it
+// where: you can filter incoming data by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+read(where: string | {} = ''): Observable<T>;
+
+// Insert value to the database table
+// value: what will be added to the database
+async push(value: T);
+
+// Clear database table
+// where: you can filter table rows to deleting by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+async clear(where: string | {} = '');
+```
+
+Example:
 
 ```js
 const etl = require('rxjs-etl-kit');
