@@ -30,10 +30,12 @@ export class BufferEndpoint<T = any> extends EndpointImpl<T> {
     }
 
     public async push(value: T) {
+        super.push(value);
         this.buffer.push(value); 
     }
 
     public async clear() {
+        super.clear();
         this.buffer = [];
     }
 

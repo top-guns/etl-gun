@@ -51,6 +51,7 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
     }
 
     public async push(value: string[]) {
+        super.push(value);
         const strVal = this.getCsvStrFromStrArr(value) + "\n";
         await fs.appendFile(this.filename, strVal, function (err) {
             if (err) throw err;
@@ -58,6 +59,7 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
     }
 
     public async clear() {
+        super.clear();
         fs.writeFile(this.filename, '', function(){})
     }
 

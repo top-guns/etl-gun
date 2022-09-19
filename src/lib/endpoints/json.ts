@@ -183,6 +183,8 @@ export class JsonEndpoint extends EndpointImpl<any> {
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
     public async push(value: any, path: string = '', fieldname: string = '') {
+        super.push(value);
+
         const obj = this.get(path);
 
         if (fieldname) obj[fieldname] = value;
@@ -192,6 +194,7 @@ export class JsonEndpoint extends EndpointImpl<any> {
     }
 
     public async clear() {
+        super.clear();
         this.json = {};
         if (this.autosave) this.save();
     }

@@ -1,5 +1,16 @@
 import { Observable } from "rxjs";
 
+export type EndpointEvent = 
+    "read.start" |
+    "read.end" |
+    "read.data" |
+    "read.error" |
+    "read.skip" |
+    "read.up" |
+    "read.down" |
+    "push" |
+    "clear";
+
 export class Endpoint<T> {
 
     //public createReadStream(): Observable<T> {
@@ -15,7 +26,7 @@ export class Endpoint<T> {
         throw new Error("Method not implemented.");
     }
 
-    public on(event: string, listener: (...data: any[]) => void): Endpoint<T> {
+    public on(event: EndpointEvent, listener: (...data: any[]) => void): Endpoint<T> {
         throw new Error("Method not implemented.");
     }
 
@@ -42,45 +53,63 @@ export class Endpoint<T> {
 type EventListener = (...data: any[]) => void;
 
 export class EndpointImpl<T> extends Endpoint<T> {
-    protected listeners: Record<string, EventListener[]> = {};
+    protected listeners: Record<EndpointEvent, EventListener[]> = {
+        "push": [],
+        "clear": [],
+        "read.start": [],
+        "read.end": [],
+        "read.data": [],
+        "read.error": [],
+        "read.skip": [],
+        "read.up": [],
+        "read.down": []
+    };
   
-    public on(event: string, listener: EventListener): Endpoint<T> {
+    public on(event: EndpointEvent, listener: EventListener): Endpoint<T> {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].push(listener); 
         return this;
     }
+
+    public async push(value: T, ...params: any[]) {
+        this.sendEvent("push", value);
+    }
+
+    public async clear() {
+        this.sendEvent("clear");
+    }
   
-    public sendEvent(event: string, ...data: any[]) {
+    public sendEvent(event: EndpointEvent, ...data: any[]) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].forEach(listener => listener(...data));
     }
   
     public sendStartEvent() {
-        this.sendEvent("start");
+        this.sendEvent("read.start");
     }
   
     public sendEndEvent() {
-        this.sendEvent("end");
+        this.sendEvent("read.end");
     }
   
     public sendErrorEvent(error: any) {
-        this.sendEvent("error", error);
+        this.sendEvent("read.error", error);
     }
   
     public sendDataEvent(data: any) {
-        this.sendEvent("data", data);
+        this.sendEvent("read.data", data);
     }
   
     public sendSkipEvent(data: any) {
-        this.sendEvent("skip", data);
+        this.sendEvent("read.skip", data);
     }
   
     public sendUpEvent() {
-      this.sendEvent("up");
+      this.sendEvent("read.up");
     }
   
     public sendDownEvent() {
-        this.sendEvent("down");
+        this.sendEvent("read.down");
     }
 }
   

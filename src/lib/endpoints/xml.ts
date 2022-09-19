@@ -128,6 +128,8 @@ export class XmlEndpoint extends EndpointImpl<any> {
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
     public async push(value: any, xpath: string = '', attribute: string = '') {
+        super.push(value);
+        
         const selectedValue = this.get(xpath);
         let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
         if (!node) throw new Error('Unexpected result of xpath in push method. Should by Node, but we have: ' + selectedValue.toString());
@@ -151,6 +153,7 @@ export class XmlEndpoint extends EndpointImpl<any> {
     }
 
     public async clear() {
+        super.clear();
         this.xmlDocument = new DOMParser().parseFromString("", 'text/xml'); // ??? Test it !!!
         if (this.autosave) this.save();
     }

@@ -34,12 +34,12 @@ async function f() {
             //xml.logNode(),
         )
 
-        csv.on("start", () => console.log("start11"))
-        .on("end", () => console.log("end11"))
-        .on("data", (data) => console.log("data11", data))
-        .on("up", () => console.log("up11"))
-        .on("down", () => console.log("down11"))
-        .on("error", (err) => console.log("error11: " + err))
+        csv.on("read.start", () => console.log("start11"))
+        .on("read.end", () => console.log("end11"))
+        .on("read.data", (data) => console.log("data11", data))
+        .on("read.up", () => console.log("up11"))
+        .on("read.down", () => console.log("down11"))
+        .on("read.error", (err) => console.log("error11: " + err))
 
         await etl.run(test$);// .toPromise();
         console.log("END");

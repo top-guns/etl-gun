@@ -57,12 +57,14 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
     }
 
     public async push(value: T) {
+        super.push(value);
         const query = `insert into ${this.table}(${this.getCommaSeparatedFields(value)}) values ${this.getCommaSeparatedParams(value)}`;
         await this.pool.query(query, this.getCommaSeparatedValues(value));
         // TODO: returning id or the whole T-value
     }
 
     public async clear(where: string | {} = '') {
+        super.clear();
         let params = [];
         if (where && typeof where === 'object') {
             where = this.getWhereAsString(where);

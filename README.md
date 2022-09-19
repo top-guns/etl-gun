@@ -162,17 +162,24 @@ async push(value: any);
 async clear();
 
 // Add listener of specified event
-// event: which event we want to listen
-//        Events values:
-//        'start' - fires at the start of stream
-//        'end'   - at the end of stream
-//        'data'  - for every data value in the stream 
-//        'error' - on error
-//        'skip'  - when the endpoint skip some data value
-//        'up'    - when the endpoint go to the parent element while the tree data processing
-//        'down'  - when the endpoint go to the child element while the tree data processing
+// event: which event we want to listen, see below
 // listener: callback function to handle events
-on(event: string, listener: (...data: any[]) => void);
+on(event: EndpointEvent, listener: (...data: any[]) => void);
+```
+
+Types:
+
+```js
+export type EndpointEvent = 
+    "read.start" |  // fires at the start of stream
+    "read.end" |    // at the end of stream
+    "read.data" |   // for every data value in the stream 
+    "read.error" |  // on error
+    "read.skip" |   // when the endpoint skip some data 
+    "read.up" |     // when the endpoint go to the parent element while the tree data processing
+    "read.down" |   // when the endpoint go to the child element while the tree data processing
+    "push" |        // when data is pushed to the endpoint
+    "clear";        // when the Endpoint.clear method is called
 ```
 
 ## Endpoints
