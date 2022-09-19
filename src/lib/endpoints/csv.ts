@@ -1,9 +1,10 @@
 import * as fs from "fs";
 import { Observable } from 'rxjs';
 import { parse } from "csv-parse";
-import { Endpoint } from "../core/endpoint";
+import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { EtlObservable } from "../core/observable";
 
-export class CsvEndpoint extends Endpoint<string[]> {
+export class CsvEndpoint extends EndpointImpl<string[]> {
     protected filename: string;
     protected delimiter: string;
 
@@ -13,26 +14,40 @@ export class CsvEndpoint extends Endpoint<string[]> {
         this.delimiter = delimiter;
     }
 
-    public read(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]> {
-        return new Observable<string[]>((subscriber) => {
+   /**
+   * @param skipFirstLine skip the first line in file, useful for skip header
+   * @param skipEmptyLines skip empty lines in file
+   * @return Observable<string[]> 
+   */
+    public read(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
+        const observable = new EtlObservable<string[]>((subscriber) => {
             try {
+                this.sendStartEvent();
                 fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
                 .on("data", (row: string[]) => {
-                    if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) return;
+                    if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
+                        this.sendSkipEvent(row);
+                        return;
+                    }
+                    this.sendDataEvent(row);
                     subscriber.next(row);
                 })
                 .on("end", () => {
                     subscriber.complete();
+                    this.sendEndEvent();
                 })
                 .on('error', (err) => {
+                    this.sendErrorEvent(err);
                     subscriber.error(err);
                 }); 
             }
             catch(err) {
+                this.sendErrorEvent(err);
                 subscriber.error(err);
             }
         });
+        return observable;
     }
 
     public async push(value: string[]) {

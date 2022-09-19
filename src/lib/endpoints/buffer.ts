@@ -1,7 +1,8 @@
 import { from, Observable } from "rxjs";
-import { Endpoint } from "../core/endpoint";
+import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { EtlObservable } from "../core/observable";
 
-export class BufferEndpoint<T = any> extends Endpoint<T> {
+export class BufferEndpoint<T = any> extends EndpointImpl<T> {
     protected buffer: T[];
 
     constructor(...values: T[]) {
@@ -9,8 +10,23 @@ export class BufferEndpoint<T = any> extends Endpoint<T> {
         this.buffer = [...values];
     }
 
-    public read(): Observable<T> {
-        return from(this.buffer);
+    public read(): EtlObservable<T> {
+        const observable = new EtlObservable<T>((subscriber) => {
+            try {
+                this.sendStartEvent();
+                this.buffer.forEach(value => {
+                    this.sendDataEvent(value);
+                    subscriber.next(value);
+                });
+                subscriber.complete();
+                this.sendEndEvent();
+            }
+            catch(err) {
+                this.sendErrorEvent(err);
+                subscriber.error(err);
+            }
+        });
+        return observable;
     }
 
     public async push(value: T) {

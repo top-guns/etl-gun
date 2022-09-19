@@ -2,7 +2,8 @@ import * as fs from "fs";
 import { Observable, Subscriber } from 'rxjs';
 import { get } from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
-import { Endpoint } from "../core/endpoint";
+import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { EtlObservable } from "../core/observable";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -10,7 +11,7 @@ export type ReadOptions = {
     addRelativePathAsField?: string;
 }
 
-export class JsonEndpoint extends Endpoint<any> {
+export class JsonEndpoint extends EndpointImpl<any> {
     protected filename: string;
     protected encoding: BufferEncoding;
     protected json: any;
@@ -29,23 +30,26 @@ export class JsonEndpoint extends Endpoint<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public read(path: string = '', options: ReadOptions = {}): Observable<any> {
-        return new Observable<any>((subscriber) => {
+    public read(path: string = '', options: ReadOptions = {}): EtlObservable<any> {
+        const observable = new EtlObservable<any>((subscriber) => {
             try {
+                this.sendStartEvent();
                 path = path.trim();
                 let result: any = this.get(path);
                 if (result) {
                     if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                         if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
+                        this.sendDataEvent(result);
                         subscriber.next(result);
                     }
                     if (options.searchReturns == 'foundedWithDescendants') {
-                        this.sendElementWithChildren(result, subscriber, options, '');
+                        this.sendElementWithChildren(result, subscriber, observable, options, '');
                     }
                     if (options.searchReturns == 'foundedImmediateChildrenOnly') {
                         if (Array.isArray(result)) {
                             result.forEach((value, i) => {
                                 if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
+                                this.sendDataEvent(value);
                                 subscriber.next(value);
                             });
                         }
@@ -53,6 +57,7 @@ export class JsonEndpoint extends Endpoint<any> {
                             for (let key in result) {
                                 if (result.hasOwnProperty(key)) {
                                     if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
+                                    this.sendDataEvent(result[key]);
                                     subscriber.next(result[key]);
                                 }
                             }
@@ -60,11 +65,14 @@ export class JsonEndpoint extends Endpoint<any> {
                     }
                 }
                 subscriber.complete();
+                this.sendEndEvent();
             }
             catch(err) {
+                this.sendErrorEvent(err);
                 subscriber.error(err);
             }
         });
+        return observable;
     }
 
     // Uses complex JSONPath standart for path syntax
@@ -74,18 +82,20 @@ export class JsonEndpoint extends Endpoint<any> {
     public readByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
     public readByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
     public readByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
-        return new Observable<any>((subscriber) => {
+        const observable = new EtlObservable<any>((subscriber) => {
             try {
+                this.sendStartEvent();
                 let result: any = this.getByJsonPath(jsonPath);
                 if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                     result.forEach(value => {
                         if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``; 
+                        this.sendDataEvent(value);
                         subscriber.next(value);
                     });
                 }
                 if (options.searchReturns == 'foundedWithDescendants') {
                     result.forEach(value => {
-                        this.sendElementWithChildren(value, subscriber, options, ``);
+                        this.sendElementWithChildren(value, subscriber, observable, options, ``);
                     });
                 }
                 if (options.searchReturns == 'foundedImmediateChildrenOnly') {
@@ -93,6 +103,7 @@ export class JsonEndpoint extends Endpoint<any> {
                         if (Array.isArray(value)) {
                             value.forEach((child, i) => {
                                 if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
+                                this.sendDataEvent(child);
                                 subscriber.next(child);
                             });
                         }
@@ -100,6 +111,7 @@ export class JsonEndpoint extends Endpoint<any> {
                             for (let key in value) {
                                 if (value.hasOwnProperty(key)) {
                                     if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
+                                    this.sendDataEvent(value[key]);
                                     subscriber.next(value[key]);
                                 }
                             }
@@ -107,30 +119,42 @@ export class JsonEndpoint extends Endpoint<any> {
                     });
                 }
                 subscriber.complete();
+                this.sendEndEvent();
             }
             catch(err) {
+                this.sendErrorEvent(err);
                 subscriber.error(err);
             }
         });
+        return observable;
     }
 
-    protected sendElementWithChildren(element: any, subscriber: Subscriber<any>, options: ReadOptions = {}, relativePath = '') {
+    protected sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
+        this.sendDataEvent(element);
         subscriber.next(element);
 
         if (Array.isArray(element)) {
+            if (element.length) this.sendDownEvent();
             element.forEach((child, i) => {
-                this.sendElementWithChildren(child, subscriber, options, `${relativePath}[${i}]`);
+                this.sendElementWithChildren(child, subscriber, observable, options, `${relativePath}[${i}]`);
             });
+            if (element.length) this.sendUpEvent();
         }
         else if (typeof element === 'object') {
+            let sendedDown = false;
             for (let key in element) {
                 if (element.hasOwnProperty(key)) {
                     if (Array.isArray(element[key]) || typeof element[key] === 'object') {
-                        this.sendElementWithChildren(element[key], subscriber, options, relativePath ? `${relativePath}.${key}` : `${key}`);
+                        if (!sendedDown) {
+                            this.sendDownEvent();
+                            sendedDown = true;
+                        }
+                        this.sendElementWithChildren(element[key], subscriber, observable, options, relativePath ? `${relativePath}.${key}` : `${key}`);
                     }
                 }
             }
+            if (sendedDown) this.sendUpEvent();
         }
     }
 

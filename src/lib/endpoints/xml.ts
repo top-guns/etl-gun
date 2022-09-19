@@ -3,7 +3,8 @@ import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
-import { Endpoint } from "../core/endpoint";
+import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { EtlObservable } from "../core/observable";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -16,7 +17,7 @@ export type ReadOptions = {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class XmlEndpoint extends Endpoint<any> {
+export class XmlEndpoint extends EndpointImpl<any> {
     protected filename: string;
     protected encoding: BufferEncoding;
     protected xmlDocument: Document;
@@ -32,37 +33,42 @@ export class XmlEndpoint extends Endpoint<any> {
         this.load();
     }
 
-    public read(xpath: string = '', options: ReadOptions = {}): Observable<Node> {
-        return new Observable<any>((subscriber) => {
+    public read(xpath: string = '', options: ReadOptions = {}): EtlObservable<Node> {
+        const observable = new EtlObservable<any>((subscriber) => {
             try {
+                this.sendStartEvent();
                 let selectedValue: XPath.SelectedValue = this.get(xpath);
                 if (selectedValue) {
                     if (Array.isArray(selectedValue)) {
-                        selectedValue.forEach(value => this.processOneSelectedValue(value, options, '', subscriber));
+                        selectedValue.forEach(value => this.processOneSelectedValue(value, options, '', subscriber, observable));
                     }
                     else {
-                        this.processOneSelectedValue(selectedValue, options, '', subscriber);
+                        this.processOneSelectedValue(selectedValue, options, '', subscriber, observable);
                     }
                 }
                 subscriber.complete();
+                this.sendEndEvent();
             }
             catch(err) {
+                this.sendErrorEvent(err);
                 subscriber.error(err);
             }
         });
+        return observable;
     }
 
-    protected processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>) {
+    protected processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
             if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+            this.sendDataEvent(selectedValue);
             subscriber.next(selectedValue);
             return;
         }
 
         if (options.searchReturns == 'foundedWithDescendants') {
-            this.sendElementWithChildren(selectedValue, subscriber, options, relativePath);
+            this.sendElementWithChildren(selectedValue, subscriber, observable, options, relativePath);
             return;
         }
 
@@ -74,30 +80,39 @@ export class XmlEndpoint extends Endpoint<any> {
                     childPath = relativePath ? relativePath + `/${element.tagName}[${i}]` : `${element.tagName}[${i}]`;
                 } 
                 if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
+                this.sendDataEvent(value);
                 subscriber.next(value);
             });
         }
     }
 
-    protected sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, options: ReadOptions = {}, relativePath = '') {
+    protected sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+        this.sendDataEvent(selectedValue);
         subscriber.next(selectedValue);
 
         if (element && element.hasChildNodes()) {
+            let sendedDown = false;
             const tagIndexes: Record<string, number> = {};
             element.childNodes.forEach((childNode, i) => {
                 let childElement = (childNode as any).tagName ? childNode as Element : undefined;
                 if (childElement) {
+                    if (!sendedDown) {
+                        this.sendDownEvent();
+                        sendedDown = true;
+                    }
+
                     if (!tagIndexes[childElement.tagName]) tagIndexes[childElement.tagName] = 0;
                     let childPath = `${childElement.tagName}[${tagIndexes[childElement.tagName]}]`;
                     if (relativePath) childPath = relativePath + '/' + childPath;
 
-                    this.sendElementWithChildren(childElement, subscriber, options, childPath);
+                    this.sendElementWithChildren(childElement, subscriber, observable, options, childPath);
 
                     tagIndexes[childElement.tagName]++;
                 }
             })
+            if (sendedDown) this.sendUpEvent();
         }
     }
 

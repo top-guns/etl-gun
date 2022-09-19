@@ -1,8 +1,10 @@
 import * as pg from 'pg'
 import { Observable } from "rxjs";
 import { Endpoint } from '../core';
+import { EndpointImpl } from '../core/endpoint';
+import { EtlObservable } from '../core/observable';
 
-export class PostgresEndpoint<T = Record<string, any>> extends Endpoint<T> {
+export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
     protected table: string;
     protected pool: any;
 
@@ -21,9 +23,10 @@ export class PostgresEndpoint<T = Record<string, any>> extends Endpoint<T> {
         }
     }
 
-    public read(where: string | {} = ''): Observable<T> {
-        return new Observable<T>((subscriber) => {
+    public read(where: string | {} = ''): EtlObservable<T> {
+        const observable = new EtlObservable<T>((subscriber) => {
             try {
+                this.sendStartEvent();
                 let params = [];
                 if (where && typeof where === 'object') {
                     where = this.getWhereAsString(where);
@@ -34,18 +37,23 @@ export class PostgresEndpoint<T = Record<string, any>> extends Endpoint<T> {
                 this.pool.query(query, params)
                 .then((results: any) => {
                     results.rows.forEach(row => {
+                        this.sendDataEvent(row);
                         subscriber.next(row);
                     })
                     subscriber.complete();
+                    this.sendEndEvent();
                 })
                 .catch(err => {
+                    this.sendErrorEvent(err);
                     subscriber.error(err);
                 })  
             }
             catch(err) {
+                this.sendErrorEvent(err);
                 subscriber.error(err);
             }
         });
+        return observable;
     }
 
     public async push(value: T) {

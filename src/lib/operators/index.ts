@@ -1,3 +1,4 @@
+export { run } from './run';
 export { log } from './log';
 export { numerate, numerateArrays, numerateObjects } from './numerate';
 export { push } from './push';

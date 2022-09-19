@@ -31,13 +31,13 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
     * [Operators](#operators)
+        * [run](#run)
         * [log](#log)
         * [where](#where)
         * [push](#push)
         * [numerate](#numerate)
         * [join](#join)
     * [Misc](#misc)
-        * [run](#run)
         * [Header](#header)
 - [License](#license)
 
@@ -315,6 +315,22 @@ etl.run(logUsers$)
 
 Apart from operators from this library, you can use any operators of **RxJs** library.
 
+### run
+
+This function runs one or several streams and return promise to waiting when all streams are complites.
+
+```js
+const etl = require('rxjs-etl-kit');
+
+let buffer = etl.BufferEndpoint(1, 2, 3, 4, 5);
+
+let stream$ = buffer.read().pipe(
+    log()
+);
+
+etl.run(stream$)
+```
+
 ### log
 
 <a name="log" href="#log">#</a> etl.<b>log</b>([<i>options</i>])
@@ -418,22 +434,6 @@ etl.run(stream$)
 ```
 
 ## Misc
-
-### run
-
-This function runs one or several streams and return promise to waiting when all streams are complites.
-
-```js
-const etl = require('rxjs-etl-kit');
-
-let buffer = etl.BufferEndpoint(1, 2, 3, 4, 5);
-
-let stream$ = buffer.read().pipe(
-    log()
-);
-
-etl.run(stream$)
-```
 
 ### Header
 
