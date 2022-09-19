@@ -102,11 +102,13 @@ await run(sourceToDest$);
 
 # Features
 
+* Simple way to use, consists of 3 steps: 1) Endpoints creation 2) Piplines creation 3) Run piplines in needed order
+* Full compatibility with **RsJs** library, it's observables, operators etc.
 * Extract data from the different source endpoints, for example PostgreSql, csv, json, xml
-* Transform data with **RxJs** and **RxJs-ETL-Kit** operators
+* Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
 * Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
-* With endpoint events mechanism you can handle differently stream events, for example stream start/end, error and other (see [Endpoint](#endpoint))
+* With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
 
 ---
 
