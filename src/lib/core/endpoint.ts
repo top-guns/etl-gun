@@ -15,7 +15,7 @@ export class Endpoint<T> {
         throw new Error("Method not implemented.");
     }
 
-    public on(event: string, listener: (...data: any[]) => void, eventGroupName: string = ''): Endpoint<T> {
+    public on(event: string, listener: (...data: any[]) => void): Endpoint<T> {
         throw new Error("Method not implemented.");
     }
 
