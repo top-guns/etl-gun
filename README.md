@@ -106,7 +106,7 @@ await run(sourceToDest$);
 * Transform data with **RxJs** and **RxJs-ETL-Kit** operators
 * Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
-* Whith endpoint events mechanism you can handle differently stream events, for example stream start/end, error and other (see [Endpoint](#endpoint))
+* With endpoint events mechanism you can handle differently stream events, for example stream start/end, error and other (see [Endpoint](#endpoint))
 
 ---
 
