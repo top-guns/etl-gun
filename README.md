@@ -48,7 +48,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 # Why / when would I need this?
 
 **RxJs-ETL-Kit** is a simple **ETL glue** represented as an extention to the **RxJs** library. 
-Typically, you'd use **RxJs-ETL-Kit** to help with your existing ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
+Typically, you'd use **RxJs-ETL-Kit** to help with ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
 
 You can use javascript and typescript to use it.
 
@@ -58,7 +58,7 @@ Here's somne ways to use it:
 
 1. Read some data from database and export it to the .csv file
 2. Run some queries in database
-3. Do some processing the files (e.g. rename or even filter content of some files)
+3. Filter or sort content of some files
 
 You can find many examples of using **RxJs-ETL-Kit** in the API section of this readme file.
 
@@ -103,6 +103,7 @@ await run(sourceToDest$);
 # Features
 
 * Simple way to use, consists of 3 steps: 1) Endpoints creation 2) Piplines creation 3) Run piplines in needed order
+* You can use javascript and typescript with **RxJs-ETL-Kit**, which writen in typescript itself
 * Full compatibility with **RsJs** library, it's observables, operators etc.
 * Extract data from the different source endpoints, for example PostgreSql, csv, json, xml
 * Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
