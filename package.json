@@ -27,7 +27,8 @@
     "xml",
     "xpath",
     "database",
-    "postgresql"
+    "postgresql",
+    "telegram"
   ],
   "author": "Berezhnoy I.A.",
   "license": "MIT",

@@ -19,10 +19,6 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 * [Usage](#usage)
 * [Features](#features)
 * [Concept](#concept)
-    * [Extract](#extract)
-    * [Transform](#transform)
-    * [Load](#load)
-    * [Chaining](#chaining)
 * [API Reference](#api-reference)
     * [Core](#core)
         * [Endpoint](#endpoint)
@@ -112,6 +108,7 @@ await run(sourceToDest$);
 * Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
 * Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
+* Working with any type of data, including hierarchical data structures (json, xml)
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
 * You can create Telegram bots with [TelegramEndpoint](#telegramendpoint)
 
@@ -119,31 +116,26 @@ await run(sourceToDest$);
 
 # Concept
 
-Using of this library should consists of 3 steps:
+**RxJs-ETL-Kit** contains several main concepts: 
+* Endpoints - sources and destinations of data
+* Piplines (or streams) - routs of data transformation and delivery, based on **RxJs** streams
+
+Using of this library consists of 3 steps:
 
 1. Define your endpoints for sources and destinations
-2. Define data transformation pipelines using **pipe** operator of input streams of your source endpoints
+2. Define data transformation pipelines using **pipe()** method of input streams of your source endpoints
 3. Run transformation pipelines in needed order and wait for completion
 
-## Extract
+ETL process:
 
-Data extraction from the source endpoint performs with **read** endpoint method, which returns a stream.
+* **Extract**: Data extraction from the source endpoint performs with **read()** endpoint method, which returns a **RxJs** stream
+* **Transform**: Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **BufferEndpoint** class, which can store data and have **forEach()** and some other methods to manipulate with data in it
+* **Load**: Loading of data to the destination endpoint performs with **push()** operator
 
-## Transform
+Chaining:
 
-Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe** method of the input stream to transform the input data.
-
-To complex data transformation you can use the **BufferEndpoint** class, which can store data and have **forEach** and some other methods to manipolate with data in it.
-
-## Load
-
-Loading of data to the destination endpoint performs with **push** operator.
-
-## Chaining
-
-Chaning of data transformation performs with **pipe** method of the input data stream.
-
-Chaning of several streams performs by using **await** under the **run** procedure.
+Chaning of data transformation performs with **pipe()** method of the input data stream. 
+Chaning of several streams performs by using **await** with **run()** procedure.
 
 ---
 
