@@ -58,8 +58,10 @@ You can use javascript and typescript with it.
 Here's some ways to use it:
 
 1. Read some data from database and export it to the .csv file
-2. Run some queries in database
+2. Create file converters
 3. Filter or sort content of some files
+4. Run some queries in database
+5. Create Telegram bots with [TelegramEndpoint](#telegramendpoint)
 
 You can find many examples of using **RxJs-ETL-Kit** in the API Reference section of this file.
 
@@ -111,6 +113,7 @@ await run(sourceToDest$);
 * Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
 * Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
+* You can create Telegram bots with [TelegramEndpoint](#telegramendpoint)
 
 ---
 
