@@ -57,7 +57,7 @@ You can use javascript and typescript with it.
 
 Here's some ways to use it:
 
-1. Read some data from database and export it to the .csv file
+1. Read some data from database and export it to the .csv file and vice versa
 2. Create file converters
 3. Filter or sort content of some files
 4. Run some queries in database
