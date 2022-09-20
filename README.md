@@ -32,6 +32,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [JsonEndpoint](#jsonendpoint)
         * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
+        * [TelegramEndpoint](#telegramendpoint)
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
@@ -104,7 +105,7 @@ await run(sourceToDest$);
 
 * Simple way to use, consists of 3 steps: 1) Endpoints creation 2) Piplines creation 3) Run piplines in needed order
 * You can use javascript and typescript with **RxJs-ETL-Kit**, which writen in typescript itself
-* Full compatibility with **RsJs** library, it's observables, operators etc.
+* Fully compatible with **RsJs** library, it's observables, operators etc.
 * Extract data from the different source endpoints, for example PostgreSql, csv, json, xml
 * Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
 * Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
@@ -196,7 +197,7 @@ Constructor:
 
 ```js
 // values: You can specify start data which will be placed to endpoint buffer
-BufferEndpoint(...values: T[]);
+constructor(...values: T[]);
 ```
 
 Methods:
@@ -227,13 +228,13 @@ Example:
 ```js
 const etl = require('rxjs-etl-kit');
 
-let csv = etl.CsvEndpoint('test.csv');
-let buffer = etl.BufferEndpoint();
+const csv = etl.CsvEndpoint('test.csv');
+const buffer = etl.BufferEndpoint();
 
-let scvToBuffer$ = csv.read().pipe(
+const scvToBuffer$ = csv.read().pipe(
     etl.push(buffer)
 );
-let bufferToCsv$ = buffer.read().pipe(
+const bufferToCsv$ = buffer.read().pipe(
     etl.push(csv)
 );
 
@@ -253,7 +254,7 @@ Constructor:
 ```js
 // filename: full or relative name of the csv file
 // delimiter: delimiter of values in one string of file data, equals to ',' by default
-CsvEndpoint(filename: string, delimiter?: string);
+constructor(filename: string, delimiter?: string);
 ```
 
 Methods:
@@ -277,9 +278,9 @@ Example:
 ```js
 const etl = require('rxjs-etl-kit');
 
-let csv = etl.CsvEndpoint('test.csv');
+const csv = etl.CsvEndpoint('test.csv');
 
-let logCsvRows$ = csv.read().pipe(
+const logCsvRows$ = csv.read().pipe(
     etl.log()
 );
 
@@ -297,7 +298,7 @@ Constructor:
 // autosave: save json from memory to the file after every change
 // autoload: load json from the file to memory before every get or search operation
 // encoding: file encoding
-JsonEndpoint(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding);
+constructor(filename: string, autosave?: boolean, autoload?: boolean, encoding?: BufferEncoding);
 ```
 
 Methods:
@@ -352,13 +353,13 @@ Example:
 const etl = require('rxjs-etl-kit');
 const { tap } = require('rxjs');
 
-let json = etl.JsonEndpoint('test.json');
+const json = etl.JsonEndpoint('test.json');
 
-let printJsonBookNames$ = json.read('store.book').pipe(
+const printJsonBookNames$ = json.read('store.book').pipe(
     tap(book => console.log(book.name))
 );
 
-let printJsonAuthors$ = json.readByJsonPath('$.store.book[*].author', {searchReturns: 'foundedOnly', addRelativePathAsField: "path"}).pipe(
+const printJsonAuthors$ = json.readByJsonPath('$.store.book[*].author', {searchReturns: 'foundedOnly', addRelativePathAsField: "path"}).pipe(
     etl.log()
 );
 
@@ -377,9 +378,9 @@ Example
 const etl = require('rxjs-etl-kit');
 const { map } = require('rxjs');
 
-let xml = etl.XmlEndpoint('test.xml');
+const xml = etl.XmlEndpoint('test.xml');
 
-let printXmlAuthors$ = json.read('/store/book/author').pipe(
+const printXmlAuthors$ = json.read('/store/book/author').pipe(
     map(v => v.firstChild.nodeValue),
     etl.log()
 );
@@ -398,8 +399,8 @@ Constructor:
 // table: Table name in database
 // url: Connection string
 // pool: You can specify the existing connection pool instead of new connection creation
-PostgresEndpoint(table: string, url: string);
-PostgresEndpoint(table: string, pool: any);
+constructor(table: string, url: string);
+constructor(table: string, pool: any);
 ```
 
 Methods:
@@ -429,13 +430,62 @@ Example:
 ```js
 const etl = require('rxjs-etl-kit');
 
-let table = etl.PostgresEndpoint('users', "postgres://user:password@127.0.0.1:5432/database");
+const table = etl.PostgresEndpoint('users', "postgres://user:password@127.0.0.1:5432/database");
 
-let logUsers$ = csv.read().pipe(
+const logUsers$ = csv.read().pipe(
     etl.log()
 );
 
 etl.run(logUsers$)
+```
+
+### TelegramEndpoint
+
+With this endpoint you can create telegram bots and chats with users. It can listen for user messages and send the response massages. It also can set the user keyboard for the chat.
+
+Constructor:
+
+```js
+// token: Bot token
+// keyboard: JSON keyboard description, see the node-telegram-bot-api for detailes
+//           Keyboard example: [["Text for command 1", "Text for command 2"], ["Text for command 3"]]
+constructor(token: string, keyboard?: any);
+```
+
+Methods:
+
+```js
+// Start bot, create observable and send all user messages to it
+read(): Observable<T>;
+
+// Stop bot
+async stop();
+
+// Pushes message to the chat
+// value: Message in TelegramInputMessage type
+// chatId: id of the destination chat, get it from input user messages
+// message: Message to send
+async push(value: TelegramInputMessage);
+async push(chatId: string, message: string);
+
+// Update keyboard structure to specified
+// keyboard: JSON keyboard description, constructor for detailes
+setKeyboard(keyboard: any)
+```
+
+Example:
+
+```js
+const etl = require('rxjs-etl-kit');
+
+const telegram = new etl.TelegramEndpoint("**********");
+
+const startTelegramBot$ = csv.read().pipe(
+    etl.log(),          // log user messages to the console
+    etl.push(telegram)  // echo input message back to the user
+);
+
+etl.run(startTelegramBot$);
 ```
 
 ## Operators
