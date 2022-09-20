@@ -22,10 +22,12 @@ async function f() {
         // json.readByJsonPath('$.store.book[*].author')
         // xml.read('/store/book/author')
         //let test$ = xml.read('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsAttribute: "path"})
-        let test$ = fs.read('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
+        //let test$ = fs.read('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
+        let test$ = csv.read()
         .pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
+            etl.addField(v => v[0] + "++++"),
             
             etl.log(),
             //etl.push(telegram)
@@ -37,13 +39,13 @@ async function f() {
             //xml.logNode(),
         )
 
-        fs
-        .on("read.start", () => console.log("start event"))
-        .on("read.end", () => console.log("end event"))
-        .on("read.data", (data) => console.log("data event", data))
-        .on("read.up", () => console.log("up event"))
-        .on("read.down", () => console.log("down event"))
-        .on("read.error", (err) => console.log("error event: " + err))
+        // fs
+        // .on("read.start", () => console.log("start event"))
+        // .on("read.end", () => console.log("end event"))
+        // .on("read.data", (data) => console.log("data event", data))
+        // .on("read.up", () => console.log("up event"))
+        // .on("read.down", () => console.log("down event"))
+        // .on("read.error", (err) => console.log("error event: " + err))
 
         await etl.run(test$);// .toPromise();
         console.log("END");

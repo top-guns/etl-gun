@@ -36,6 +36,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [where](#where)
         * [push](#push)
         * [numerate](#numerate)
+        * [addField](#addfield)
         * [join](#join)
     * [Misc](#misc)
         * [Header](#header)
@@ -82,8 +83,8 @@ Require the RxJs-ETL-Kit library in the desired file to make it accessible.
 
 Introductory example: postgresql -> .csv
 ```js
-const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require('rxjs-etl-kit');
-const { map } = require('rxjs');
+const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
+const { map } = require("rxjs");
 
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");
@@ -235,6 +236,7 @@ const bufferToCsv$ = buffer.read().pipe(
 );
 
 await etl.run(scvToBuffer$);
+
 buffer.sort((row1, row2) => row1[0] > row2[0]);
 csv.clear();
 
@@ -455,7 +457,7 @@ const { map } = require('rxjs');
 
 const xml = etl.XmlEndpoint('test.xml');
 
-const printXmlAuthors$ = json.read('/store/book/author').pipe(
+const printXmlAuthors$ = xml.read('/store/book/author').pipe(
     map(v => v.firstChild.nodeValue),
     etl.log()
 );
@@ -505,9 +507,9 @@ Example:
 ```js
 const etl = require('rxjs-etl-kit');
 
-const table = etl.PostgresEndpoint('users', "postgres://user:password@127.0.0.1:5432/database");
+const table = etl.PostgresEndpoint('users', 'postgres://user:password@127.0.0.1:5432/database');
 
-const logUsers$ = csv.read().pipe(
+const logUsers$ = table.read().pipe(
     etl.log()
 );
 
@@ -553,9 +555,9 @@ Example:
 ```js
 const etl = require('rxjs-etl-kit');
 
-const telegram = new etl.TelegramEndpoint("**********");
+const telegram = new etl.TelegramEndpoint('**********');
 
-const startTelegramBot$ = csv.read().pipe(
+const startTelegramBot$ = telegram.read().pipe(
     etl.log(),          // log user messages to the console
     etl.push(telegram)  // echo input message back to the user
 );
@@ -663,6 +665,27 @@ let stream$ = csv.read().pipe(
 etl.run(stream$)
 ```
 
+### addField
+
+<a name="numerate" href="#numerate">#</a> etl.<b>addField</b>([<i>options</i>])
+
+This operator calculate callback function from parameters and add result as new field to the input stream value (if it is object) or push result as new array item of input stream value (if it is array).
+
+Example
+
+```js
+const etl = require('rxjs-etl-kit');
+
+const table = etl.PostgresEndpoint('users', 'postgres://user:password@127.0.0.1:5432/database');
+
+const logUsers$ = table.read().pipe(
+    addField('NAME_IN_UPPERCASE', value => value.name.toUpperCase()),
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
 ### join
 
 <a name="join" href="#join">#</a> etl.<b>join</b>([<i>options</i>])
@@ -692,8 +715,8 @@ etl.run(stream$)
 This class can store array of column names and convert object to array or array to object representation..
 
 ```js
-const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require('rxjs-etl-kit');
-const { map } = require('rxjs');
+const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
+const { map } = require("rxjs");
 
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");
