@@ -14,7 +14,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 ---
 
 ### Table of Contents
-* [Why / when would I need this?](#whywhen-would-i-need-this)
+* [Why / when would I need this?](#why--when-would-i-need-this)
 * [Installation](#installation)
 * [Usage](#usage)
 * [Features](#features)
