@@ -34,6 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "csv": "^6.2.0",
+    "glob": "^8.0.3",
     "jsonpath-plus": "^7.2.0",
     "lodash": "^4.17.21",
     "node-telegram-bot-api": "^0.59.0",
@@ -43,6 +44,7 @@
     "xpath": "^0.0.32"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
     "@types/node": "^18.7.17",
     "@types/node-telegram-bot-api": "^0.57.1",
     "ts-node": "^10.9.1",

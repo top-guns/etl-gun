@@ -24,6 +24,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [Endpoint](#endpoint)
     * [Endpoints](#endpoints)
         * [BufferEndpoint](#bufferendpoint)
+        * [FilesystemEndpoint](#filesystemendpoint)
         * [CsvEndpoint](#csvendpoint)
         * [JsonEndpoint](#jsonendpoint)
         * [XmlEndpoint](#xmlendpoint)
@@ -238,6 +239,85 @@ buffer.sort((row1, row2) => row1[0] > row2[0]);
 csv.clear();
 
 etl.run(bufferToCsv$)
+```
+
+### FilesystemEndpoint
+
+Search for files and folders by standart unix shell wildcards [see glob documentation](https://www.npmjs.com/package/glob) for details.
+
+Constructor:
+
+```js
+// rootFolderPath: full or relative path to the folder for search
+constructor(rootFolderPath: string);
+```
+
+Methods:
+
+```js
+// Create the observable object and send files and folders information to it
+// mask: search path mask in glob format (see glob documentation)
+//       for example:
+//       *.js - all js files in root folder
+//       **/*.png - all png files in root folder and subfolders
+// options: Search options, see below
+read(mask: string = '*', options?: ReadOptions): Observable<string[]>;
+
+// Create folder or file
+// pathDetails: Information about path, which returns from read() method
+// filePath: File or folder path
+// isFolder: Is it file or folder
+// data: What will be added to the file, if it is a file, ignore for folders
+async push(pathDetails: PathDetails, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream);
+async push(filePath: string, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, isFolder?: boolean);
+
+// Clear the root folder by mask
+// mask: Which files and folders we need to delete
+// options: Search options, see below 
+//          IMPORTANT! Be careful with option includeRootDir because if it is true, and the objectsToSearch is not 'filesOnly',
+//          then the root folder will be deleted with all its content! Including folder itself.
+async clear(mask: string = '*', options?: ReadOptions);
+```
+
+Types:
+
+```js
+type ReadOptions = {
+    includeRootDir?: boolean;   // Is root folder itself will be included to search results
+                                // false by default
+    
+    objectsToSearch?:           // Which object types will be included to the search results
+        'filesOnly' |           // Only files
+        'foldersOnly' |         // Only folders
+        'all';                  // Both files and folders
+                                // all is default option
+}
+
+type PathDetails = {
+    isFolder: boolean 
+    name: string;
+    relativePath: string; // Empty for root folder
+    fullPath: string;
+    parentFolderRelativePath: string; // '..' for root folder
+    parentFolderFullPath: string;
+}
+
+```
+
+Example:
+
+```js
+const etl = require('rxjs-etl-kit');
+const rx = require('rxjs');
+
+const fs = new etl.FilesystemEndpoint('.');
+
+const printAllJsFileNames$ = fs.read('**/*.js').pipe(
+    rx.map(v => v.name)
+    etl.log()
+);
+
+etl.run(printAllJsFileNames$)
 ```
 
 ### CsvEndpoint

@@ -15,19 +15,20 @@ async function f() {
         const csv = new etl.CsvEndpoint('data/test.csv');
         const json = new etl.JsonEndpoint('data/test.json');
         const xml = new etl.XmlEndpoint('data/test.xml');
-        const telegram = new etl.TelegramEndpoint("");
+        //const telegram = new etl.TelegramEndpoint("");
+        const fs = new etl.FilesystemEndpoint('src');
 
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
         // xml.read('/store/book/author')
         //let test$ = xml.read('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsAttribute: "path"})
-        let test$ = telegram.read()
+        let test$ = fs.read('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
         .pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
             
             etl.log(),
-            etl.push(telegram)
+            //etl.push(telegram)
             //etl.join(table.read().pipe(take(2))),
             //etl.join(bufArrays.read()),
             //tap(() => (0))
@@ -36,13 +37,13 @@ async function f() {
             //xml.logNode(),
         )
 
-        telegram
-        .on("read.start", () => console.log("start11"))
-        .on("read.end", () => console.log("end11"))
-        .on("read.data", (data) => console.log("data11", data))
-        .on("read.up", () => console.log("up11"))
-        .on("read.down", () => console.log("down11"))
-        .on("read.error", (err) => console.log("error11: " + err))
+        fs
+        .on("read.start", () => console.log("start event"))
+        .on("read.end", () => console.log("end event"))
+        .on("read.data", (data) => console.log("data event", data))
+        .on("read.up", () => console.log("up event"))
+        .on("read.down", () => console.log("down event"))
+        .on("read.error", (err) => console.log("error event: " + err))
 
         await etl.run(test$);// .toPromise();
         console.log("END");
