@@ -23,6 +23,7 @@ jobs:
           pwd
           ls -la
           yarn install --frozen-lockfile
+          ls -la
           yarn build
           yarn test
           ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
