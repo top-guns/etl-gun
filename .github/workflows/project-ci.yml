@@ -11,7 +11,7 @@ on:
     #   - 'src/**/*.ts'
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,13 +19,8 @@ jobs:
         with:
           node-version: '16.x'
           cache: 'yarn'
-      - run: |
-          pwd
-          ls -la
       - run: yarn install --frozen-lockfile
-      - uses: icrawl/action-tsc@v1
-      # - run: yarn pack
-          # yarn build
+      - run: yarn build
       - run: yarn test
       - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
