@@ -3,7 +3,12 @@
 
 name: Project CI
 
-on: push
+on: 
+  push:
+    branches:
+      - main
+    # paths:
+    #   - 'src/**/*.ts'
 
 jobs:
   build:
@@ -13,28 +18,33 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: yarn install
-      - run: yarn build
+          cache: 'yarn'
+      - run: cd github_actions && yarn install
+      - run: cd github_actions && yarn build
+      - run: cd github_actions && yarn test
+      - run: cd github_actions && ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - run: yarn install
-      - run: yarn run build
-      - run: yarn test
+  # test:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
+  #         cache: 'yarn'
+  #     - run: yarn install
+  #     - run: yarn run build
+  #     - run: yarn test
       
-  publish-coverage:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
+  # publish-coverage:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
+  #         cache: 'yarn'
+  #     - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
