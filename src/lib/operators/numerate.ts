@@ -10,43 +10,44 @@ export function numerateArrays<T extends {push: any}>(fromIndex: number = 0): Op
     });
 }
 
-export function numerateObjects<T extends Record<string, any>>(fromIndex: number = 0): OperatorFunction<T, T & {index: number}> {
+export function numerateObjects<T extends Record<string, any>, R extends T>(fromIndex: number = 0, indexField: string = ""): OperatorFunction<T, R> {
     let index = fromIndex - 1;
 
-    return map<T, T & {index: number}>(value => {
-        let v: T & {index: number} = value as T & {index: number};
-        v.index = index;
+    return map<T, R>(value => {
+        let v: any = value;
+        v[indexField] = index;
         return v;
     });
 }
 
-export function numerate<T, R = any>(indexField: string = "", valueField: string = "", fromIndex: number = 0): OperatorFunction<T, R> {
+export function numerate<TT>(fromIndex?: number): OperatorFunction<TT[], (TT | number)[]>;
+export function numerate<T extends Record<string, any>, R extends T>(fromIndex?: number, indexField?: string): OperatorFunction<T, R>;
+export function numerate<T, R extends T>(fromIndex: number = 0, indexField: string = ""): OperatorFunction<T, R> {
     let index = fromIndex - 1;
 
     return map<T, R>(value => {
         index++;
 
-        if (Array.isArray(value)) {
-            value.push(index);
-            return value as any;
+        if (!indexField) {
+            if (Array.isArray(value)) {
+                value.push(index);
+                return value;
+            }
+
+            if (typeof value !== 'object') return [value, index] as any;
+
+            throw new Error("Operator numerate: you should specify indexField for object value type.");
         }
 
         if (indexField) {
-            if (valueField) {
-                let res: any = {};
-                res[indexField] = index;
-                res[valueField] = value;
-                return res;
-            }
-
             if (typeof value === 'object') {
-                (value as any)[indexField] = index;
-                return value as any;
+                value[indexField] = index;
+                return value;
             }
 
-            throw new Error("You should specify value field name in the numerate.");
+            if (Array.isArray(value)) throw new Error('Operator numerate: you cannot specify the indexField for array value type.');
+            
+            throw new Error("Operator numerate: you cannot specify the indexField for scalar value type.");
         }
-
-        return [value, index] as any;
     });
 }
