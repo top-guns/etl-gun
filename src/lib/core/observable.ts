@@ -91,26 +91,27 @@ function pipeFromArray<T, R>(fns: Array<UnaryFunction<T, R>>): UnaryFunction<T, 
 
 
 export function toEtlObservable<T>(source: Observable<T>) {
-  let started = false;
+  //let started = false;
   const res = new EtlObservable<T>(subscriber => {
-    return source.subscribe({
-      next(value) {
-        if (!started) {
-          //res.sendStartEvent();
-          started = true;
-        }
-        //res.sendDataEvent(value);
-        subscriber.next(value);
-      },
-      complete() {
-        subscriber.complete();
-        //res.sendEndEvent();
-      },
-      error(err) {
-        //res.sendErrorEvent(err);
-        subscriber.error(err);
-      }
-    });
+    return source.subscribe(subscriber);
+    // return source.subscribe({
+    //   next(value) {
+    //     // if (!started) {
+    //     //   //res.sendStartEvent();
+    //     //   started = true;
+    //     // }
+    //     //res.sendDataEvent(value);
+    //     subscriber.next(value);
+    //   },
+    //   complete() {
+    //     subscriber.complete();
+    //     //res.sendEndEvent();
+    //   },
+    //   error(err) {
+    //     //res.sendErrorEvent(err);
+    //     subscriber.error(err);
+    //   }
+    // });
   });
   return res;
 }

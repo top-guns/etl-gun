@@ -3,7 +3,7 @@ import { Observable, Subscriber } from "rxjs";
 import { Endpoint } from '../core';
 import { EndpointImpl } from '../core/endpoint';
 import { EtlObservable } from '../core/observable';
-import * as TelegramBot from 'node-telegram-bot-api';
+import TelegramBot from 'node-telegram-bot-api';
 
 export type TelegramInputMessage = {
     chatId: string;

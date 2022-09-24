@@ -1,18 +1,29 @@
 {
-    "compilerOptions": {
-      "module": "CommonJS",
-      "target": "ESNext",
-      "declaration": true,
-      "outDir": "./dist",
-      "sourceMap": true,
-      // "paths": {
-      //   "@lib/*":  ["src/lib/*"]
-      // }
-    },
-    "exclude": [
-      "node_modules"
-    ],
-    "include": [
-      "src/lib/**/*"
-    ]
-  }
+  "compilerOptions": {
+    "target": "es2017",
+    "declaration": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "types": ["node", "jest"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    //"strict": true,
+    //"forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "noFallthroughCasesInSwitch": true,
+    "outDir": "./dist"
+  },
+  "compileOnSave": true,
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src/lib/**/*"
+  ]
+}
