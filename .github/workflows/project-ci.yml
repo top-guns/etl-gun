@@ -13,12 +13,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      #- run: yarn ci
+      - run: yarn ci
       - run: yarn install
       - run: yarn build
-      - run: yarn test
-      
-  publish-coverage:
+
+  test:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +25,18 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      #- run: yarn ci
+      - run: yarn ci
+      - run: yarn install
+      - run: yarn run build
+      - run: yarn test
+      
+  publish-coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
