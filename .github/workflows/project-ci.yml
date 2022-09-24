@@ -20,6 +20,8 @@ jobs:
           node-version: 16
           cache: 'yarn'
       - run: |
+          pwd
+          ls -la
           yarn install --frozen-lockfile
           yarn build
           yarn test
