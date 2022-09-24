@@ -23,7 +23,8 @@ jobs:
           pwd
           ls -la
       - run: yarn install --frozen-lockfile
-      - run: yarn pack
+      - uses: icrawl/action-tsc@v1
+      # - run: yarn pack
           # yarn build
       - run: yarn test
       - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
