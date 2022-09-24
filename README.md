@@ -608,7 +608,7 @@ etl.run(stream$)
 
 <a name="where" href="#where">#</a> etl.<b>where</b>([<i>options</i>])
 
-This operator is analog of **where** operation in SQL and is synonym of the **filter** operator from the **RxJS** library. It cat skip some values from the input stream by the specified condition.
+This operator is analog of **where** operation in SQL and is synonym of the **filter** operator from the **RxJS** library - but with improvements. It cat skip some values from the input stream by the specified condition. You can specify predicate function to determine filter conditions or you can specify map object as condition (like typeorm 'where' parameter in find() method).
 
 Example
 
@@ -648,7 +648,7 @@ etl.run(stream$)
 
 <a name="numerate" href="#numerate">#</a> etl.<b>numerate</b>([<i>options</i>])
 
-This operator enumerate input values and add index field to value if it is object or index collumn if value is array.
+This operator enumerate input values and add index field to value if it is object or index column if value is array. If the input stream values is objects, you should specify index field name as the second parameter of operator.
 
 Example
 
@@ -658,7 +658,7 @@ const etl = require('rxjs-etl-kit');
 let csv = etl.CsvEndpoint('test.csv');
 
 let stream$ = csv.read().pipe(
-    etl.numerate(),
+    etl.numerate(10), // 10 is the first value for numeration
     etl.log()
 );
 
