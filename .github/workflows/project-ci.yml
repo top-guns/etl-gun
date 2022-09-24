@@ -19,10 +19,11 @@ jobs:
         with:
           node-version: 16
           cache: 'yarn'
-      - run: cd github_actions && yarn install
-      - run: cd github_actions && yarn build
-      - run: cd github_actions && yarn test
-      - run: cd github_actions && ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
+      - run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn test
+          ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
   # test:
   #   needs: build
