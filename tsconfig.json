@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     //"strict": true,
-    //"forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
     "moduleResolution": "node",
     "resolveJsonModule": true,
