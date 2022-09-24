@@ -6,9 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "ts-node src/main.ts",
-    "compile": "tsc",
-    "publicate": "yarn publish",
-    "test": "NODE_ENV=test jest"
+    "build": "tsc",
+    "test": "NODE_ENV=test jest",
+    "pub:npm": "yarn publish",
+    "pub:coverage": "./node_modules/.bin/codecov --token=$RXJS_ETL_KIT_CODECOV_TOKEN" 
   },
   "keywords": [
     "rxjs",
@@ -48,6 +49,7 @@
     "@types/jest": "^29.0.3",
     "@types/node": "^18.7.17",
     "@types/node-telegram-bot-api": "^0.57.1",
+    "codecov": "^3.8.3",
     "jest": "^29.0.3",
     "ts-jest": "^29.0.1",
     "ts-node": "^10.9.1",
