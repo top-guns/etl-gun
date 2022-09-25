@@ -1,6 +1,6 @@
 {
   "name": "rxjs-etl-kit",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "ETL extension for RxJs library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "build": "tsc",
     "test": "NODE_ENV=test jest",
     "pub:npm": "yarn publish",
-    "pub:coverage": "./node_modules/.bin/codecov --token=$RXJS_ETL_KIT_CODECOV_TOKEN" 
+    "pub:coverage": "./node_modules/.bin/codecov --token=$RXJS_ETL_KIT_CODECOV_TOKEN"
   },
   "keywords": [
     "rxjs",
