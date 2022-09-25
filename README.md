@@ -1,6 +1,6 @@
 # RxJs-ETL-Kit
 
-![Logo](static/ETL.png "Logo")
+<img src="https://github.com/igor-berezhnoy/rxjs-etl-kit/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
 
 RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
 
