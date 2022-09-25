@@ -2,6 +2,6 @@ export { run } from './run';
 export { log } from './log';
 export { push } from './push';
 export { where } from './where';
-export { numerate, numerateArrays, numerateObjects } from './numerate';
+export { numerate } from './numerate';
 export { join, joinArrays, joinObjects } from './join';
-export { addFieldToArray, addFieldToObject, addField } from './addField';
+export { addField } from './addField';

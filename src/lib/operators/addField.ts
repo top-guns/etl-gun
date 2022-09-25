@@ -1,21 +1,5 @@
 import { map, OperatorFunction } from "rxjs";
 
-export function addFieldToArray<T extends {push: any}>(calcFieldValueFn: (value: T) => any): OperatorFunction<T, T> {
-    return map<T, T>(value => {
-        const fieldValue = calcFieldValueFn(value);
-        value.push(fieldValue);
-        return value;
-    });
-}
-
-export function addFieldToObject<T extends Record<string, any>, R extends T = T>(fieldName: string, calcFieldValueFn: (value: T) => any): OperatorFunction<T, R> {
-    return map<T, R>(value => {
-        const fieldValue = calcFieldValueFn(value);
-        (value as any)[fieldName] = fieldValue;
-        return value as R;
-    });
-}
-
 export function addField<T, R = T>(calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
 export function addField<T, R extends T = T>(fieldName: string, calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
 export function addField<T, R>(fieldNameOrCalcFn: any, calcFieldValueFn?: (value: T) => any): OperatorFunction<T, R> {
