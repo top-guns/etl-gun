@@ -5,11 +5,11 @@ name: Package publishing
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version'
-        required: false
-        type: string
+    # inputs:
+    #   version:
+    #     description: 'Version'
+    #     required: false
+    #     type: string
   # release:
   #   types: [created]
 
@@ -38,6 +38,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - run: node ./src/utils/bump-package-json-version.js
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Bump version"
       - run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
