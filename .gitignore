@@ -10,3 +10,4 @@ node_modules/
 # Build / generate output
 dist
 coverage
+.DS_Store
