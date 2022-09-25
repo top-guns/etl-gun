@@ -4,31 +4,27 @@
 name: Package publishing
 
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: false
+        type: string
+  # release:
+  #   types: [created]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
-      #- run: yarn ci
-      - run: yarn install
+          node-version: '16.x'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn test
-      
-  publish-coverage:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      #- run: yarn ci
       - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
   publish-npm:
@@ -38,9 +34,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: '16.x'
           registry-url: https://registry.npmjs.org/
-      #- run: yarn ci
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
       - run: yarn publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
