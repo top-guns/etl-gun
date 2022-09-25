@@ -16,9 +16,9 @@ export function addFieldToObject<T extends Record<string, any>, R extends T = T>
     });
 }
 
-export function addField<T, R extends T = T>(calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
+export function addField<T, R = T>(calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
 export function addField<T, R extends T = T>(fieldName: string, calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
-export function addField<T, R extends T = T>(fieldNameOrCalcFn: any, calcFieldValueFn?: (value: T) => any): OperatorFunction<T, R> {
+export function addField<T, R>(fieldNameOrCalcFn: any, calcFieldValueFn?: (value: T) => any): OperatorFunction<T, R> {
     return map<T, R>(value => {
         const calcFn = typeof calcFieldValueFn === 'function' ? calcFieldValueFn : fieldNameOrCalcFn;
         const fieldName = typeof calcFieldValueFn === 'function' ? fieldNameOrCalcFn : undefined;

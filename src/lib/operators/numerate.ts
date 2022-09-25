@@ -20,7 +20,7 @@ export function numerateObjects<T extends Record<string, any>, R extends T>(from
     });
 }
 
-export function numerate<TT>(fromIndex?: number): OperatorFunction<TT[], (TT | number)[]>;
+export function numerate<TT>(fromIndex?: number): OperatorFunction<TT[] | TT, (TT | number)[]>;
 export function numerate<T extends Record<string, any>, R extends T>(fromIndex?: number, indexField?: string): OperatorFunction<T, R>;
 export function numerate<T, R extends T>(fromIndex: number = 0, indexField: string = ""): OperatorFunction<T, R> {
     let index = fromIndex - 1;

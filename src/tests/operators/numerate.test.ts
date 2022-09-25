@@ -31,4 +31,19 @@ describe('Operator numerate()', () => {
 
         expect(res).toEqual([{f1: 1, index: 10}, {f1: 2, index: 11}, {f1: 3, index: 12}]);
     });
+
+    test('numerate scalars', async () => {
+        let res: any[][] = [];
+
+        const src = new etl.BufferEndpoint<number>(1, 2, 3);
+
+        let stream$ = src.read().pipe(
+            etl.numerate(10),
+            rx.tap(v => res.push(v))
+        );
+
+        await etl.run(stream$);
+
+        expect(res).toEqual([[1, 10], [2, 11], [3, 12]]);
+    });
 });
