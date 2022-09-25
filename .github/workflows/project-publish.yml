@@ -28,7 +28,7 @@ jobs:
       - run: ./node_modules/.bin/codecov --token=${{secrets.codecov_token}}
 
   publish-npm:
-    needs: build
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
