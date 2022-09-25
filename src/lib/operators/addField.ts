@@ -20,8 +20,8 @@ export function addField<T, R extends T = T>(calcFieldValueFn: (value: T) => any
 export function addField<T, R extends T = T>(fieldName: string, calcFieldValueFn: (value: T) => any): OperatorFunction<T, R>;
 export function addField<T, R extends T = T>(fieldNameOrCalcFn: any, calcFieldValueFn?: (value: T) => any): OperatorFunction<T, R> {
     return map<T, R>(value => {
-        const calcFn = typeof calcFieldValueFn == 'function' ? calcFieldValueFn : fieldNameOrCalcFn;
-        const fieldName = typeof calcFieldValueFn == 'function' ? fieldNameOrCalcFn : undefined;
+        const calcFn = typeof calcFieldValueFn === 'function' ? calcFieldValueFn : fieldNameOrCalcFn;
+        const fieldName = typeof calcFieldValueFn === 'function' ? fieldNameOrCalcFn : undefined;
 
         const fieldValue = calcFn(value);
 
