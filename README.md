@@ -3,6 +3,7 @@
 RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
 
 [![NPM Version][npm-image]][npm-url]
+[![Build Status](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions/workflows/project-ci.yaml/badge.svg?branch=main)](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions?query=branch%3Amain)
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Coverage Status](https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
