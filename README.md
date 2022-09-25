@@ -4,8 +4,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Coverage Status](https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit/)
-[![Coverage Status](https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/main)](https://app.codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
+[![Coverage Status](https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [npm-image]: https://img.shields.io/npm/v/rxjs-etl-kit.svg
