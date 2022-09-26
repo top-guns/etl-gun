@@ -23,6 +23,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 * [Usage](#usage)
 * [Features](#features)
 * [Concept](#concept)
+* [Examples (how to)](#examples-how-to)
 * [API Reference](#api-reference)
     * [Core](#core)
         * [Endpoint](#endpoint)
@@ -143,6 +144,52 @@ Chaining:
 
 Chaning of data transformation performs with **pipe()** method of the input data stream. 
 Chaning of several streams performs by using **await** with **run()** procedure.
+
+---
+
+# Examples (how to)
+
+## Export rows from Postgres table to csv-file (postgresql -> .csv)
+
+```js
+const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
+const { map } = require("rxjs");
+
+const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
+const dest = new CsvEndpoint("users.csv");
+const header = new Header(["id", "name", "login", "email"]);
+
+const sourceToDest$ = source.read().pipe(
+    log(),
+    map(v => header.objToArr(v)),
+    push(dest)
+);
+
+await run(sourceToDest$);
+ ```
+
+ ## Sort rows in csv-file by the first column (.csv -> .csv)
+
+```js
+const etl = require('rxjs-etl-kit');
+
+const csv = etl.CsvEndpoint('test.csv');
+const buffer = etl.BufferEndpoint();
+
+const scvToBuffer$ = csv.read().pipe(
+    etl.push(buffer)
+);
+const bufferToCsv$ = buffer.read().pipe(
+    etl.push(csv)
+);
+
+await etl.run(scvToBuffer$);
+
+buffer.sort((row1, row2) => row1[0] > row2[0]);
+csv.clear();
+
+await etl.run(bufferToCsv$)
+ ```
 
 ---
 
@@ -754,6 +801,8 @@ let sourceToDest$ = source.read().pipe(
 );
 await run(sourceToDest$);
  ```
+
+---
 
 # License
 
