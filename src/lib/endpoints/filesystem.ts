@@ -1,5 +1,4 @@
 import * as fs from "fs";
-//import * as Globby from "globby";
 import { glob } from "glob";
 import path = require("path");
 import { Observable, Subscriber } from 'rxjs';

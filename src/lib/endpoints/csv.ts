@@ -50,17 +50,18 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
         return observable;
     }
 
-    public async push(value: string[]) {
-        super.push(value);
+    public async push(value: any[]) {
+        await super.push(value);
         const strVal = this.getCsvStrFromStrArr(value) + "\n";
-        await fs.appendFile(this.filename, strVal, function (err) {
-            if (err) throw err;
-        });
+        // await fs.appendFile(this.filename, strVal, function (err) {
+        //     if (err) throw err;
+        // });
+        fs.appendFileSync(this.filename, strVal);
     }
 
     public async clear() {
-        super.clear();
-        fs.writeFile(this.filename, '', function(){})
+        await super.clear();
+        await fs.writeFile(this.filename, '', function(){});
     }
 
     protected getCsvStrFromStrArr(vals: string[]) {
