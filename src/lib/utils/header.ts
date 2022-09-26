@@ -1,8 +1,8 @@
 export class Header {
     protected fieldNames: string[];
 
-    constructor(fieldNames: string[]) {
-        this.fieldNames = fieldNames;
+    constructor(...fieldNames: string[]) {
+        this.fieldNames = [...fieldNames];
     }
 
     arrToObj(values: any[]) {
