@@ -24,6 +24,8 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 * [Features](#features)
 * [Concept](#concept)
 * [Examples (how to)](#examples-how-to)
+    * [Export rows from Postgres table to csv-file (postgresql -> .csv)](#export-rows-from-postgres-table-to-csv-file-postgresql---csv)
+    * [Sort rows in csv-file by the first column (.csv -> .csv)](#sort-rows-in-csv-file-by-the-first-column-csv---csv)
 * [API Reference](#api-reference)
     * [Core](#core)
         * [Endpoint](#endpoint)
