@@ -20,12 +20,12 @@ export function numerate<T, R extends T>(fromIndex: number = 0, indexField: stri
         }
 
         if (indexField) {
+            if (Array.isArray(value)) throw new Error('Operator numerate: you cannot specify the indexField for array value type.');
+
             if (typeof value === 'object') {
                 value[indexField] = index;
                 return value;
             }
-
-            if (Array.isArray(value)) throw new Error('Operator numerate: you cannot specify the indexField for array value type.');
             
             throw new Error("Operator numerate: you cannot specify the indexField for scalar value type.");
         }
