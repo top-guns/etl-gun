@@ -149,7 +149,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 
 # Examples (how to)
 
-## Export rows from Postgres table to csv-file (postgresql -> .csv)
+### Export rows from Postgres table to csv-file (postgresql -> .csv)
 
 ```js
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
@@ -168,7 +168,7 @@ const sourceToDest$ = source.read().pipe(
 await run(sourceToDest$);
  ```
 
- ## Sort rows in csv-file by the first column (.csv -> .csv)
+ ### Sort rows in csv-file by the first column (.csv -> .csv)
 
 ```js
 const etl = require('rxjs-etl-kit');
