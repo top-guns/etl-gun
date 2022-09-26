@@ -2,12 +2,12 @@ import * as rx from 'rxjs';
 import * as etl from '../../lib';
 
 describe('BufferEndpoint', () => {
-    test('Construcror with parameters and buffer property', async () => {
+    test('Constructor with parameters and buffer property', async () => {
         const buf = new etl.BufferEndpoint<number>(1, 2, 3);
         expect(buf.buffer).toEqual([1, 2, 3]);
     });
 
-    test('Construcror without parameters', async () => {
+    test('Constructor without parameters', async () => {
         const buf = new etl.BufferEndpoint<number>();
         expect(buf.buffer).toEqual([]);
     });
@@ -54,6 +54,6 @@ describe('BufferEndpoint', () => {
         );
         await etl.run(stream$);
 
-        expect(res).toEqual([1, 2,3]);
+        expect(res).toEqual([1, 2, 3]);
     });
 });
