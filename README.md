@@ -41,6 +41,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [push](#push)
         * [numerate](#numerate)
         * [addField](#addfield)
+        * [addColumn](#addcolumn)
         * [join](#join)
     * [Misc](#misc)
         * [Header](#header)
@@ -586,7 +587,7 @@ let stream$ = buffer.read().pipe(
     log()
 );
 
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ### log
@@ -605,7 +606,7 @@ let stream$ = rx.interval(1000).pipe(
     etl.log()
 );
 
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ### where
@@ -624,7 +625,7 @@ let stream$ = rx.interval(1000).pipe(
     etl.where(v => v % 2 === 0),
     etl.log()
 );
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ### push
@@ -645,7 +646,7 @@ let stream$ = rx.interval(1000).pipe(
     etl.push(csv)
 );
 
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ### numerate
@@ -666,14 +667,14 @@ let stream$ = csv.read().pipe(
     etl.log()
 );
 
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ### addField
 
 <a name="numerate" href="#numerate">#</a> etl.<b>addField</b>([<i>options</i>])
 
-This operator calculate callback function from parameters and add result as new field to the input stream value (if it is object) or push result as new array item of input stream value (if it is array).
+This operator applicable to the stream of objects. It calculate callback function and add result as new field to the input stream value.
 
 Example
 
@@ -687,7 +688,28 @@ const logUsers$ = table.read().pipe(
     etl.log()
 );
 
-etl.run(logUsers$)
+etl.run(logUsers$);
+```
+
+### addColumn
+
+<a name="numerate" href="#numerate">#</a> etl.<b>addColumn</b>([<i>options</i>])
+
+This operator applicable to the stream of arrays. It calculate callback function and add result as a new column to the input stream value.
+
+Example
+
+```js
+const etl = require('rxjs-etl-kit');
+
+const csv = etl.CsvEndpoint('test.csv');
+
+const stream$ = csv.read().pipe(
+    addField(value => value[2].toUpperCase()), 
+    etl.log()
+);
+
+etl.run(stream$);
 ```
 
 ### join
@@ -709,7 +731,7 @@ let stream$ = csv.read().pipe(
     log()
 );
 
-etl.run(stream$)
+etl.run(stream$);
 ```
 
 ## Misc
