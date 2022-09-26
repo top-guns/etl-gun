@@ -14,6 +14,7 @@ export type PathDetails = {
     fullPath: string;
     parentFolderRelativePath: string; // '..' for root folder
     parentFolderFullPath: string;
+    content?: Buffer;
 }
 
 export type ReadOptions = {
@@ -21,6 +22,8 @@ export type ReadOptions = {
     includeRootDir?: boolean;
     // all is default
     objectsToSearch?: 'filesOnly' | 'foldersOnly' | 'all';
+    // false by default
+    withContent?: boolean;
 }
 
 export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
@@ -54,9 +57,9 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
                     }
         
                     for (let i = 0; i < matches.length; i++) {
-                        this.getPathDetails(matches[i], false).then(res => {
+                        this.getPathDetails(matches[i], options).then(res => {
                             if ( (res.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
-                                || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all')) )
+                                || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
                                 this.sendDataEvent(res);
                                 subscriber.next(res);
@@ -83,14 +86,37 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
     public async push(fileInfo: string | PathDetails, data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> 
         | internal.Stream = '', isFolder: boolean = false) 
     {
-        if (typeof fileInfo == 'string') fileInfo = await this.getPathDetails(fileInfo, isFolder);
-        super.push(fileInfo);
-
-        if (fileInfo.isFolder) {
-            if (!fs.existsSync(fileInfo.fullPath)) await fs.promises.mkdir(fileInfo.fullPath);
+        let pathDetails: PathDetails;
+        if (typeof fileInfo == 'string') {
+            const relativePath = fileInfo;
+            const rootFolderPath = this.rootFolderPath ? this.rootFolderPath : '.';
+            const fullPath = path.resolve(rootFolderPath + '/' + relativePath);
+            pathDetails = {
+                isFolder,
+                name: this.extractFileName(relativePath),
+                relativePath,
+                fullPath,
+                parentFolderRelativePath: this.extractParentFolderPath(relativePath),
+                parentFolderFullPath: this.extractParentFolderPath(fullPath)
+            };
         }
         else {
-            await fs.promises.writeFile(fileInfo.fullPath, data);
+            pathDetails = fileInfo;
+        }
+        if (!data && pathDetails.content) data = pathDetails.content;
+
+        super.push(pathDetails);
+
+        if (pathDetails.isFolder) {
+            if (!fs.existsSync(pathDetails.fullPath)) {
+                fs.mkdirSync(pathDetails.fullPath, { recursive: true });
+            }
+        }
+        else {
+            if (!fs.existsSync(pathDetails.parentFolderFullPath)) {
+                fs.mkdirSync(pathDetails.parentFolderFullPath, { recursive: true });
+            }
+            await fs.promises.writeFile(pathDetails.fullPath, data);
         }
     }
 
@@ -104,11 +130,15 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
 
         const matches = glob.sync(mask, {cwd: this.rootFolderPath});
         for (let i = 0; i < matches.length; i++) {
-            const isFolder = (await fs.promises.lstat(matches[i])).isDirectory();
-            if ( (isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
-                || (!isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all')) )
-            {
-                fs.rmSync(matches[i], { recursive: true, force: true });
+            const matchPath = path.join(this.rootFolderPath, matches[i]);
+            const isFolder = (await fs.promises.lstat(matchPath)).isDirectory();
+
+            if ( isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch) ) {
+                fs.rmdirSync(matchPath, { recursive: true });
+            }
+
+            if ( !isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch) ) {
+                fs.rmSync(matchPath, { force: true });
             }
             
         };
@@ -146,11 +176,11 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
         }
     }
 
-    protected async getPathDetails(relativePath: string, isFolder: boolean) {
+    protected async getPathDetails(relativePath: string, options?: ReadOptions) {
         const rootFolderPath = this.rootFolderPath ? this.rootFolderPath : '.';
         const fullPath = path.resolve(rootFolderPath + '/' + relativePath);
 
-        return {
+        const res = {
             isFolder: (await fs.promises.lstat(fullPath)).isDirectory(),
             name: this.extractFileName(relativePath),
             relativePath,
@@ -158,6 +188,10 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
             parentFolderRelativePath: this.extractParentFolderPath(relativePath),
             parentFolderFullPath: this.extractParentFolderPath(fullPath)
         } as PathDetails;
+        if (options && options.withContent) {
+            res.content = fs.readFileSync(fullPath);
+        }
+        return res;
     }
     
 }
