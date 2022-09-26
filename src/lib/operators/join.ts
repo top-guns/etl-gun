@@ -30,9 +30,9 @@ export function joinArrays<T extends any[], J extends any[]>(joinable: Observabl
     }
 }
 
-// export function join<T extends Record<string, any>>(joinable: Observable<Record<string, any>>): OperatorFunction<T, Record<string, any>>;
-// export function join<T extends any[]>(joinable: Observable<any[]>): OperatorFunction<T, any[]>;
-export function join<R = any>(joinable: Observable<any>): OperatorFunction<any, R> {
+export function join<R = any>(joinable: Observable<any>): OperatorFunction<any, R>;
+export function join<R = any>(joinable: Observable<any>, fieldName: string): OperatorFunction<any, R>;
+export function join<R = any>(joinable: Observable<any>, fieldName: string = ''): OperatorFunction<any, R> {
     let buf: any;
     return (source: Observable<any>): Observable<any> => {
         return source.pipe(
@@ -50,9 +50,21 @@ export function join<R = any>(joinable: Observable<any>): OperatorFunction<any, 
                 }
                 if (typeof buf == "object") {
                     if (typeof v == "object") return Object.assign({}, buf, v);
+                    if (fieldName) {
+                        let res = Object.assign({}, buf);
+                        res[fieldName] = v;
+                        return res;
+                    }
                     return [...objectToArray(buf), v];
                 }
-                if (typeof v == "object") return [buf, ...objectToArray(v)];
+                if (typeof v == "object") {
+                    if (fieldName) {
+                        let res = Object.assign({}, v);
+                        res[fieldName] = buf;
+                        return res;
+                    }
+                    return [buf, ...objectToArray(v)];
+                }
                 return [buf, v];
             })
         );
