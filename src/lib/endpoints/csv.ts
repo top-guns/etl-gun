@@ -61,7 +61,7 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
 
     public async clear() {
         await super.clear();
-        await fs.writeFile(this.filename, '', function(){});
+        await fs.promises.writeFile(this.filename, '');
     }
 
     protected getCsvStrFromStrArr(vals: string[]) {
