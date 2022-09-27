@@ -1,4 +1,4 @@
-import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
+import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
 import { Endpoint } from './endpoint';
 
 type EndpointDesc = {

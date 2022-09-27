@@ -1137,8 +1137,10 @@ concat-map@0.0.1:
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==
 
-console-gui-tools@./external/console-gui-tools:
+console-gui-tools-cjs@^1.1.31:
   version "1.1.31"
+  resolved "https://registry.yarnpkg.com/console-gui-tools-cjs/-/console-gui-tools-cjs-1.1.31.tgz#3019ed87b4f2b1a2079f0e7c8a64bf9e56ef496d"
+  integrity sha512-gldipN73xG5r9WyxFD01qNtS0X3V9Be8Nnu2kr0t1RDzobDJVgifLWetd1mQPedm5bfAGfKUOtttZPc3Rnv4RA==
   dependencies:
     chalk "^4.1.2"
 

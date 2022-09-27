@@ -8,6 +8,6 @@ node_modules
 .env
 
 # Build / generate output
-/dist
+dist
 coverage
 .DS_Store

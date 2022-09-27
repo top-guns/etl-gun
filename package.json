@@ -13,6 +13,14 @@
     "pub:npm": "yarn publish",
     "pub:coverage": "./node_modules/.bin/codecov --token=$RXJS_ETL_KIT_CODECOV_TOKEN"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igor-berezhnoy/rxjs-etl-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/igor-berezhnoy/rxjs-etl-kit/issues"
+  },
+  "homepage": "https://github.com/igor-berezhnoy/rxjs-etl-kit#readme",
   "keywords": [
     "rxjs",
     "etl",
@@ -23,7 +31,7 @@
     "javascript",
     "lib",
     "node",
-    "nodejs",
+    "node.js",
     "csv",
     "json",
     "jsonpath",
@@ -36,7 +44,7 @@
   "author": "Berezhnoy I.A.",
   "license": "MIT",
   "dependencies": {
-    "console-gui-tools": "./external/console-gui-tools",
+    "console-gui-tools-cjs": "^1.1.31",
     "csv": "^6.2.0",
     "glob": "^8.0.3",
     "jsonpath-plus": "^7.2.0",

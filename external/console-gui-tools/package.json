@@ -1,7 +1,7 @@
 {
-    "name": "console-gui-tools",
+    "name": "console-gui-tools-cjs",
     "version": "1.1.31",
-    "description": "A simple library to draw option menu, text popup or other widgets and layout on a Node.js console.",
+    "description": "Clone of console-gui-tools library with minor changes to build it as CommonJS module.",
     "main": "dist/ConsoleGui.js",
     "typings": "dist/ConsoleGui.d.ts",
     "types": "dist/ConsoleGui.d.ts",
@@ -16,10 +16,6 @@
         "test": "npm run build && node ./examples/tcp_simulator.mjs",
         "start": "npm run build && node ./dist/ConsoleGui.js",
         "docs": "node ./docgen.cjs"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Elius94/console-gui-tools.git"
     },
     "keywords": [
         "console",
