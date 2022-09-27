@@ -2,12 +2,12 @@
 data
 
 # Dependency directories
-node_modules/
+node_modules
 
 # dotenv environment variables file
 .env
 
 # Build / generate output
-dist
+/dist
 coverage
 .DS_Store

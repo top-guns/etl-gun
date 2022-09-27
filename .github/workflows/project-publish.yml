@@ -22,11 +22,11 @@ jobs:
         with:
           node-version: '16.x'
           cache: 'yarn'
-      - run: |
-          cd ./external/console-gui-tools
-          npm install
-          npm run build
-          cd ../..
+      # - run: |
+      #     cd ./external/console-gui-tools
+      #     npm install
+      #     npm run build
+      #     cd ../..
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn test
@@ -41,11 +41,11 @@ jobs:
         with:
           node-version: '16.x'
           registry-url: https://registry.npmjs.org/
-      - run: |
-          cd ./external/console-gui-tools
-          npm install
-          npm run build
-          cd ../..
+      # - run: |
+      #     cd ./external/console-gui-tools
+      #     npm install
+      #     npm run build
+      #     cd ../..
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: node ./src/utils/bump-package-json-version.js
