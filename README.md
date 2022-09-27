@@ -21,11 +21,13 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 * [Why / when would I need this?](#why--when-would-i-need-this)
 * [Installation](#installation)
 * [Usage](#usage)
-* [Features](#features)
 * [Concept](#concept)
+* [Features](#features)
+* [GUI](#gui)
 * [Examples (how to)](#examples-how-to)
     * [Export rows from Postgres table to csv-file (postgresql -> .csv)](#export-rows-from-postgres-table-to-csv-file-postgresql---csv)
     * [Sort rows in csv-file by the first column (.csv -> .csv)](#sort-rows-in-csv-file-by-the-first-column-csv---csv)
+    * [Create telegram bot with 'echo' functionality](#create-telegram-bot-with-echo-functionality)
 * [API Reference](#api-reference)
     * [Core](#core)
         * [Endpoint](#endpoint)
@@ -94,33 +96,24 @@ Introductory example: postgresql -> .csv
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
 const { map } = require("rxjs");
 
+// If you want to use GUI, uncomment the next line of code
+// new etl.GuiManager();
+
+// Step 1: endpoint creation
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");
 const header = new Header(["id", "name", "login", "email"]);
 
+// Step 2: transformation streams creation
 const sourceToDest$ = source.read().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
 );
 
+// Step 3: runing transformations (and wait until they finish, if necessary)
 await run(sourceToDest$);
  ```
-
----
-
-# Features
-
-* Simple way to use, consists of 3 steps: 1) Endpoints creation 2) Piplines creation 3) Run piplines in needed order
-* You can use javascript and typescript with **RxJs-ETL-Kit**, which writen in typescript itself
-* Fully compatible with **RsJs** library, it's observables, operators etc.
-* Extract data from the different source endpoints, for example PostgreSql, csv, json, xml
-* Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
-* Load data to the different destination endpoints, for example PostgreSql, csv, json, xml
-* Create pipelines of data extraction, transformation and loading, and run this pipelines in needed order
-* Working with any type of data, including hierarchical data structures (json, xml)
-* With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
-* You can create Telegram bots with [TelegramEndpoint](#telegramendpoint)
 
 ---
 
@@ -134,7 +127,7 @@ Using of this library consists of 3 steps:
 
 1. Define your endpoints for sources and destinations
 2. Define data transformation pipelines using **pipe()** method of input streams of your source endpoints
-3. Run transformation pipelines in needed order and wait for completion
+3. Run transformation pipelines in order and wait for completion
 
 ETL process:
 
@@ -146,6 +139,34 @@ Chaining:
 
 Chaning of data transformation performs with **pipe()** method of the input data stream. 
 Chaning of several streams performs by using **await** with **run()** procedure.
+
+---
+
+# Features
+
+* Simple way to use, consists of 3 steps: 1) Endpoints creation 2) Piplines creation 3) Run piplines in order (and if you want to use GUI - then the zerro step is creating instance of **GuiManager** class)
+* This library can work as simple console application or application with console GUI, which support many usefull functions (see [GUI](#gui))
+* You can use javascript and typescript with **RxJs-ETL-Kit**, which writen in typescript itself
+* Fully compatible with **RsJs** library, it's observables, operators etc.
+* Create pipelines of data extraction, transformation and loading, and run this pipelines in order
+* Extract data from and load to the different source and destination endpoints, for example PostgreSql, csv, json, xml
+* Transform data with **RxJs** and **RxJs-ETL-Kit** operators and any custom js handlers via **map** operator for example
+* Work with any type of data, including hierarchical data structures (json, xml) and support typescript types
+* With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
+* You can create Telegram bots with [TelegramEndpoint](#telegramendpoint)
+
+---
+
+# GUI
+
+<img src="https://github.com/igor-berezhnoy/rxjs-etl-kit/raw/main/static/GUI.jpg" alt="GUI" title="GUI" style="max-width: 100%">
+
+* Simple way to use, you need only create instance of **GuiManager** class before endpoint creation (at the begin of the program)
+* You can pause the ETL-process and resume it with 'space' on keyboard
+* With 'enter' you can execute ETL process step-by-step in pause mode
+* With 'esc' you can quit the program
+* GUI display full list of created endpoints, their status and last value recived from them
+* Logs are displayed in footer part of console window
 
 ---
 
@@ -192,6 +213,21 @@ csv.clear();
 
 await etl.run(bufferToCsv$)
  ```
+
+ ### Create telegram bot with 'echo' functionality
+
+ ```js
+const etl = require('rxjs-etl-kit');
+
+const telegram = new etl.TelegramEndpoint('**********');
+
+const startTelegramBot$ = telegram.read().pipe(
+    etl.log(),          // log user messages to the console
+    etl.push(telegram)  // echo input message back to the user
+);
+
+etl.run(startTelegramBot$);
+```
 
 ---
 
