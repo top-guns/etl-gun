@@ -6,7 +6,7 @@ describe('Operator numerate()', () => {
     test('numerate arrays', async () => {
         let res: any[][] = [];
 
-        const src = new etl.BufferEndpoint<number[]>([1], [2], [3]);
+        const src = new etl.BufferEndpoint<number[]>('', [1], [2], [3]);
 
         let stream$ = src.read().pipe(
             etl.numerate(10),
@@ -21,7 +21,7 @@ describe('Operator numerate()', () => {
     test('numerate objects', async () => {
         let res: {}[] = [];
 
-        const src = new etl.BufferEndpoint<{}>({f1: 1}, {f1: 2}, {f1: 3});
+        const src = new etl.BufferEndpoint<{}>('', {f1: 1}, {f1: 2}, {f1: 3});
 
         let stream$ = src.read().pipe(
             etl.numerate(10, "index"),
@@ -36,7 +36,7 @@ describe('Operator numerate()', () => {
     test('numerate scalars', async () => {
         let res: any[][] = [];
 
-        const src = new etl.BufferEndpoint<number>(1, 2, 3);
+        const src = new etl.BufferEndpoint<number>('', 1, 2, 3);
 
         let stream$ = src.read().pipe(
             etl.numerate(10),
@@ -50,7 +50,7 @@ describe('Operator numerate()', () => {
 
 
     test('numerate objects without field name specification', async () => {
-        const src = new etl.BufferEndpoint<{}>({f1: 1}, {f1: 2}, {f1: 3});
+        const src = new etl.BufferEndpoint<{}>('', {f1: 1}, {f1: 2}, {f1: 3});
 
         let stream$ = src.read().pipe(
             etl.numerate(10),
@@ -62,7 +62,7 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate arrays with field name specification', async () => {
-        const src = new etl.BufferEndpoint<number[]>([1], [2], [3]);
+        const src = new etl.BufferEndpoint<number[]>('', [1], [2], [3]);
 
         let stream$ = src.read().pipe(
             etl.numerate(10, "index"),
@@ -73,7 +73,7 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate scalars with field name specification', async () => {
-        const src = new etl.BufferEndpoint<number>(1, 2, 3);
+        const src = new etl.BufferEndpoint<number>('', 1, 2, 3);
 
         let stream$ = src.read().pipe(
             rx.map(v => v as unknown as Record<string, any>),
