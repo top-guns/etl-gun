@@ -5,3 +5,4 @@ export { JsonEndpoint } from './json';
 export { XmlEndpoint } from './xml';
 export { TelegramEndpoint } from './telegram';
 export { FilesystemEndpoint } from './filesystem';
+export { IntervalEndpoint } from './interval';

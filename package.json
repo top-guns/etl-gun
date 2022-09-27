@@ -4,6 +4,8 @@
   "description": "ETL extension for RxJs library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "-type": "commonjs",
+  "--type": "module",
   "scripts": {
     "start": "ts-node src/main.ts",
     "build": "tsc",
@@ -34,6 +36,7 @@
   "author": "Berezhnoy I.A.",
   "license": "MIT",
   "dependencies": {
+    "console-gui-tools": "./external/console-gui-tools",
     "csv": "^6.2.0",
     "glob": "^8.0.3",
     "jsonpath-plus": "^7.2.0",

@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import { glob } from "glob";
-import path = require("path");
+import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
-import internal = require("stream");
+import internal from "stream";
 import { Endpoint, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
@@ -29,8 +29,8 @@ export type ReadOptions = {
 export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
     protected rootFolderPath: string;
 
-    constructor(rootFolderPath: string) {
-        super();
+    constructor(rootFolderPath: string, displayName: string = '') {
+        super(displayName ? displayName : `Filesystem (${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`);
         this.rootFolderPath = rootFolderPath.trim();
         if (this.rootFolderPath.endsWith('/')) this.rootFolderPath.substring(0, this.rootFolderPath.lastIndexOf('/'));
     }

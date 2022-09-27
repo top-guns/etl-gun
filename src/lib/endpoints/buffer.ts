@@ -9,8 +9,8 @@ export class BufferEndpoint<T = any> extends EndpointImpl<T> {
         return this._buffer;
     }
 
-    constructor(...values: T[]) {
-        super();
+    constructor(displayName: string = '', ...values: T[]) {
+        super(displayName ? displayName : `Buffer`);
         this._buffer = [...values];
     }
 

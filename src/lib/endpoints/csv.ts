@@ -8,8 +8,8 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
     protected filename: string;
     protected delimiter: string;
 
-    constructor(filename: string, delimiter: string = ",") {
-        super();
+    constructor(filename: string, delimiter: string = ",", displayName: string = '') {
+        super(displayName ? displayName : `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`);
         this.filename = filename;
         this.delimiter = delimiter;
     }

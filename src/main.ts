@@ -7,27 +7,32 @@ console.log("START");
 async function f() {
     try {
 
+        new etl.GuiManager("Test ETL process");
 
         const timer$ = interval(1000);
         const buf = new etl.BufferEndpoint<number>();
-        const bufArrays = new etl.BufferEndpoint<any[]>([0,1], [2,3], [3,6]);
+        const bufArrays = new etl.BufferEndpoint<any[]>('', [0,1], [2,3], [3,6]);
         const table = new etl.PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm");
         const csv = new etl.CsvEndpoint('data/test.csv');
         const json = new etl.JsonEndpoint('data/test.json');
         const xml = new etl.XmlEndpoint('data/test.xml');
         //const telegram = new etl.TelegramEndpoint("");
         const fs = new etl.FilesystemEndpoint('src');
+        const timer = new etl.IntervalEndpoint(500);
 
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
         // xml.read('/store/book/author')
         //let test$ = xml.read('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsAttribute: "path"})
         //let test$ = fs.read('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
-        let test$ = csv.read()
+        //let test$ = csv.read()
+
+
+        let test$ = timer.read()
         .pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 
-            etl.addField(v => v[0] + "++++"),
+            //etl.addField(v => v[0] + "++++"),
             
             etl.log(),
             //etl.push(telegram)

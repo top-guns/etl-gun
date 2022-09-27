@@ -18,8 +18,8 @@ export class JsonEndpoint extends EndpointImpl<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding) {
-        super();
+    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, displayName: string = '') {
+        super(displayName ? displayName : `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;

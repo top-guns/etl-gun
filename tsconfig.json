@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "ES2021",
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
@@ -17,7 +17,8 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "noFallthroughCasesInSwitch": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "lib": ["ES2021"],
   },
   "compileOnSave": true,
   "exclude": [

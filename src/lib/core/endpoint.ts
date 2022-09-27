@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { GuiManager } from "./gui";
 
 export type EndpointEvent = 
     "read.start" |
@@ -11,30 +12,25 @@ export type EndpointEvent =
     "push" |
     "clear";
 
-export class Endpoint<T> {
+export interface Endpoint<T> {
 
     //public createReadStream(): Observable<T> {
-    public read(): Observable<T> {
-        throw new Error("Method not implemented.");
-    }
+    read(): Observable<T>;
 
-    public async push(value: T, ...params: any[]) {
-        throw new Error("Method not implemented.");
-    }
+    push(value: T, ...params: any[]): Promise<void>;
+    clear(): Promise<void>;
 
-    public async clear() {
-        throw new Error("Method not implemented.");
-    }
+    on(event: EndpointEvent, listener: (...data: any[]) => void): Endpoint<T>;
 
-    public on(event: EndpointEvent, listener: (...data: any[]) => void): Endpoint<T> {
-        throw new Error("Method not implemented.");
-    }
+    stop(): void;
+    pause(): void;
+    resume(): void;
+
+    get isPaused(): boolean;
 
     // public async delete(where: any) {
     //     throw new Error("Method not implemented.");
     // }
-
-
 
     // public async find(where: any): Promise<T[]> {
     //     throw new Error("Method not implemented.");
@@ -52,7 +48,7 @@ export class Endpoint<T> {
 
 type EventListener = (...data: any[]) => void;
 
-export class EndpointImpl<T> extends Endpoint<T> {
+export class EndpointImpl<T> implements Endpoint<T> {
     protected listeners: Record<EndpointEvent, EventListener[]> = {
         "push": [],
         "clear": [],
@@ -64,6 +60,39 @@ export class EndpointImpl<T> extends Endpoint<T> {
         "read.up": [],
         "read.down": []
     };
+
+    protected _isPaused: boolean = false;
+
+    constructor(displayName: string = '') {
+        if (GuiManager.instance) GuiManager.instance.registerEndpoint(this, displayName);
+    }
+
+    public pause() {
+        this._isPaused = true;
+    }
+
+    public resume() {
+        this._isPaused = false;
+    }
+
+    get isPaused(): boolean {
+        if (this._isPaused) return true;
+
+        if (GuiManager.instance && GuiManager.instance.makeStepForward) {
+            GuiManager.instance.makeStepForward = false;
+            return false;
+        }
+
+        return GuiManager.instance && GuiManager.instance.isPaused;
+    }
+
+    public read(): Observable<T> {
+        throw new Error("Method not implemented.");
+    }
+
+    public stop() {
+        throw new Error("Method not implemented.");
+    }
   
     public on(event: EndpointEvent, listener: EventListener): Endpoint<T> {
         if (!this.listeners[event]) this.listeners[event] = [];

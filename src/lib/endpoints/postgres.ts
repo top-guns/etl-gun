@@ -8,10 +8,10 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
     protected table: string;
     protected pool: any;
 
-    constructor(table: string, url: string);
-    constructor(table: string, pool: any);
-    constructor(table: string, connection: any) {
-        super();
+    constructor(table: string, url: string, displayName?: string);
+    constructor(table: string, pool: any, displayName?: string);
+    constructor(table: string, connection: any, displayName: string = '') {
+        super(displayName ? displayName : `PostgreSQL (${table})`);
         this.table = table;
 
         if (typeof connection == "string") {

@@ -16,8 +16,8 @@ export class TelegramEndpoint extends EndpointImpl<TelegramInputMessage> {
     protected subscriber: Subscriber<TelegramInputMessage>;
     protected bot: TelegramBot;
 
-    constructor(token: string, keyboard?: any) {
-        super();
+    constructor(token: string, keyboard?: any, displayName: string = '') {
+        super(displayName ? displayName : `Telegram`);
         this.token = token;
         this.keyboard = keyboard;
     }
