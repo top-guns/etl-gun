@@ -4,7 +4,7 @@
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
