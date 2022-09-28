@@ -7,7 +7,7 @@ console.log("START");
 async function f() {
     try {
 
-        new etl.GuiManager("Test ETL process");
+        new etl.GuiManager("Test ETL process", true);
 
         const timer$ = interval(1000);
         const buf = new etl.BufferEndpoint<number>();
@@ -28,7 +28,7 @@ async function f() {
         //let test$ = csv.read()
 
 
-        let test$ = timer.read()
+        let test$ = table.read()
         .pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 

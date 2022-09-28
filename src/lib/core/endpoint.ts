@@ -86,6 +86,18 @@ export class EndpointImpl<T> implements Endpoint<T> {
         return GuiManager.instance && GuiManager.instance.isPaused;
     }
 
+    public waitWhilePaused() {
+        const doWait = (resolve) => {
+            if (!this.isPaused) {
+                resolve();
+                return;
+            }
+            setTimeout(doWait, 50, resolve);
+        }
+
+        return new Promise<void>(resolve => doWait(resolve));
+    }
+
     public read(): Observable<T> {
         throw new Error("Method not implemented.");
     }

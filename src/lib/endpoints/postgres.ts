@@ -1,6 +1,6 @@
 import * as pg from 'pg'
 import { Observable } from "rxjs";
-import { Endpoint } from '../core';
+import { Endpoint, GuiManager } from '../core';
 import { EndpointImpl } from '../core/endpoint';
 import { EtlObservable } from '../core/observable';
 
@@ -25,33 +25,30 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
 
     public read(where: string | {} = ''): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
-            try {
-                this.sendStartEvent();
-                let params = [];
-                if (where && typeof where === 'object') {
-                    where = this.getWhereAsString(where);
-                    params = this.getCommaSeparatedValues(where);
-                }
+            (async () => {
+                try {
+                    this.sendStartEvent();
+                    let params = [];
+                    if (where && typeof where === 'object') {
+                        where = this.getWhereAsString(where);
+                        params = this.getCommaSeparatedValues(where);
+                    }
 
-                const query = `select * from ${this.table} ${where ? 'where ' + where : ''}`;
-                this.pool.query(query, params)
-                .then((results: any) => {
-                    results.rows.forEach(row => {
+                    const query = `select * from ${this.table} ${where ? 'where ' + where : ''}`;
+                    const results = await this.pool.query(query, params);
+                    for (const row of results.rows) {
+                        await this.waitWhilePaused();
                         this.sendDataEvent(row);
                         subscriber.next(row);
-                    })
+                    }
                     subscriber.complete();
                     this.sendEndEvent();
-                })
-                .catch(err => {
+                }
+                catch(err) {
                     this.sendErrorEvent(err);
                     subscriber.error(err);
-                })  
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
+                }
+            })();
         });
         return observable;
     }
