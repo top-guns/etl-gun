@@ -8,11 +8,11 @@ describe('Operator log()', () => {
         const res = new StringWritable();
 
         const src$ = rx.of(100).pipe(
-            etl.log('h', 'f', res)
+            etl.log('h', null, res)
         )
 
         await etl.run(src$);
 
-        expect(res.toString()).toEqual("h 100 f\n");
+        expect(res.toString()).toEqual("h 100\n");
     });
 });

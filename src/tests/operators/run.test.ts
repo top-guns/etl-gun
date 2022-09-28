@@ -5,8 +5,8 @@ describe('Operator run()', () => {
     test('wait for two streams and check calls order', async () => {
         let res: number[] = [];
 
-        const src1 = new etl.BufferEndpoint<number>('', 1, 2);
-        const src2 = new etl.BufferEndpoint<number>('', 10, 11);
+        const src1 = new etl.BufferEndpoint<number>([1, 2]);
+        const src2 = new etl.BufferEndpoint<number>([10, 11]);
 
         let stream1$ = src1.read().pipe(
             rx.delay(2000),

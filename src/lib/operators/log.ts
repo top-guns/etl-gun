@@ -1,7 +1,7 @@
 import { tap } from "rxjs";
 import { GuiManager } from "../core";
 
-export function log<T>(before: string = '', valuefn: (value) => string = null, outStream: NodeJS.WritableStream = null) {
+export function log<T>(before: string = '', valuefn?: ((value) => string) | null, outStream: NodeJS.WritableStream = null) {
     const outConsole = outStream ? new console.Console(outStream) : console;
     return tap<T>(v => 
         GuiManager.instance 
