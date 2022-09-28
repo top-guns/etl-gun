@@ -6,9 +6,12 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Build Status](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions?query=branch%3Amain+workflow%3A"Project%20CI")
-[![Coverage Status](https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions?query=branch%3Amain+workflow%3A"Project%20CI")
+[![Coverage Status](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit/branch/main/graph/badge.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
+
+[//]: # (https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg   https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
+
 
 [npm-image]: https://img.shields.io/npm/v/rxjs-etl-kit.svg
 [npm-url]: https://npmjs.org/package/rxjs-etl-kit
@@ -39,6 +42,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
         * [TelegramEndpoint](#telegramendpoint)
+        * [IntervalEndpoint](#intervalendpoint)
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
@@ -92,7 +96,7 @@ yarn add rxjs-etl-kit
 Require the RxJs-ETL-Kit library in the desired file to make it accessible.
 
 Introductory example: postgresql -> .csv
-```js
+```typescript
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
 const { map } = require("rxjs");
 
@@ -174,7 +178,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 
 ### Export rows from Postgres table to csv-file (postgresql -> .csv)
 
-```js
+```typescript
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
 const { map } = require("rxjs");
 
@@ -193,7 +197,7 @@ await run(sourceToDest$);
 
  ### Sort rows in csv-file by the first column (.csv -> .csv)
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const csv = etl.CsvEndpoint('test.csv');
@@ -216,7 +220,7 @@ await etl.run(bufferToCsv$)
 
  ### Create telegram bot with 'echo' functionality
 
- ```js
+ ```typescript
 const etl = require('rxjs-etl-kit');
 
 const telegram = new etl.TelegramEndpoint('**********');
@@ -241,7 +245,7 @@ Base class for all endpoints. Declares public interface of endpoint and implemen
 
 Methods:
 
-```js
+```typescript
 // Read data from the endpoint and create data stream to process it
 read(): Observable<any>;
 
@@ -260,7 +264,7 @@ on(event: EndpointEvent, listener: (...data: any[]) => void);
 
 Types:
 
-```js
+```typescript
 export type EndpointEvent = 
     "read.start" |  // fires at the start of stream
     "read.end" |    // at the end of stream
@@ -282,14 +286,14 @@ This is a generic class and you can specify type of data which will be stored in
 
 Constructor:
 
-```js
+```typescript
 // values: You can specify start data which will be placed to endpoint buffer
 constructor(...values: T[]);
 ```
 
 Methods:
 
-```js
+```typescript
 // Create the observable object and send data from the buffer to it
 read(): Observable<T>;
 
@@ -312,7 +316,7 @@ forEach(callbackfn: (value: T, index: number, array: T[]) => void);
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const csv = etl.CsvEndpoint('test.csv');
@@ -339,14 +343,14 @@ Search for files and folders by standart unix shell wildcards [see glob document
 
 Constructor:
 
-```js
+```typescript
 // rootFolderPath: full or relative path to the folder for search
 constructor(rootFolderPath: string);
 ```
 
 Methods:
 
-```js
+```typescript
 // Create the observable object and send files and folders information to it
 // mask: search path mask in glob format (see glob documentation)
 //       for example:
@@ -373,7 +377,7 @@ async clear(mask: string = '*', options?: ReadOptions);
 
 Types:
 
-```js
+```typescript
 type ReadOptions = {
     includeRootDir?: boolean;   // Is root folder itself will be included to search results
                                 // false by default
@@ -398,7 +402,7 @@ type PathDetails = {
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 const rx = require('rxjs');
 
@@ -418,7 +422,7 @@ Parses source csv file into individual records or write record to the end of des
 
 Constructor:
 
-```js
+```typescript
 // filename: full or relative name of the csv file
 // delimiter: delimiter of values in one string of file data, equals to ',' by default
 constructor(filename: string, delimiter?: string);
@@ -426,7 +430,7 @@ constructor(filename: string, delimiter?: string);
 
 Methods:
 
-```js
+```typescript
 // Create the observable object and send file data to it string by string
 // skipFirstLine: skip the first line in the file, useful for skip header
 // skipEmptyLines: skip all empty lines in file
@@ -442,7 +446,7 @@ async clear();
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const csv = etl.CsvEndpoint('test.csv');
@@ -460,7 +464,7 @@ Read and write json file with buffering it in memory. You can get objects from j
 
 Constructor:
 
-```js
+```typescript
 // filename: full or relative name of the json file
 // autosave: save json from memory to the file after every change
 // autoload: load json from the file to memory before every get or search operation
@@ -470,7 +474,7 @@ constructor(filename: string, autosave?: boolean, autoload?: boolean, encoding?:
 
 Methods:
 
-```js
+```typescript
 // Find and send to observable child objects by specified path
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
@@ -504,7 +508,7 @@ save();
 
 Types:
 
-```js
+```typescript
 type ReadOptions = {
     searchReturns?: 'foundedOnly'           // Default value, means that only search results objects will be sended to observable by the function
         | 'foundedImmediateChildrenOnly'    // Only the immidiate children of search results objects will be sended to observable 
@@ -516,7 +520,7 @@ type ReadOptions = {
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 const { tap } = require('rxjs');
 
@@ -541,7 +545,7 @@ Read and write XML document with buffering it in memory. You can get nodes from 
 
 Example
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 const { map } = require('rxjs');
 
@@ -562,7 +566,7 @@ Connection to the database can be performed using connection string or through t
 
 Constructor:
 
-```js
+```typescript
 // table: Table name in database
 // url: Connection string
 // pool: You can specify the existing connection pool instead of new connection creation
@@ -572,7 +576,7 @@ constructor(table: string, pool: any);
 
 Methods:
 
-```js
+```typescript
 // Create the observable object and send data from the database table to it
 // where: you can filter incoming data by this parameter
 //        it can be SQL where clause 
@@ -594,7 +598,7 @@ async clear(where: string | {} = '');
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const table = etl.PostgresEndpoint('users', 'postgres://user:password@127.0.0.1:5432/database');
@@ -612,7 +616,7 @@ With this endpoint you can create telegram bots and chats with users. It can lis
 
 Constructor:
 
-```js
+```typescript
 // token: Bot token
 // keyboard: JSON keyboard description, see the node-telegram-bot-api for detailes
 //           Keyboard example: [["Text for command 1", "Text for command 2"], ["Text for command 3"]]
@@ -621,7 +625,7 @@ constructor(token: string, keyboard?: any);
 
 Methods:
 
-```js
+```typescript
 // Start bot, create observable and send all user messages to it
 read(): Observable<T>;
 
@@ -642,7 +646,7 @@ setKeyboard(keyboard: any)
 
 Example:
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const telegram = new etl.TelegramEndpoint('**********');
@@ -655,6 +659,49 @@ const startTelegramBot$ = telegram.read().pipe(
 etl.run(startTelegramBot$);
 ```
 
+### IntervalEndpoint
+
+This endpoint is analog of **RxJs** interval() operator, with GUI support. It emits simple counter, which increments every interval.
+
+Constructor:
+
+```typescript
+// interval: Time interval in milliseconds between two emitted values 
+// guiOptions: Some options how to display this endpoint
+constructor(interval: number, guiOptions?: EndpointGuiOptions<number>);
+```
+
+Methods:
+
+```typescript
+// Start interval generation, create observable and emit counter of intervals to it
+read(): Observable<number>;
+
+// Stop endpoint reading
+async stop();
+
+// Set value of interval counter
+// value: new value of the interval counter
+async push(value: number);
+
+// Set interval counter to 0
+async clear();
+```
+
+Example:
+
+```typescript
+const etl = require('rxjs-etl-kit');
+
+const timer = new etl.IntervalEndpoint(500);
+
+const startTimer$ = timer.read().pipe(
+    etl.log()          // log counter
+);
+
+etl.run(startTimer$);
+```
+
 ## Operators
 
 Apart from operators from this library, you can use any operators of **RxJs** library.
@@ -663,7 +710,7 @@ Apart from operators from this library, you can use any operators of **RxJs** li
 
 This function runs one or several streams and return promise to waiting when all streams are complites.
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 let buffer = etl.BufferEndpoint(1, 2, 3, 4, 5);
@@ -683,7 +730,7 @@ Prints the value from the stream to the console.
 
 Example
 
-```js
+```typescript
 const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
@@ -702,7 +749,7 @@ This operator is analog of **where** operation in SQL and is synonym of the **fi
 
 Example
 
-```js
+```typescript
 const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
@@ -721,7 +768,7 @@ This operator call the **Endpoint.push** method to push value from stream to the
 
 Example
 
-```js
+```typescript
 const rx = require('rxjs');
 const etl = require('rxjs-etl-kit');
 
@@ -742,7 +789,7 @@ This operator enumerate input values and add index field to value if it is objec
 
 Example
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 let csv = etl.CsvEndpoint('test.csv');
@@ -763,7 +810,7 @@ This operator applicable to the stream of objects. It calculate callback functio
 
 Example
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const table = etl.PostgresEndpoint('users', 'postgres://user:password@127.0.0.1:5432/database');
@@ -784,7 +831,7 @@ This operator applicable to the stream of arrays. It calculate callback function
 
 Example
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 const csv = etl.CsvEndpoint('test.csv');
@@ -805,7 +852,7 @@ This operator is analog of join operation in SQL. It takes the second input stre
 
 Example
 
-```js
+```typescript
 const etl = require('rxjs-etl-kit');
 
 let csv = etl.CsvEndpoint('test.csv');
@@ -825,7 +872,7 @@ etl.run(stream$);
 
 This class can store array of column names and convert object to array or array to object representation..
 
-```js
+```typescript
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
 const { map } = require("rxjs");
 
