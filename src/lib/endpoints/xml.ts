@@ -3,7 +3,7 @@ import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
-import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export type ReadOptions = {
@@ -18,14 +18,16 @@ export type ReadOptions = {
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
 export class XmlEndpoint extends EndpointImpl<any> {
+    protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
     protected xmlDocument: Document;
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, displayName: string = '') {
-        super(displayName ? displayName : `XML (${filename.substring(filename.lastIndexOf('/') + 1)})`);
+    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `XML ${++XmlEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(guiOptions);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;

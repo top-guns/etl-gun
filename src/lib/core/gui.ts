@@ -1,11 +1,13 @@
+import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
-import { Endpoint } from './endpoint';
+import { Endpoint, EndpointGuiOptions } from './endpoint';
 
 type EndpointDesc = {
     endpoint: Endpoint<any>;
     displayName: string;
-    status: 'waiting' | 'running';
+    status: 'waiting' | 'running' | 'finished' | 'error' | 'pushed' | 'cleared';
     value: any;
+    guiOptions: EndpointGuiOptions<any>;
 }
 
 export class GuiManager {
@@ -17,19 +19,21 @@ export class GuiManager {
     protected consoleManager: ConsoleManager;
     protected endpoints: EndpointDesc[] = [];
 
-    constructor(title: string = '', startPaused: boolean = false) {
+    constructor(title = '', startPaused = false, logPageSize = 8) {
         if (GuiManager.instance) throw new Error("GuiManager: gui manager allready created. You cannot create more then one gui manager.");
 
         GuiManager.instance = this;
 
         this.consoleManager = new ConsoleManager({
             title: this.title,
-            logPageSize: 8, // Number of lines to show in logs page
-            showLogKey: 'ctrl+l', // Change layout with ctrl+l to switch to the logs page
+            logPageSize,            // Number of lines to show in logs page
+            showLogKey: 'ctrl+l',   // Change layout with ctrl+l to switch to the logs page
         })
         
         this.title = title;
         this.isPaused = startPaused;
+
+        for(let i = 0; i < logPageSize; i++) this.consoleManager.log('');
 
         // this.consoleManager.on("exit", () => {
         //     this.exit();
@@ -46,7 +50,7 @@ export class GuiManager {
                     this.makeStepForward = this.isPaused;
                     break
                 case 'escape':
-                    new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => this.exit())
+                    new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => this.quitApp())
                     break
                 default:
                     break
@@ -56,7 +60,7 @@ export class GuiManager {
         
     }
 
-    public exit() {
+    public quitApp() {
         process.exit();
     }
 
@@ -70,10 +74,33 @@ export class GuiManager {
 
         p.addRow({ text: "Endpoints:", color: 'white', bg: 'bgBlack' });
         this.endpoints.forEach(desc => {
+            let color: ForegroundColor;
+            switch (desc.status) {
+                case 'running':
+                    color = 'blue';
+                    break;
+                case 'finished':
+                    color = 'green';
+                    break;
+                case 'error':
+                    color = 'red';
+                    break;
+                case 'pushed':
+                    color = 'magenta';
+                    break;
+                case 'cleared':
+                    color = 'yellow';
+                    break;
+                case 'waiting':
+                    color = 'white';
+                    break;
+                default:
+                    color = 'white';
+            }
             p.addRow({ text: `  ` }, 
                 { text: `${this.getEndpointDisplayName(desc)}`, color: 'blue' }, 
-                { text: `  ${desc.status}`, color: desc.status == 'running' ? 'green' : 'white' }, 
-                { text: `  ${desc.value}`, color: 'white' });
+                { text: `  ${desc.status.padEnd(8, ' ')}`, color }, 
+                { text: `  ${desc.value ? (desc.guiOptions.watch && desc.status !== 'error' ? desc.guiOptions.watch(desc.value) : desc.value) : ''}`, color: 'white' });
         })
 
         // Spacer
@@ -105,14 +132,18 @@ export class GuiManager {
         this.consoleManager.info(message);
     }
 
-    public registerEndpoint(endpoint: Endpoint<any>, displayName: string) {
-        displayName = displayName ? displayName : `Endpoint ${this.endpoints.length}`;
-        const desc: EndpointDesc = {endpoint, displayName, status: 'waiting', value: ''};
+    public registerEndpoint(endpoint: Endpoint<any>, guiOptions: EndpointGuiOptions<any> = {}) {
+        const displayName = guiOptions.displayName ? guiOptions.displayName : `Endpoint ${this.endpoints.length}`;
+        const desc: EndpointDesc = {endpoint, displayName, status: 'waiting', value: '', guiOptions};
         this.endpoints.push(desc);
 
         endpoint.on('read.start', () => { desc.status = 'running'; this.updateConsole(); });
-        endpoint.on('read.end', () => { desc.status = 'waiting'; this.updateConsole(); });
-        endpoint.on('read.data', v => { desc.value = v; this.updateConsole(); });
+        endpoint.on('read.end', () => { desc.status = 'finished'; this.updateConsole(); });
+        endpoint.on('read.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
+
+        endpoint.on('read.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
+        endpoint.on('push', v => { desc.status = 'pushed'; desc.value = v; this.updateConsole(); });
+        endpoint.on('clear', v => { desc.status = 'cleared'; desc.value = v; this.updateConsole(); });
 
         this.updateConsole();
     }

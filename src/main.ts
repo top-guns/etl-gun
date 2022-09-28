@@ -7,12 +7,12 @@ console.log("START");
 async function f() {
     try {
 
-        new etl.GuiManager("Test ETL process", true);
+        new etl.GuiManager("Test ETL process", true, 20);
 
         const timer$ = interval(1000);
-        const buf = new etl.BufferEndpoint<number>();
-        const bufArrays = new etl.BufferEndpoint<any[]>('', [0,1], [2,3], [3,6]);
-        const table = new etl.PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm");
+        const buf = new etl.BufferEndpoint<string>();
+        const bufArrays = new etl.BufferEndpoint<any[]>([[0,1], [2,3], [3,6]]);
+        const table = new etl.PostgresEndpoint("users", "postgres://iiicrm:iiicrm@127.0.0.1:5432/iiicrm", {watch: v => `${v.name} [${v.id}]`});
         const csv = new etl.CsvEndpoint('data/test.csv');
         const json = new etl.JsonEndpoint('data/test.json');
         const xml = new etl.XmlEndpoint('data/test.xml');
@@ -35,7 +35,8 @@ async function f() {
             //etl.addField(v => v[0] + "++++"),
             
             etl.log(),
-            //etl.push(telegram)
+            map(v => (v.name)), 
+            etl.push(buf)
             //etl.join(table.read().pipe(take(2))),
             //etl.join(bufArrays.read()),
             //tap(() => (0))

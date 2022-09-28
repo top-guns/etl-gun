@@ -1,16 +1,18 @@
 import { Subscriber } from "rxjs";
 import { GuiManager } from "../core";
-import { EndpointImpl } from "../core/endpoint";
+import { EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export class IntervalEndpoint extends EndpointImpl<number> {
+    protected static instanceNo = 0;
     protected interval: number;
     protected intervalId: NodeJS.Timer;
     protected counter: number = 0;
     protected subscriber: Subscriber<number>;
     
-    constructor(interval: number, displayName: string = '') {
-        super(displayName ? displayName : `Interval (${interval}ms)`);
+    constructor(interval: number, guiOptions: EndpointGuiOptions<number> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `Interval ${++IntervalEndpoint.instanceNo}(${interval}ms)`;
+        super(guiOptions);
         this.interval = interval;
     }
 
@@ -47,7 +49,6 @@ export class IntervalEndpoint extends EndpointImpl<number> {
             this.counter++;
         }
         catch(err) {
-            console.log(err)
             this.sendErrorEvent(err);
             this.subscriber.error(err);
         }

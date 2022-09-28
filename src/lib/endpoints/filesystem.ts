@@ -3,7 +3,7 @@ import { glob } from "glob";
 import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
-import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 
@@ -27,10 +27,12 @@ export type ReadOptions = {
 }
 
 export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
+    protected static instanceNo = 0;
     protected rootFolderPath: string;
 
-    constructor(rootFolderPath: string, displayName: string = '') {
-        super(displayName ? displayName : `Filesystem (${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`);
+    constructor(rootFolderPath: string, guiOptions: EndpointGuiOptions<PathDetails> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `Filesystem ${++FilesystemEndpoint.instanceNo}(${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`;
+        super(guiOptions);
         this.rootFolderPath = rootFolderPath.trim();
         if (this.rootFolderPath.endsWith('/')) this.rootFolderPath.substring(0, this.rootFolderPath.lastIndexOf('/'));
     }

@@ -44,6 +44,7 @@
   "author": "Berezhnoy I.A.",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^5.0.1",
     "console-gui-tools-cjs": "^1.1.31",
     "csv": "^6.2.0",
     "glob": "^8.0.3",

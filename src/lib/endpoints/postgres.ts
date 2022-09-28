@@ -1,17 +1,19 @@
 import * as pg from 'pg'
 import { Observable } from "rxjs";
 import { Endpoint, GuiManager } from '../core';
-import { EndpointImpl } from '../core/endpoint';
+import { EndpointGuiOptions, EndpointImpl } from '../core/endpoint';
 import { EtlObservable } from '../core/observable';
 
 export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
+    protected static instanceNo = 0;
     protected table: string;
     protected pool: any;
 
-    constructor(table: string, url: string, displayName?: string);
-    constructor(table: string, pool: any, displayName?: string);
-    constructor(table: string, connection: any, displayName: string = '') {
-        super(displayName ? displayName : `PostgreSQL (${table})`);
+    constructor(table: string, url: string, guiOptions?: EndpointGuiOptions<T>);
+    constructor(table: string, pool: any, guiOptions?: EndpointGuiOptions<T>);
+    constructor(table: string, connection: any, guiOptions: EndpointGuiOptions<T> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `PostgreSQL ${++PostgresEndpoint.instanceNo}(${table})`;
+        super(guiOptions);
         this.table = table;
 
         if (typeof connection == "string") {

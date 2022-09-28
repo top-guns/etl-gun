@@ -1,7 +1,7 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
 import { Endpoint } from '../core';
-import { EndpointImpl } from '../core/endpoint';
+import { EndpointGuiOptions, EndpointImpl } from '../core/endpoint';
 import { EtlObservable } from '../core/observable';
 import TelegramBot from 'node-telegram-bot-api';
 
@@ -11,13 +11,15 @@ export type TelegramInputMessage = {
 }
 
 export class TelegramEndpoint extends EndpointImpl<TelegramInputMessage> {
+    protected static instanceNo = 0;
     protected token: string;
     protected keyboard: any;
     protected subscriber: Subscriber<TelegramInputMessage>;
     protected bot: TelegramBot;
 
-    constructor(token: string, keyboard?: any, displayName: string = '') {
-        super(displayName ? displayName : `Telegram`);
+    constructor(token: string, keyboard?: any, guiOptions: EndpointGuiOptions<TelegramInputMessage> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `Telegram ${++TelegramEndpoint.instanceNo}`;
+        super(guiOptions);
         this.token = token;
         this.keyboard = keyboard;
     }

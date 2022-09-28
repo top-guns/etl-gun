@@ -1,6 +1,11 @@
 import { Observable } from "rxjs";
 import { GuiManager } from "./gui";
 
+export type EndpointGuiOptions<T> = {
+    displayName?: string;
+    watch?: (value: T) => string;
+}
+
 export type EndpointEvent = 
     "read.start" |
     "read.end" |
@@ -63,8 +68,8 @@ export class EndpointImpl<T> implements Endpoint<T> {
 
     protected _isPaused: boolean = false;
 
-    constructor(displayName: string = '') {
-        if (GuiManager.instance) GuiManager.instance.registerEndpoint(this, displayName);
+    constructor(guiOptions: EndpointGuiOptions<T> = {}) {
+        if (GuiManager.instance) GuiManager.instance.registerEndpoint(this, guiOptions);
     }
 
     public pause() {

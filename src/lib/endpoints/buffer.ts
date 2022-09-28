@@ -1,16 +1,18 @@
 import { from, Observable } from "rxjs";
-import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export class BufferEndpoint<T = any> extends EndpointImpl<T> {
+    protected static instanceNo = 0;
     protected _buffer: T[];
 
     get buffer() {
         return this._buffer;
     }
 
-    constructor(displayName: string = '', ...values: T[]) {
-        super(displayName ? displayName : `Buffer`);
+    constructor(values: T[] = [], guiOptions: EndpointGuiOptions<T> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `Buffer ${++BufferEndpoint.instanceNo}`;
+        super(guiOptions);
         this._buffer = [...values];
     }
 

@@ -1,15 +1,17 @@
 import * as fs from "fs";
 import { Observable } from 'rxjs';
 import { parse } from "csv-parse";
-import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export class CsvEndpoint extends EndpointImpl<string[]> {
+    protected static instanceNo = 0;
     protected filename: string;
     protected delimiter: string;
 
-    constructor(filename: string, delimiter: string = ",", displayName: string = '') {
-        super(displayName ? displayName : `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`);
+    constructor(filename: string, delimiter: string = ",", guiOptions: EndpointGuiOptions<string[]> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `CSV ${++CsvEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;
     }

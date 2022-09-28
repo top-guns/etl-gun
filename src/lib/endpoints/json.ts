@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { Observable, Subscriber } from 'rxjs';
 import { get } from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
-import { Endpoint, EndpointImpl } from "../core/endpoint";
+import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export type ReadOptions = {
@@ -12,14 +12,16 @@ export type ReadOptions = {
 }
 
 export class JsonEndpoint extends EndpointImpl<any> {
+    protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
     protected json: any;
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, displayName: string = '') {
-        super(displayName ? displayName : `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`);
+    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
+        guiOptions.displayName = guiOptions.displayName ?? `JSON ${++JsonEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(guiOptions);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;
