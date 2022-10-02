@@ -37,67 +37,74 @@ export class XmlEndpoint extends EndpointImpl<any> {
 
     public read(xpath: string = '', options: ReadOptions = {}): EtlObservable<Node> {
         const observable = new EtlObservable<any>((subscriber) => {
-            try {
-                this.sendStartEvent();
-                let selectedValue: XPath.SelectedValue = this.get(xpath);
-                if (selectedValue) {
-                    if (Array.isArray(selectedValue)) {
-                        selectedValue.forEach(value => this.processOneSelectedValue(value, options, '', subscriber, observable));
+            (async () => {
+                try {
+                    this.sendStartEvent();
+                    let selectedValue: XPath.SelectedValue = this.get(xpath);
+                    if (selectedValue) {
+                        if (Array.isArray(selectedValue)) {
+                            for (const value of selectedValue) await this.processOneSelectedValue(value, options, '', subscriber, observable);
+                        }
+                        else {
+                            await this.processOneSelectedValue(selectedValue, options, '', subscriber, observable);
+                        }
                     }
-                    else {
-                        this.processOneSelectedValue(selectedValue, options, '', subscriber, observable);
-                    }
+                    subscriber.complete();
+                    this.sendEndEvent();
                 }
-                subscriber.complete();
-                this.sendEndEvent();
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
+                catch(err) {
+                    this.sendErrorEvent(err);
+                    subscriber.error(err);
+                }
+            })();
         });
         return observable;
     }
 
-    protected processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
+    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
             if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+            await this.waitWhilePaused();
             this.sendDataEvent(selectedValue);
             subscriber.next(selectedValue);
             return;
         }
 
         if (options.searchReturns == 'foundedWithDescendants') {
-            this.sendElementWithChildren(selectedValue, subscriber, observable, options, relativePath);
+            await this.sendElementWithChildren(selectedValue, subscriber, observable, options, relativePath);
             return;
         }
 
         if (options.searchReturns == 'foundedImmediateChildrenOnly' && element) {
-            element.childNodes.forEach((value, i) => {
+            for (let i = 0; i < element.childNodes.length; i++) {
+                const value = element.childNodes[i];
                 const childElement = (value as Element).tagName ? value as Element : undefined;
                 let childPath = '';
                 if (childElement) {
                     childPath = relativePath ? relativePath + `/${element.tagName}[${i}]` : `${element.tagName}[${i}]`;
                 } 
                 if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
+                await this.waitWhilePaused();
                 this.sendDataEvent(value);
                 subscriber.next(value);
-            });
+            };
         }
     }
 
-    protected sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+        await this.waitWhilePaused();
         this.sendDataEvent(selectedValue);
         subscriber.next(selectedValue);
 
         if (element && element.hasChildNodes()) {
             let sendedDown = false;
             const tagIndexes: Record<string, number> = {};
-            element.childNodes.forEach((childNode, i) => {
+            for (let i = 0; i < element.childNodes.length; i++) {
+                const childNode = element.childNodes[i];
                 let childElement = (childNode as any).tagName ? childNode as Element : undefined;
                 if (childElement) {
                     if (!sendedDown) {
@@ -109,11 +116,11 @@ export class XmlEndpoint extends EndpointImpl<any> {
                     let childPath = `${childElement.tagName}[${tagIndexes[childElement.tagName]}]`;
                     if (relativePath) childPath = relativePath + '/' + childPath;
 
-                    this.sendElementWithChildren(childElement, subscriber, observable, options, childPath);
+                    await this.sendElementWithChildren(childElement, subscriber, observable, options, childPath);
 
                     tagIndexes[childElement.tagName]++;
                 }
-            })
+            }
             if (sendedDown) this.sendUpEvent();
         }
     }

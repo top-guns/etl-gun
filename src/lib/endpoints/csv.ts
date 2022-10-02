@@ -28,12 +28,15 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
                 fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
                 .on("data", (row: string[]) => {
-                    if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
-                        this.sendSkipEvent(row);
-                        return;
-                    }
-                    this.sendDataEvent(row);
-                    subscriber.next(row);
+                    (async () => {
+                        await this.waitWhilePaused();
+                        if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
+                            this.sendSkipEvent(row);
+                            return;
+                        }
+                        this.sendDataEvent(row);
+                        subscriber.next(row);
+                    })();
                 })
                 .on("end", () => {
                     subscriber.complete();

@@ -18,19 +18,22 @@ export class BufferEndpoint<T = any> extends EndpointImpl<T> {
 
     public read(): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
-            try {
-                this.sendStartEvent();
-                this._buffer.forEach(value => {
-                    this.sendDataEvent(value);
-                    subscriber.next(value);
-                });
-                subscriber.complete();
-                this.sendEndEvent();
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
+            (async () => {
+                try {
+                    this.sendStartEvent();
+                    for(const value of this._buffer) {
+                        await this.waitWhilePaused();
+                        this.sendDataEvent(value);
+                        subscriber.next(value);
+                    };
+                    subscriber.complete();
+                    this.sendEndEvent();
+                }
+                catch(err) {
+                    this.sendErrorEvent(err);
+                    subscriber.error(err);
+                }
+            })();
         });
         return observable;
     }

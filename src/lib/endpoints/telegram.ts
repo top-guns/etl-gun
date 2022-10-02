@@ -34,15 +34,18 @@ export class TelegramEndpoint extends EndpointImpl<TelegramInputMessage> {
                 this.subscriber = subscriber;
 
                 this.bot.onText(/(.+)/, (msg: any, match: any) => {
-                    const message: TelegramInputMessage = {
-                        chatId: msg.chat.id,
-                        message: match[1]
-                    }
+                    (async () => {
+                        const message: TelegramInputMessage = {
+                            chatId: msg.chat.id,
+                            message: match[1]
+                        }
 
-                    this.sendDataEvent(message);
-                    subscriber.next(message);
-            
-                    if (this.keyboard) this.installKeyboard(message.chatId, "", this.keyboard);
+                        await this.waitWhilePaused();
+                        this.sendDataEvent(message);
+                        subscriber.next(message);
+
+                        if (this.keyboard) this.installKeyboard(message.chatId, "", this.keyboard);
+                    })();
                 })
             }
             catch(err) {

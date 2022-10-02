@@ -57,12 +57,14 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
                         subscriber.error(err);
                         return;
                     }
-        
-                    for (let i = 0; i < matches.length; i++) {
-                        this.getPathDetails(matches[i], options).then(res => {
+
+                    (async () => {
+                        for (let i = 0; i < matches.length; i++) {
+                            const res: PathDetails = await this.getPathDetails(matches[i], options);
                             if ( (res.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
                                 || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
+                                await this.waitWhilePaused();
                                 this.sendDataEvent(res);
                                 subscriber.next(res);
 
@@ -71,8 +73,8 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
                                     this.sendEndEvent();
                                 }
                             }
-                        })
-                    };
+                        };
+                    })();
                 });
             }
             catch(err) {
