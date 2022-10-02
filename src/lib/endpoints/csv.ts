@@ -1,7 +1,6 @@
 import * as fs from "fs";
-import { Observable } from 'rxjs';
 import { parse } from "csv-parse";
-import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
 import { EtlObservable } from "../core/observable";
 
 export class CsvEndpoint extends EndpointImpl<string[]> {
@@ -22,25 +21,29 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
    * @return Observable<string[]> 
    */
     public read(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
+        const rows = [];
         const observable = new EtlObservable<string[]>((subscriber) => {
             try {
                 this.sendStartEvent();
                 fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
                 .on("data", (row: string[]) => {
-                    (async () => {
-                        await this.waitWhilePaused();
-                        if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
-                            this.sendSkipEvent(row);
-                            return;
-                        }
-                        this.sendDataEvent(row);
-                        subscriber.next(row);
-                    })();
+                    rows.push(row);
                 })
                 .on("end", () => {
-                    subscriber.complete();
-                    this.sendEndEvent();
+                    (async () => {
+                        for (const row of rows) {
+                            await this.waitWhilePaused();
+                            if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
+                                this.sendSkipEvent(row);
+                                return;
+                            }
+                            this.sendDataEvent(row);
+                            subscriber.next(row);
+                        }
+                        subscriber.complete();
+                        this.sendEndEvent();
+                    })();
                 })
                 .on('error', (err) => {
                     this.sendErrorEvent(err);
@@ -93,5 +96,3 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
     }
 
 }
-
-
