@@ -15,6 +15,8 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
+        console.log(res)
+
         expect(res).toEqual([[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
 
