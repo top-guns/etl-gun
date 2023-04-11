@@ -1,5 +1,6 @@
 import { interval, map, take, tap } from "rxjs";
 import * as etl from './lib';
+import { GuiManager } from "./lib";
 
 
 console.log("START");
@@ -7,7 +8,7 @@ console.log("START");
 async function f() {
     try {
 
-        new etl.GuiManager("Test ETL process", true, 20);
+        GuiManager.startGui("Test ETL process", true, 20);
 
         const timer$ = interval(1000);
         const buf = new etl.BufferEndpoint<string>();
@@ -55,7 +56,7 @@ async function f() {
 
         await etl.run(test$);// .toPromise();
         console.log("END");
-
+        GuiManager.stopGuiIfStarted();
 
     }
     catch (err) {

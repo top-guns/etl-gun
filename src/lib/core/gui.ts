@@ -11,7 +11,7 @@ type EndpointDesc = {
 }
 
 export class GuiManager {
-    public static instance: GuiManager = null;
+    protected static _instance: GuiManager = null;
 
     protected title = 'RxJs-ETL-Kit'; // Title of the console
     public isPaused: boolean = false;
@@ -19,11 +19,25 @@ export class GuiManager {
     protected consoleManager: ConsoleManager;
     protected endpoints: EndpointDesc[] = [];
 
-    constructor(title = '', startPaused = false, logPageSize = 8) {
-        if (GuiManager.instance) throw new Error("GuiManager: gui manager allready created. You cannot create more then one gui manager.");
+    public static startGui(title = '', startPaused = false, logPageSize = 8) {
+        if (GuiManager._instance) throw new Error("GuiManager: gui manager allready started. You cannot use more then one gui manager.");
+        GuiManager._instance = new GuiManager(title, startPaused, logPageSize);
+    }
 
-        GuiManager.instance = this;
+    public static stopGuiIfStarted() {
+        if (GuiManager._instance) {
+            delete GuiManager._instance.consoleManager;
+            delete GuiManager._instance;
+        }
+        GuiManager._instance = null;
+    }
 
+    public static get instance() {
+        if (!GuiManager._instance) throw new Error("GuiManager: gui is not started.");
+        return GuiManager._instance;
+    }
+
+    protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
             title: this.title,
             logPageSize,            // Number of lines to show in logs page
@@ -50,7 +64,7 @@ export class GuiManager {
                     this.makeStepForward = this.isPaused;
                     break
                 case 'escape':
-                    new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => this.quitApp())
+                    new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
                     break
                 default:
                     break
@@ -60,7 +74,7 @@ export class GuiManager {
         
     }
 
-    public quitApp() {
+    public static quitApp() {
         process.exit();
     }
 
