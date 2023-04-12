@@ -82,17 +82,22 @@ export class EndpointImpl<T> implements Endpoint<T> {
 
     get isPaused(): boolean {
         if (this._isPaused) return true;
+        if (!GuiManager.instance) return false;
 
-        if (GuiManager.instance && GuiManager.instance.makeStepForward) {
-            GuiManager.instance.makeStepForward = false;
-            return false;
+        if (GuiManager.instance.stepByStepMode) {
+            if (GuiManager.instance.makeStepForward) {
+                GuiManager.instance.makeStepForward = false;
+                GuiManager.instance.processStatus = 'paused';
+                return false;
+            }
+            return true;
         }
 
-        return GuiManager.instance && GuiManager.instance.processStatus == 'paused';
+        return GuiManager.instance.processStatus == 'paused';
     }
 
     public waitWhilePaused() {
-        if (!this.isPaused) return;
+        if (!GuiManager.isGuiStarted()) return;
 
         const doWait = (resolve) => {
             if (!this.isPaused) {
@@ -102,7 +107,8 @@ export class EndpointImpl<T> implements Endpoint<T> {
             setTimeout(doWait, 50, resolve);
         }
 
-        return new Promise<void>(resolve => doWait(resolve));
+        //return new Promise<void>(resolve => doWait(resolve));
+        return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
     public read(): Observable<T> {

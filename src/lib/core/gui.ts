@@ -16,6 +16,7 @@ export class GuiManager {
 
     protected title = 'RxJs-ETL-Kit'; // Title of the console
     public processStatus: 'paused' | 'started' | 'finished' = 'started';
+    public stepByStepMode: boolean = false;
     public makeStepForward: boolean = false;
     protected consoleManager: ConsoleManager;
     protected endpoints: EndpointDesc[] = [];
@@ -34,8 +35,8 @@ export class GuiManager {
             if (GuiManager._instance.popup) GuiManager._instance.popup.hide();
             GuiManager._instance.processStatus = 'finished';
             GuiManager._instance.updateConsole();
-            process.stdout.cursorTo(0, 16 + GuiManager._instance.consoleManager.getLogPageSize());
-            delete GuiManager._instance.consoleManager;
+            GuiManager._instance.setCursorAfterWindow();
+            //delete GuiManager._instance.consoleManager;
             delete GuiManager._instance;
             process.stdin.setRawMode(false);
         }
@@ -60,6 +61,8 @@ export class GuiManager {
         })
         
         this.title = title;
+        this.stepByStepMode = startPaused;
+        this.makeStepForward = false;
         this.processStatus = startPaused ? 'paused' : 'started';
 
         for(let i = 0; i < logPageSize; i++) this.consoleManager.log('');
@@ -80,12 +83,33 @@ export class GuiManager {
     protected keypressListener = (key) => {
         switch (key.name) {
             case 'space':
-                this.processStatus = this.processStatus == 'finished' ? 'finished' : this.processStatus == 'paused' ? 'started' : 'paused';
+                switch (this.processStatus) {
+                    case 'finished': break;
+                    case 'paused': 
+                        this.processStatus = 'started'; 
+                        this.stepByStepMode = false; 
+                        break;
+                    case 'started': 
+                        this.processStatus = 'paused'; 
+                        this.stepByStepMode = true; 
+                        this.makeStepForward = false; 
+                        break;
+                }
                 this.updateConsole();
                 break
             case 'return':
-                this.makeStepForward = this.processStatus == 'paused';
-                break
+                if (this.processStatus == 'finished') break;
+                this.stepByStepMode = true; 
+                if (this.processStatus == 'paused') {
+                    this.processStatus = 'started'; 
+                    this.makeStepForward = true;
+                }
+                else {
+                    this.processStatus = 'paused'; 
+                    this.makeStepForward = false;
+                }
+                this.updateConsole();
+                break;
             case 'escape':
                 this.popup = new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
                 break
@@ -158,7 +182,8 @@ export class GuiManager {
         p.addRow({ text: `  'ctrl+l'`, color: 'gray', bold: true },     { text: `   - Switch to log`, color: 'white', italic: true });
         p.addRow({ text: `  'up/down'`, color: 'gray', bold: true },    { text: `  - Scroll log`, color: 'white', italic: true });
 
-        this.consoleManager.setPage(p)
+        this.consoleManager.setPage(p);
+        this.setCursorAfterWindow();
     }
 
     public log(obj: {}, before?: string);
@@ -205,6 +230,10 @@ export class GuiManager {
 
     protected deleteCurrentLine() {
         process.stdout.write("\x1B[1A\x1B[K");
+    }
+
+    protected setCursorAfterWindow() {
+        process.stdout.cursorTo(0, 14 + GuiManager._instance.endpoints.length + GuiManager._instance.consoleManager.getLogPageSize());
     }
 
     protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {
