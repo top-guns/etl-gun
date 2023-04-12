@@ -88,10 +88,12 @@ export class EndpointImpl<T> implements Endpoint<T> {
             return false;
         }
 
-        return GuiManager.instance && GuiManager.instance.isPaused;
+        return GuiManager.instance && GuiManager.instance.processStatus == 'paused';
     }
 
     public waitWhilePaused() {
+        if (!this.isPaused) return;
+
         const doWait = (resolve) => {
             if (!this.isPaused) {
                 resolve();
@@ -117,7 +119,7 @@ export class EndpointImpl<T> implements Endpoint<T> {
         return this;
     }
 
-    public async push(value: T, ...params: any[]) {
+    public async push(value: T, ...params: any[]): Promise<any> {
         this.sendEvent("push", value);
     }
 

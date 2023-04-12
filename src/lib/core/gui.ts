@@ -14,7 +14,7 @@ export class GuiManager {
     protected static _instance: GuiManager = null;
 
     protected title = 'RxJs-ETL-Kit'; // Title of the console
-    public isPaused: boolean = false;
+    public processStatus: 'paused' | 'started' | 'finished' = 'started';
     public makeStepForward: boolean = false;
     protected consoleManager: ConsoleManager;
     protected endpoints: EndpointDesc[] = [];
@@ -24,28 +24,40 @@ export class GuiManager {
         GuiManager._instance = new GuiManager(title, startPaused, logPageSize);
     }
 
-    public static stopGuiIfStarted() {
+    public static stopGui() {
         if (GuiManager._instance) {
+            //GuiManager._instance.consoleManager.removeListener("keypressed", GuiManager._instance.keypressListener);
+            //GuiManager._instance.consoleManager.removeAllListeners();
+            //console.clear();
+            GuiManager._instance.processStatus = 'finished';
+            GuiManager._instance.updateConsole();
+            process.stdout.cursorTo(0, 14 + GuiManager._instance.consoleManager.getLogPageSize());
             delete GuiManager._instance.consoleManager;
             delete GuiManager._instance;
+            process.stdin.setRawMode(false);
         }
         GuiManager._instance = null;
     }
 
+    public static isGuiStarted() {
+        return !!GuiManager._instance;
+    }
+
     public static get instance() {
-        if (!GuiManager._instance) throw new Error("GuiManager: gui is not started.");
+        //if (!GuiManager._instance) throw new Error("GuiManager: gui is not started.");
         return GuiManager._instance;
     }
 
     protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
             title: this.title,
+            //enableMouse: true,
             logPageSize,            // Number of lines to show in logs page
             showLogKey: 'ctrl+l',   // Change layout with ctrl+l to switch to the logs page
         })
         
         this.title = title;
-        this.isPaused = startPaused;
+        this.processStatus = startPaused ? 'paused' : 'started';
 
         for(let i = 0; i < logPageSize; i++) this.consoleManager.log('');
 
@@ -54,35 +66,43 @@ export class GuiManager {
         // })
 
         // And manage the keypress event from the library
-        this.consoleManager.on("keypressed", (key) => {
-            switch (key.name) {
-                case 'space':
-                    this.isPaused = !this.isPaused;
-                    this.updateConsole();
-                    break
-                case 'return':
-                    this.makeStepForward = this.isPaused;
-                    break
-                case 'escape':
-                    new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
-                    break
-                default:
-                    break
-            }
-        })
-
-        
+        this.consoleManager.on("keypressed", this.keypressListener);
     }
 
     public static quitApp() {
         process.exit();
     }
 
+    protected keypressListener = (key) => {
+        switch (key.name) {
+            case 'space':
+                this.processStatus = this.processStatus == 'finished' ? 'finished' : this.processStatus == 'paused' ? 'started' : 'paused';
+                this.updateConsole();
+                break
+            case 'return':
+                this.makeStepForward = this.processStatus == 'paused';
+                break
+            case 'escape':
+                new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
+                break
+            case 'escape':
+                new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
+                break
+            default:
+                break
+        }
+    }
+
     // Creating a main page updater:
     protected updateConsole(){
         const p: PageBuilder = new PageBuilder();
 
-        p.addRow({ text: " Process:  ", color: 'white' }, { text: `${this.isPaused ? ' paused ' : ' started '}`, color: 'black', bold: true, bg: this.isPaused ? 'bgYellow' : 'bgGreen' });
+        p.addRow({ text: " Process:  ", color: 'white' }, { 
+            text: ` ${this.processStatus} `, 
+            color: this.processStatus == 'paused' ? 'black' : 'white', 
+            bold: true, 
+            bg: this.processStatus == 'paused' ? 'bgYellowBright' : this.processStatus == 'started' ? 'bgGreen' : 'bgRedBright' 
+        });
 
         p.addSpacer();
 
@@ -169,5 +189,9 @@ export class GuiManager {
 
     protected getEndpointDisplayName(desc: EndpointDesc): string {
         return desc.displayName.padEnd(this.getEndpointNameLength() + 4, ' ');
+    }
+
+    protected deleteCurrentLine() {
+        process.stdout.write("\x1B[1A\x1B[K");
     }
 }
