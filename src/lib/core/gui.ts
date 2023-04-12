@@ -18,6 +18,7 @@ export class GuiManager {
     public makeStepForward: boolean = false;
     protected consoleManager: ConsoleManager;
     protected endpoints: EndpointDesc[] = [];
+    protected popup: ConfirmPopup = null;
 
     public static startGui(title = '', startPaused = false, logPageSize = 8) {
         if (GuiManager._instance) throw new Error("GuiManager: gui manager allready started. You cannot use more then one gui manager.");
@@ -29,6 +30,7 @@ export class GuiManager {
             //GuiManager._instance.consoleManager.removeListener("keypressed", GuiManager._instance.keypressListener);
             //GuiManager._instance.consoleManager.removeAllListeners();
             //console.clear();
+            if (GuiManager._instance.popup) GuiManager._instance.popup.hide();
             GuiManager._instance.processStatus = 'finished';
             GuiManager._instance.updateConsole();
             process.stdout.cursorTo(0, 14 + GuiManager._instance.consoleManager.getLogPageSize());
@@ -84,10 +86,7 @@ export class GuiManager {
                 this.makeStepForward = this.processStatus == 'paused';
                 break
             case 'escape':
-                new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
-                break
-            case 'escape':
-                new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
+                this.popup = new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
                 break
             default:
                 break
