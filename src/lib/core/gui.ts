@@ -70,6 +70,7 @@ export class GuiManager {
     }
 
     public static quitApp() {
+        GuiManager.stopGui();
         process.exit();
     }
 
@@ -106,12 +107,12 @@ export class GuiManager {
 
         p.addSpacer();
 
-        p.addRow({ text: "Endpoints:", color: 'white', bg: 'bgBlack' });
+        p.addRow({ text: " Endpoints:", color: 'white', bg: 'bgBlack' });
         this.endpoints.forEach(desc => {
             let color: ForegroundColor;
             switch (desc.status) {
                 case 'running':
-                    color = 'blue';
+                    color = 'blueBright';
                     break;
                 case 'finished':
                     color = 'green';
@@ -132,7 +133,7 @@ export class GuiManager {
                     color = 'white';
             }
             p.addRow({ text: `  ` }, 
-                { text: `${this.getEndpointDisplayName(desc)}`, color: 'blue' }, 
+                { text: `${this.getEndpointDisplayName(desc)}`, color: 'blueBright' }, 
                 { text: `  ${desc.status.padEnd(8, ' ')}`, color }, 
                 { text: `  ${desc.value ? (desc.guiOptions.watch && desc.status !== 'error' ? desc.guiOptions.watch(desc.value) : desc.value) : ''}`, color: 'white' });
         })
@@ -145,7 +146,7 @@ export class GuiManager {
         //     p.addSpacer(2)
         // }
 
-        p.addRow({ text: "Commands:", color: 'white', bg: 'bgBlack' });
+        p.addRow({ text: " Commands:", color: 'white', bg: 'bgBlack' });
         p.addRow({ text: `  'space'`, color: 'gray', bold: true },  { text: `   - Pause/resume process`, color: 'white', italic: true });
         p.addRow({ text: `  'enter'`, color: 'gray', bold: true },  { text: `   - Make one step in paused mode`, color: 'white', italic: true });
         p.addRow({ text: `  'esc'`, color: 'gray', bold: true },    { text: `     - Quit`, color: 'white', italic: true });
