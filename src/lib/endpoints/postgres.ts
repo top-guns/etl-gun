@@ -12,7 +12,8 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
     constructor(table: string, url: string, guiOptions?: EndpointGuiOptions<T>);
     constructor(table: string, pool: any, guiOptions?: EndpointGuiOptions<T>);
     constructor(table: string, connection: any, guiOptions: EndpointGuiOptions<T> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `PostgreSQL ${++PostgresEndpoint.instanceNo}(${table})`;
+        guiOptions.displayName = guiOptions.displayName ?? `PostgreSQL (${table})`;
+        PostgresEndpoint.instanceNo++;
         super(guiOptions);
         this.table = table;
 

@@ -26,7 +26,8 @@ export class XmlEndpoint extends EndpointImpl<any> {
     protected autoload: boolean;
 
     constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `XML ${++XmlEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        guiOptions.displayName = guiOptions.displayName ?? `XML (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        XmlEndpoint.instanceNo++;
         super(guiOptions);
         this.filename = filename;
         this.encoding = encoding;

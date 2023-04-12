@@ -20,7 +20,8 @@ export class JsonEndpoint extends EndpointImpl<any> {
     protected autoload: boolean;
 
     constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `JSON ${++JsonEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        guiOptions.displayName = guiOptions.displayName ?? `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        JsonEndpoint.instanceNo++;
         super(guiOptions);
         this.filename = filename;
         this.encoding = encoding;

@@ -9,7 +9,8 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
     protected delimiter: string;
 
     constructor(filename: string, delimiter: string = ",", guiOptions: EndpointGuiOptions<string[]> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `CSV ${++CsvEndpoint.instanceNo}(${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        guiOptions.displayName = guiOptions.displayName ?? `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        CsvEndpoint.instanceNo++;
         super(guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;

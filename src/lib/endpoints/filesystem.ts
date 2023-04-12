@@ -31,7 +31,8 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
     protected rootFolderPath: string;
 
     constructor(rootFolderPath: string, guiOptions: EndpointGuiOptions<PathDetails> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Filesystem ${++FilesystemEndpoint.instanceNo}(${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`;
+        guiOptions.displayName = guiOptions.displayName ?? `Filesystem (${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`;
+        FilesystemEndpoint.instanceNo++;
         super(guiOptions);
         this.rootFolderPath = rootFolderPath.trim();
         if (this.rootFolderPath.endsWith('/')) this.rootFolderPath.substring(0, this.rootFolderPath.lastIndexOf('/'));
