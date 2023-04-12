@@ -134,8 +134,13 @@ export class GuiManager {
             }
             p.addRow({ text: `  ` }, 
                 { text: `${this.getEndpointDisplayName(desc)}`, color: 'blueBright' }, 
-                { text: `  ${desc.status.padEnd(8, ' ')}`, color }, 
-                { text: `  ${desc.value ? (desc.guiOptions.watch && desc.status !== 'error' ? desc.guiOptions.watch(desc.value) : desc.value) : ''}`, color: 'white' });
+                { text: `  ${desc.status.padEnd(8, ' ')}  `, color }, 
+                ...(
+                    desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
+                    !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
+                    this.dumpObject(desc.guiOptions.watch ? desc.guiOptions.watch(desc.value) : desc.value)
+                )
+            );
         })
 
         // Spacer
@@ -203,6 +208,13 @@ export class GuiManager {
     }
 
     protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {
+        switch (typeof obj) {
+            case 'number': return [{text: '' + obj, color: "blueBright"}];
+            case 'string': return [{text: `"${obj}"`, color: "yellowBright"}];
+            case 'boolean': return [{text: '' + obj, color: "greenBright"}];
+            case 'function': return [{text: '()', color: "white"}];
+        }
+
         let res: SimplifiedStyledElement[] = [];
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
