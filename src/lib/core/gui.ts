@@ -1,5 +1,6 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
+import { SimplifiedStyledElement } from 'console-gui-tools-cjs/dist/components/PageBuilder';
 import { Endpoint, EndpointGuiOptions } from './endpoint';
 
 type EndpointDesc = {
@@ -153,8 +154,12 @@ export class GuiManager {
         this.consoleManager.setPage(p)
     }
 
-    public log(message: string) {
-        this.consoleManager.log(message);
+    public log(obj: {}, before?: string);
+    public log(message: string, before?: string);
+    public log(obj: any, before: string = '') {
+        if (typeof obj === 'string') this.consoleManager.stdOut.addRow({text: before, color: 'white'}, { text: '' + obj, color: "white" });
+        else this.consoleManager.stdOut.addRow({text: before, color: 'white'}, ...this.dumpObject(obj));
+        this.updateConsole();
     }
     public warn(message: string) {
         this.consoleManager.warn(message);
@@ -193,5 +198,30 @@ export class GuiManager {
 
     protected deleteCurrentLine() {
         process.stdout.write("\x1B[1A\x1B[K");
+    }
+
+    protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {
+        let res: SimplifiedStyledElement[] = [];
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                if (res.length) res.push({ text: `, `, color: "cyanBright" });
+                if (!obj.length) res.push({ text: `${key}: `, color: "cyanBright" });
+
+                switch (typeof obj[key]) {
+                    case 'number': res.push({text: '' + obj[key], color: "blueBright"}); break;
+                    case 'string': res.push({text: `"${obj[key]}"`, color: "yellowBright"}); break; 
+                    case 'boolean': res.push({text: '' + obj[key], color: "greenBright"}); break; 
+                    case 'function': res.push({text: '()', color: "white"}); break; 
+                    case 'object': {
+                        if (obj[key].length) res.push({text: '[]', color: "white"}); 
+                        else res.push({text: '{}', color: "white"}); 
+                        break;
+                    }
+                    default: res.push({text: '' + obj[key], color: "white"}); break; 
+                }
+            }
+        }
+        if (obj.length) return [{ text: `[`, color: "cyanBright" }, ...res, { text: `]`, color: "cyanBright" }];
+        return [{ text: `{`, color: "cyanBright" }, ...res, { text: `}`, color: "cyanBright" }];
     }
 }
