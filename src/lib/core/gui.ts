@@ -34,7 +34,7 @@ export class GuiManager {
             if (GuiManager._instance.popup) GuiManager._instance.popup.hide();
             GuiManager._instance.processStatus = 'finished';
             GuiManager._instance.updateConsole();
-            process.stdout.cursorTo(0, 14 + GuiManager._instance.consoleManager.getLogPageSize());
+            process.stdout.cursorTo(0, 16 + GuiManager._instance.consoleManager.getLogPageSize());
             delete GuiManager._instance.consoleManager;
             delete GuiManager._instance;
             process.stdin.setRawMode(false);
@@ -147,9 +147,11 @@ export class GuiManager {
         // }
 
         p.addRow({ text: " Commands:", color: 'white', bg: 'bgBlack' });
-        p.addRow({ text: `  'space'`, color: 'gray', bold: true },  { text: `   - Pause/resume process`, color: 'white', italic: true });
-        p.addRow({ text: `  'enter'`, color: 'gray', bold: true },  { text: `   - Make one step in paused mode`, color: 'white', italic: true });
-        p.addRow({ text: `  'esc'`, color: 'gray', bold: true },    { text: `     - Quit`, color: 'white', italic: true });
+        p.addRow({ text: `  'space'`, color: 'gray', bold: true },      { text: `    - Pause/resume process`, color: 'white', italic: true });
+        p.addRow({ text: `  'enter'`, color: 'gray', bold: true },      { text: `    - Make one step in paused mode`, color: 'white', italic: true });
+        p.addRow({ text: `  'esc'`, color: 'gray', bold: true },        { text: `      - Quit`, color: 'white', italic: true });
+        p.addRow({ text: `  'ctrl+l'`, color: 'gray', bold: true },     { text: `   - Switch to log`, color: 'white', italic: true });
+        p.addRow({ text: `  'up/down'`, color: 'gray', bold: true },    { text: `  - Scroll log`, color: 'white', italic: true });
 
         this.consoleManager.setPage(p)
     }
