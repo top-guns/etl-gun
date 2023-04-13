@@ -186,6 +186,11 @@ export class GuiManager {
         this.setCursorAfterWindow();
     }
 
+    public static log(message?: any, ...optionalParams: any[]) {
+        if (GuiManager.isGuiStarted()) GuiManager.instance.log(optionalParams.length ? optionalParams[0] : message, optionalParams.length ? message : undefined);
+        else console.log(message, ...optionalParams);
+    }
+
     public log(obj: {}, before?: string);
     public log(message: string, before?: string);
     public log(obj: any, before: string = '') {
