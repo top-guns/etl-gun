@@ -19,44 +19,58 @@ export class GoogleTranslateHelper {
         this.to = to;
     }
 
-    operator(text: string, from?: string, to?: string): rxjs.Observable<string>;
-    operator(arr: [], from?: string, to?: string): rxjs.Observable<string[]>;
-    operator(obj: {}, transleteKeys?: boolean, translateValues?: boolean, from?: string, to?: string): rxjs.Observable<{}>;
-    operator(value: any, p2?: any, p3?: any, p4: string = this.from, p5: string = this.to): rxjs.Observable<any> {
-        return rxjs.from(this.translate(value, p2, p3, p4, p5));
+    operator(translateColumns?: number[], from?: string, to?: string);
+    operator(translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string);
+    operator(p1?: any, p2?: any, p3?: any, p4?: any) {
+        return rxjs.mergeMap(p => this.observable(p, p1, p2, p3, p4)); 
+    }
+
+    observable(text: string, from?: string, to?: string): rxjs.Observable<string>;
+    observable(arr: [], translateColumns?: number[], from?: string, to?: string): rxjs.Observable<string[]>;
+    observable(obj: {}, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): rxjs.Observable<{}>;
+    observable(value: any, p1?: any, p2?: any, p3?: any, p4?: any): rxjs.Observable<any> {
+        return rxjs.from(this.translate(value, p1, p2, p3, p4));
     }
 
     async translate(text: string, from?: string, to?: string): Promise<string>;
-    async translate(arr: [], from?: string, to?: string): Promise<string[]>;
-    async translate(obj: {}, transleteKeys?: boolean, translateValues?: boolean, from?: string, to?: string): Promise<{}>;
-    async translate(value: any, p2?: any, p3?: any, p4: string = this.from, p5: string = this.to): Promise<any> {
-        let from = typeof p2 == 'string' ? p2 : this.from;
-        let to = typeof p3 == 'string' ? p3 : this.to;
+    async translate(arr: [], translateColumns?: number[], from?: string, to?: string): Promise<string[]>;
+    async translate(obj: {}, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): Promise<{}>;
+    async translate(value: any, p1?: any, p2?: any, p3?: any, p4?: any): Promise<any> {
+        let from = p1 ?? this.from;
+        let to = p2 ?? this.to;
 
         if (typeof value == 'string') {
             return this.translateStr(value, from, to);
         }
 
         if (typeof value.length != 'undefined') {
+            const translateColumns: number[] = p1 ?? [];
+            from = p2 ?? this.from;
+            to = p3 ?? this.to;
             const res = [];
             for (let i = 0; i < value.length; i++) {
-                const v = (typeof value[i] != 'string') ? value[i]: await this.translateStr(value[i], from, to);
+                let v = value[i];
+                if (translateColumns.length && translateColumns.includes(i)) v = await this.translateStr(value[i], from, to);
+                else if (!translateColumns.length && typeof value[i] == 'string') v = await this.translateStr(value[i], from, to);
                 res.push(v);
             }
             return res;
         }
 
         if (typeof value == 'object') {
-            const transleteKeys = typeof p2 == 'boolean' ? p2 : false;
-            const translateValues = typeof p3 == 'boolean' ? p3 : false;
-            from = p4;
-            to = p5;
+            const translateKeyNames = p1;
+            const translateKeyValues = p2;
+            from = p3 ?? this.from;
+            to = p4 ?? this.to;
             const res = {};
             for (let key in value) {
                 if (!value.hasOwnProperty) continue;
 
-                const v = !translateValues && (typeof value[key] != 'string') ? value[key]: await this.translateStr(value[key], from, to);
-                if (transleteKeys) key = await this.translateStr(key, from, to);
+                let v = value[key];
+                if (translateKeyValues && translateKeyValues.includes(key)) v = await this.translateStr(value[key], from, to);
+                else if (!translateKeyValues && typeof value[key] == 'string') v = await this.translateStr(value[key], from, to);
+                if (translateKeyNames && translateKeyNames.includes(key)) key = await this.translateStr(key, from, to);
+                else if (!translateKeyNames) key = await this.translateStr(key, from, to);
                 res[key] = v;
             }
             return res;

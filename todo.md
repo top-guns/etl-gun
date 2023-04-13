@@ -29,6 +29,7 @@
 1. FTP
 1. YAML
 1. Git
+1. WebSocket client & server
 
 ### Desirable features
 

@@ -11,16 +11,16 @@ console.log("START");
 async function f() {
     try {
 
-        //GuiManager.startGui("Test ETL process", true, 20);
+        GuiManager.startGui("Test ETL process", true, 20);
 
         // const timer$ = interval(1000);
         // const buf = new etl.BufferEndpoint<string>();
         // const bufArrays = new etl.BufferEndpoint<any[]>([[0,1], [2,3], [3,6]]);
-        // const table = new etl.PostgresEndpoint("users", process.env.POSTGRES_CONNECTION_STRING, {watch: v => `${v.name} [${v.id}]`});
+        // const table = new etl.PostgresEndpoint("users", process.env.POSTGRES_CONNECTION_STRING!, {watch: v => `${v.name} [${v.id}]`});
         // const csv = new etl.CsvEndpoint('data/test.csv');
         // const json = new etl.JsonEndpoint('data/test.json');
         // const xml = new etl.XmlEndpoint('data/test.xml');
-        //const telegram = new etl.TelegramEndpoint("");
+        //const telegram = new etl.TelegramEndpoint(process.env.TELEGRAM_BOT_TOKEN!);
         // const fs = new etl.FilesystemEndpoint('src');
         // const timer = new etl.IntervalEndpoint(500);
         const magento = new etl.MagentoProductsEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
@@ -61,7 +61,8 @@ async function f() {
                 // etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'erp_name')?.value,
                 // etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'supplier')?.value
             ]),
-            mergeMap(p => translator.operator(p)),
+            //mergeMap(p => translator.observable(p)),
+            translator.operator(),
             etl.log()
             //etl.push(csv)
             //etl.join(table.read().pipe(take(2))),

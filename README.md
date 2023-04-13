@@ -924,7 +924,7 @@ const source = new CsvEndpoint("products.csv");
 const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
 let translateProducts$ = source.read().pipe(
-    mergeMap(p => translator.operator(p)),
+    translator.operator(),
     log()
 );
 await run(translateProducts$);
