@@ -5,23 +5,43 @@
 ### Should be implemented
 
 1. One endpoint for many collections
-2. Return new id or new object from push
-3. Batch operations support
+1. Return new id or new object from push
+1. Batch operations support
+
+### Desirable protocols and integrations
+
+1. Zendesk 
+1. Firebase 
+1. Magento 
+1. BigCommerce 
+1. Mongo 
+1. MySql (or general sql db) 
+1. Email 
+1. Slack
+1. Redis 
+1. Trello 
+1. Jira
+1. Google translate 
+1. Faker 
+1. Yandex storage
+1. Zabbix
+1. HTTP, WebDav, REST
+1. FTP
+1. YAML
+1. Git
 
 ### Desirable features
 
-1. Zendesk integration
-2. Firebase integration
-3. Magento integration
-4. BigCommerce integration
-5. Mongo integration
-6. MySql (or general sql db) integration
-7. Email integration
-8. Redis integration
-9. Trello integration
-10. Google translate integration
-11. Faker integration
+1. Modular architecture
+1. Web-interface
+1. Speed control in gui mode
+
 
 ### Known problems
 
 1. App freezes in GUI mode after executing
+
+### Minor tasks
+1. Rename 'read' to 'list'
+1. Generator for unique id
+1. Encoding problem solver

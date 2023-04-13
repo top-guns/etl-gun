@@ -41,6 +41,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [JsonEndpoint](#jsonendpoint)
         * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
+        * [MagentoEndpoint](#magentoendpoint)
         * [TelegramEndpoint](#telegramendpoint)
         * [IntervalEndpoint](#intervalendpoint)
     * [Operators](#operators)
@@ -54,6 +55,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [join](#join)
     * [Misc](#misc)
         * [Header](#header)
+        * [Utility functions](#utility-functions) 
 - [License](#license)
 
 ---
@@ -610,6 +612,47 @@ const logUsers$ = table.read().pipe(
 etl.run(logUsers$)
 ```
 
+### MagentoEndpoint
+
+Presents Magento CRM products. 
+Go to https://meetanshi.com/blog/create-update-product-using-rest-api-in-magento-2/ for details how to configure Magento integration to get access to it's API. 
+
+Constructor:
+
+```typescript
+// magentoUrl: Url of Magento
+// login: admin login
+// password: admin password
+// rejectUnauthorized: You can set it to true to ignore ssl servificate problems while development.
+constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true);
+```
+
+Methods:
+
+```typescript
+// Create the observable object and send product data from the Magento table to it
+// where: you can filter products by specifing object with fields as collumn names and it's values as fields values 
+// fields: you can select which products fields will be returned (null means 'all fields') 
+read(where: Partial<Product> = {}, fields: ProductFields[] = null): Observable<T>;
+
+// Add new product to the Magento
+// value: product fields values
+async push(value: NewProductAttributes);
+
+Example:
+
+```typescript
+const etl = require('rxjs-etl-kit');
+
+const magento = etl.PostgresEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
+
+const logProductsWithPrice100$ = magento.read({price: 100}).pipe(
+    etl.log()
+);
+
+etl.run(logProductsWithPrice100$)
+```
+
 ### TelegramEndpoint
 
 With this endpoint you can create telegram bots and chats with users. It can listen for user messages and send the response massages. It also can set the user keyboard for the chat.
@@ -870,7 +913,7 @@ etl.run(stream$);
 
 ### Header
 
-This class can store array of column names and convert object to array or array to object representation..
+This class can store array of column names and convert object to array or array to object representation.
 
 ```typescript
 const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
@@ -878,13 +921,28 @@ const { map } = require("rxjs");
 
 const source = new PostgresEndpoint("users", "postgres://user:password@127.0.0.1:5432/database");
 const dest = new CsvEndpoint("users.csv");
-const header = new Header(["id", "name", "login", "email"]);
+const header = new Header("id", "name", "login", "email");
 
 let sourceToDest$ = source.read().pipe(
     map(v => header.objToArr(v)),
     push(dest)
 );
 await run(sourceToDest$);
+ ```
+
+### Utility functions
+
+This functions implements some useful things to manipulate data.
+
+```typescript
+// Join url parts (or path parts) to full url (or path) with delimeter
+function pathJoin(parts: string[], sep: string = '/'): string;
+// Get object part by json path
+function getByJsonPath(obj: {}, jsonPath?: string): any;
+// Get child element of array or object by element property value
+function getChildByPropVal(obj: {}, propName: string, propVal?: any): any;
+// Convert object to string
+function dumpObject(obj: any, deep: number = 1): string;
  ```
 
 ---
