@@ -614,7 +614,7 @@ etl.run(logUsers$)
 
 ### MagentoEndpoint
 
-Presents Magento CRM products. 
+Presents Magento CMS products. 
 Go to https://meetanshi.com/blog/create-update-product-using-rest-api-in-magento-2/ for details how to configure Magento integration to get access to it's API. 
 
 Constructor:
