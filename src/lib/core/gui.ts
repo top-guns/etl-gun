@@ -158,7 +158,7 @@ export class GuiManager {
             }
             p.addRow({ text: `  ` }, 
                 { text: `${this.getEndpointDisplayName(desc)}`, color: 'blueBright' }, 
-                { text: `  ${desc.status.padEnd(8, ' ')}  `, color }, 
+                { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
                 ...(
                     desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
                     !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
