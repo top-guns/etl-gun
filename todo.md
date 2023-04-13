@@ -21,7 +21,7 @@
 1. Redis 
 1. Trello 
 1. Jira
-1. Google translate 
+1. Yandex translate 
 1. Faker 
 1. Yandex storage
 1. Zabbix
@@ -35,6 +35,7 @@
 1. Modular architecture
 1. Web-interface
 1. Speed control in gui mode
+1. Add method to test connection to all endpoints
 
 
 ### Known problems
@@ -45,3 +46,4 @@
 1. Rename 'read' to 'list'
 1. Generator for unique id
 1. Encoding problem solver
+1. Make log functions interface as analog of console.log

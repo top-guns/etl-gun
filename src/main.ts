@@ -1,8 +1,8 @@
-import { interval, map, take, tap } from "rxjs";
+import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
 
 import * as etl from './lib';
-import { GuiManager, NewProductAttributes } from "./lib";
+import { GoogleTranslateHelper, GuiManager, NewProductAttributes } from "./lib";
 
 dotenv.config()
 
@@ -11,7 +11,7 @@ console.log("START");
 async function f() {
     try {
 
-        GuiManager.startGui("Test ETL process", true, 20);
+        //GuiManager.startGui("Test ETL process", true, 20);
 
         // const timer$ = interval(1000);
         // const buf = new etl.BufferEndpoint<string>();
@@ -26,6 +26,7 @@ async function f() {
         const magento = new etl.MagentoProductsEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
         const csv = new etl.CsvEndpoint('data/products.csv');
         const header = new etl.Header('id', 'sku', 'name', 'price', 'visibility', 'type_id', 'status');
+        const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
         // '$.store.book[*].author'
         // json.readByJsonPath('$.store.book[*].author')
@@ -60,6 +61,7 @@ async function f() {
                 // etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'erp_name')?.value,
                 // etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'supplier')?.value
             ]),
+            mergeMap(p => translator.operator(p)),
             etl.log()
             //etl.push(csv)
             //etl.join(table.read().pipe(take(2))),

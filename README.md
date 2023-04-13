@@ -54,6 +54,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [addColumn](#addcolumn)
         * [join](#join)
     * [Misc](#misc)
+        * [GoogleTranslateHelper](#googletranslatehelper)
         * [Header](#header)
         * [Utility functions](#utility-functions) 
 - [License](#license)
@@ -910,6 +911,24 @@ etl.run(stream$);
 ```
 
 ## Misc
+
+### GoogleTranslateHelper
+
+This class help you to use Google translate service.
+
+```typescript
+const { GoogleTranslateHelper, log, run } = require("rxjs-etl-kit");
+const { mergeMap } = require("rxjs");
+
+const source = new CsvEndpoint("products.csv");
+const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+
+let translateProducts$ = source.read().pipe(
+    mergeMap(p => translator.operator(p)),
+    log()
+);
+await run(translateProducts$);
+ ```
 
 ### Header
 

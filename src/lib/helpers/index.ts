@@ -1,0 +1,1 @@
+export { GoogleTranslateHelper } from './google_translate';
