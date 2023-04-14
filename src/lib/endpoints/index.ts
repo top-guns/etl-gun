@@ -1,6 +1,6 @@
 import { from } from 'form-data';
 
-export * from './buffer';
+export * from './memory';
 export * from './csv';
 export * from './postgres';
 export * from './json';
