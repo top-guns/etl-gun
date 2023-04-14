@@ -1,6 +1,6 @@
 import { tap } from "rxjs";
-import { Endpoint } from "../core/endpoint";
+import { Collection } from "../core/collection";
 
-export function push<T>(endpoint: Endpoint<T>, ...params: any[]) {
-    return tap<T>(v => endpoint.push(v, params));
+export function push<T>(collection: Collection<T>, ...params: any[]) {
+    return tap<T>(v => collection.push(v, params));
 }

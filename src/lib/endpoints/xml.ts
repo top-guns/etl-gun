@@ -3,13 +3,38 @@ import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
-import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
+import { pathJoin } from "../utils";
 
-export type ReadOptions = {
+export type XmlReadOptions = {
     // foundedOnly is default
     searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
     addRelativePathAsAttribute?: string;
+}
+
+export class XmlEndpoint extends Endpoint {
+    protected rootFolder: string = null;
+    constructor(rootFolder: string = null) {
+        super();
+        this.rootFolder = rootFolder;
+    }
+
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<string[]> = {}): XmlCollection {
+        guiOptions.displayName ??= this.getName(filename);
+        let path = filename;
+        if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
+        return this._addCollection(filename, new XmlCollection(this, path, autosave, autoload, encoding, guiOptions));
+    }
+
+    releaseFile(filename: string) {
+        this._removeCollection(filename);
+    }
+
+    protected getName(filename: string) {
+        return filename.substring(filename.lastIndexOf('/') + 1);
+    }
 }
 
 // Every node contains:
@@ -17,7 +42,7 @@ export type ReadOptions = {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class XmlEndpoint extends EndpointImpl<any> {
+export class XmlCollection extends CollectionImpl<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -25,10 +50,10 @@ export class XmlEndpoint extends EndpointImpl<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `XML (${filename.substring(filename.lastIndexOf('/') + 1)})`;
-        XmlEndpoint.instanceNo++;
-        super(guiOptions);
+    constructor(endpoint: XmlEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
+        XmlCollection.instanceNo++;
+        guiOptions.displayName ??= `XML (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;
@@ -36,7 +61,7 @@ export class XmlEndpoint extends EndpointImpl<any> {
         this.load();
     }
 
-    public read(xpath: string = '', options: ReadOptions = {}): EtlObservable<Node> {
+    public list(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -62,7 +87,7 @@ export class XmlEndpoint extends EndpointImpl<any> {
         return observable;
     }
 
-    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
+    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: XmlReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
@@ -94,7 +119,7 @@ export class XmlEndpoint extends EndpointImpl<any> {
         }
     }
 
-    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: XmlReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         await this.waitWhilePaused();

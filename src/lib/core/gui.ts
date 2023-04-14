@@ -1,14 +1,14 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
 import { SimplifiedStyledElement } from 'console-gui-tools-cjs/dist/components/PageBuilder';
-import { Endpoint, EndpointGuiOptions } from './endpoint';
+import { Collection, CollectionGuiOptions } from './collection';
 
-type EndpointDesc = {
-    endpoint: Endpoint<any>;
+type CollectionDesc = {
+    collection: Collection<any>;
     displayName: string;
     status: 'waiting' | 'running' | 'finished' | 'error' | 'pushed' | 'cleared';
     value: any;
-    guiOptions: EndpointGuiOptions<any>;
+    guiOptions: CollectionGuiOptions<any>;
 }
 
 export class GuiManager {
@@ -19,7 +19,7 @@ export class GuiManager {
     public stepByStepMode: boolean = false;
     public makeStepForward: boolean = false;
     protected consoleManager: ConsoleManager;
-    protected endpoints: EndpointDesc[] = [];
+    protected collections: CollectionDesc[] = [];
     protected popup: ConfirmPopup = null;
 
     public static startGui(title = '', startPaused = false, logPageSize = 8) {
@@ -131,8 +131,8 @@ export class GuiManager {
 
         p.addSpacer();
 
-        p.addRow({ text: " Endpoints:", color: 'white', bg: 'bgBlack' });
-        this.endpoints.forEach(desc => {
+        p.addRow({ text: " Collections:", color: 'white', bg: 'bgBlack' });
+        this.collections.forEach(desc => {
             let color: ForegroundColor;
             switch (desc.status) {
                 case 'running':
@@ -157,7 +157,7 @@ export class GuiManager {
                     color = 'white';
             }
             p.addRow({ text: `  ` }, 
-                { text: `${this.getEndpointDisplayName(desc)}`, color: 'blueBright' }, 
+                { text: `${this.getCollectionDisplayName(desc)}`, color: 'blueBright' }, 
                 { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
                 ...(
                     desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
@@ -208,29 +208,29 @@ export class GuiManager {
         this.consoleManager.info(message);
     }
 
-    public registerEndpoint(endpoint: Endpoint<any>, guiOptions: EndpointGuiOptions<any> = {}) {
-        const displayName = guiOptions.displayName ? guiOptions.displayName : `Endpoint ${this.endpoints.length}`;
-        const desc: EndpointDesc = {endpoint, displayName, status: 'waiting', value: '', guiOptions};
-        this.endpoints.push(desc);
+    public registerCollection(collection: Collection<any>, guiOptions: CollectionGuiOptions<any> = {}) {
+        const displayName = guiOptions.displayName ? guiOptions.displayName : `Collection ${this.collections.length}`;
+        const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions};
+        this.collections.push(desc);
 
-        endpoint.on('read.start', () => { desc.status = 'running'; this.updateConsole(); });
-        endpoint.on('read.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        endpoint.on('read.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
+        collection.on('read.start', () => { desc.status = 'running'; this.updateConsole(); });
+        collection.on('read.end', () => { desc.status = 'finished'; this.updateConsole(); });
+        collection.on('read.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
 
-        endpoint.on('read.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
-        endpoint.on('push', v => { desc.status = 'pushed'; desc.value = v; this.updateConsole(); });
-        endpoint.on('clear', v => { desc.status = 'cleared'; desc.value = v; this.updateConsole(); });
+        collection.on('read.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
+        collection.on('push', v => { desc.status = 'pushed'; desc.value = v; this.updateConsole(); });
+        collection.on('clear', v => { desc.status = 'cleared'; desc.value = v; this.updateConsole(); });
 
         this.updateConsole();
     }
 
-    protected getEndpointNameLength(): number {
-        const maxName = this.endpoints.reduce((p, c) => p.displayName > c.displayName ? p : c);
+    protected getCollectionNameLength(): number {
+        const maxName = this.collections.reduce((p, c) => p.displayName > c.displayName ? p : c);
         return maxName.displayName.length;
     }
 
-    protected getEndpointDisplayName(desc: EndpointDesc): string {
-        return desc.displayName.padEnd(this.getEndpointNameLength() + 4, ' ');
+    protected getCollectionDisplayName(desc: CollectionDesc): string {
+        return desc.displayName.padEnd(this.getCollectionNameLength() + 4, ' ');
     }
 
     protected deleteCurrentLine() {
@@ -238,7 +238,7 @@ export class GuiManager {
     }
 
     protected setCursorAfterWindow() {
-        process.stdout.cursorTo(0, 14 + GuiManager._instance.endpoints.length + GuiManager._instance.consoleManager.getLogPageSize());
+        process.stdout.cursorTo(0, 14 + GuiManager._instance.collections.length + GuiManager._instance.consoleManager.getLogPageSize());
     }
 
     protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {

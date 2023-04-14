@@ -5,9 +5,10 @@ describe('Operator addColumn()', () => {
     test('add column to arrays', async () => {
         let res: any[][] = [];
 
-        const src = new etl.BufferEndpoint<number[]>([[1], [2], [3]]);
+        const mem = new etl.MemoryEndpoint();
+        const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.read().pipe(
+        let stream$ = src.list().pipe(
             etl.addColumn(v => v[0] * 10),
             rx.tap(v => res.push(v)),
         );
@@ -20,9 +21,10 @@ describe('Operator addColumn()', () => {
     test('add column to scalars', async () => {
         let res: any[][] = [];
 
-        const src = new etl.BufferEndpoint<number>([1, 2, 3]);
+        const mem = new etl.MemoryEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.read().pipe(
+        let stream$ = src.list().pipe(
             etl.addColumn<number, number[]>(v => v * 10),
             rx.tap(v => res.push(v)),
         );

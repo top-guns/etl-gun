@@ -1,22 +1,34 @@
 import { Subscriber } from "rxjs";
 import { GuiManager } from "../core";
-import { EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
 
-export class IntervalEndpoint extends EndpointImpl<number> {
+export class IntervalEndpoint extends Endpoint {
+    getSequence(name: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
+        guiOptions.displayName ??= name;
+        return this._addCollection(name, new IntervalCollection(this, interval, guiOptions));
+    }
+    releaseSequence(name: string) {
+        this._removeCollection(name);
+    }
+}
+
+export class IntervalCollection extends CollectionImpl<number> {
     protected static instanceNo = 0;
     protected interval: number;
     protected intervalId: NodeJS.Timer;
     protected counter: number = 0;
     protected subscriber: Subscriber<number>;
     
-    constructor(interval: number, guiOptions: EndpointGuiOptions<number> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Interval ${++IntervalEndpoint.instanceNo}(${interval}ms)`;
-        super(guiOptions);
+    constructor(endpoint: IntervalEndpoint, interval: number, guiOptions: CollectionGuiOptions<number> = {}) {
+        IntervalCollection.instanceNo++;
+        guiOptions.displayName ??= `Interval ${IntervalCollection.instanceNo}(${interval}ms)`;
+        super(endpoint, guiOptions);
         this.interval = interval;
     }
 
-    public read(): EtlObservable<number> {
+    public list(): EtlObservable<number> {
         const observable = new EtlObservable<number>((subscriber) => {
             try {
                 this.subscriber = subscriber;

@@ -1,30 +1,47 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
-import { Endpoint } from '../core';
-import { EndpointGuiOptions, EndpointImpl } from '../core/endpoint';
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from '../core/observable';
-import TelegramBot from 'node-telegram-bot-api';
+import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 export type TelegramInputMessage = {
     chatId: string;
     message: string;
 }
 
-export class TelegramEndpoint extends EndpointImpl<TelegramInputMessage> {
+export class TelegramEndpoint extends Endpoint {
+    constructor() {
+        super();
+    }
+
+    startBot(name: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): TelegramCollection {
+        guiOptions.displayName ??= name;
+        return this._addCollection(name, new TelegramCollection(this, token, keyboard, guiOptions));
+    }
+
+    releaseBot(name: string) {
+        this.collections[name].stop();
+        this._removeCollection(name);
+    }
+}
+
+export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
     protected static instanceNo = 0;
     protected token: string;
     protected keyboard: any;
     protected subscriber: Subscriber<TelegramInputMessage>;
     protected bot: TelegramBot;
 
-    constructor(token: string, keyboard?: any, guiOptions: EndpointGuiOptions<TelegramInputMessage> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Telegram ${++TelegramEndpoint.instanceNo}`;
-        super(guiOptions);
+    constructor(endpoint: TelegramEndpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
+        TelegramCollection.instanceNo++;
+        guiOptions.displayName ??= `Telegram bot (${TelegramCollection.instanceNo})`;
+        super(endpoint, guiOptions);
         this.token = token;
         this.keyboard = keyboard;
     }
 
-    public read(): EtlObservable<TelegramInputMessage> {
+    public list(): EtlObservable<TelegramInputMessage> {
         const observable = new EtlObservable<TelegramInputMessage>((subscriber) => {
             try {
                 this.sendStartEvent();
@@ -87,7 +104,32 @@ export class TelegramEndpoint extends EndpointImpl<TelegramInputMessage> {
             "reply_markup": {
                 "keyboard": keyboard
             }
-        });
+        })
+    }
+
+    async installKeyboard2(chatid: number, message: string) {
+        //if (!force && chats[chatid]) return;
+
+        //chats[chatid] = 'ok';
+
+        // bot.sendMessage(chatid, "Welcome", {
+        //     "reply_markup": {
+        //         "keyboard": [["one", "two"],   ["3"], ["4"]]
+        //     }
+        // });
+
+        let inlineKeyboardButton: InlineKeyboardButton = {text: "/задача", callback_data: 'Button \"задача\" has been pressed'};
+        let inlineKeyboardMarkup: InlineKeyboardMarkup = {inline_keyboard: [[inlineKeyboardButton]]};
+
+        await this.bot.sendMessage(chatid, message, {reply_markup: inlineKeyboardMarkup});
+    }
+
+    async removeKeyboard(chatid: number) {
+        await this.bot.sendMessage(chatid, 'Keyboard has closed', {
+            "reply_markup": {
+                "remove_keyboard": true
+            }
+        })
     }
 
 }

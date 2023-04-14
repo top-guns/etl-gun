@@ -1,9 +1,10 @@
 import fetch, { RequestInit } from 'node-fetch';
 //let {fetch, RequestInit} = await import('node-fetch');
 import https from 'node:https';
-
-import { EndpointGuiOptions, EndpointImpl } from '../core/endpoint';
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from '../core/observable';
+import { pathJoin } from '../utils';
 
 export type ProductFields = 'id' | 'sku' | 'name' | 'price' | 'status' | 'visibility' | 'type_id' | 'created_at' | 'updated_at' | string;
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
@@ -49,21 +50,22 @@ export type NewProductAttributes = {
     custom_attributes?: {attribute_code: CustomAttributeCodes, value: any}[]
 }
 
+enum COLLECTIONS_NAMES {
+    products = 'products'
+}
 
-export class MagentoProductsEndpoint extends EndpointImpl<Partial<Product>> {
-    protected static instanceNo = 0;
-    protected magentoUrl: string;
+export class MagentoEndpoint extends Endpoint {
+    protected _magentoUrl: string;
     protected login: string;
     protected password: string;
     protected token: string;
     protected rejectUnauthorized: boolean;
     protected agent: https.Agent;
 
-    constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true, guiOptions: EndpointGuiOptions<Partial<Product>> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Magento (${magentoUrl})`;
-        MagentoProductsEndpoint.instanceNo++;
-        super(guiOptions);
-        this.magentoUrl = magentoUrl;
+    constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true) {
+        super();
+
+        this._magentoUrl = magentoUrl;
         this.login = login;
         this.password = password;
         this.rejectUnauthorized = rejectUnauthorized;
@@ -73,11 +75,81 @@ export class MagentoProductsEndpoint extends EndpointImpl<Partial<Product>> {
         });
     }
 
-    public read(where: Partial<Product> = {}, fields: ProductFields[] = null): EtlObservable<Partial<Product>> {
+    async updateToken() {
+        let init: RequestInit = {
+            method: "POST", 
+            agent: this.agent,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: this.login,
+                password: this.password
+            })
+        }
+        
+        this.token = await (await fetch(this.getUrl('/rest/V1/integration/admin/token'), init)).json() as string;
+    }
+
+    protected getUrl(...parts: string[]) {
+        return pathJoin([this._magentoUrl, ...parts], '/');
+    }
+
+    get url(): string {
+        return this._magentoUrl;
+    }
+
+    async fetch(relativeUrl: string) {
+        let init: RequestInit = {
+            agent: this.agent,
+            headers: {
+                "Authorization": 'Bearer ' + this.token,
+                "Content-Type": "application/json"
+            }
+        }
+
+        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+    }
+
+    async push(relativeUrl: string, value: any) {
+        let init: RequestInit = {
+            method: "POST", 
+            agent: this.agent,
+            headers: {
+                "Authorization": 'Bearer ' + this.token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(value)
+        }
+        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+    }
+
+    getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCollection {
+        guiOptions.displayName ??= `Magento products`;
+        const collection = new ProductsCollection(this, guiOptions);
+        this._addCollection(COLLECTIONS_NAMES.products, collection);
+        return collection;
+    }
+
+    releaseProducts() {
+        this._removeCollection(COLLECTIONS_NAMES.products);
+    }
+}
+
+export class ProductsCollection extends CollectionImpl<Partial<Product>> {
+    protected static instanceNo = 0;
+
+    constructor(endpoint: MagentoEndpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
+        ProductsCollection.instanceNo++;
+        guiOptions.displayName ??= `Products (${endpoint.url})`;
+        super(endpoint, guiOptions);
+    }
+
+    public list(where: Partial<Product> = {}, fields: ProductFields[] = null): EtlObservable<Partial<Product>> {
         const observable = new EtlObservable<Partial<Product>>((subscriber) => {
             (async () => {
                 try {
-                    await this.updateToken();
+                    await this.endpoint.updateToken();
 
                     let getParams = '';
 
@@ -93,15 +165,7 @@ export class MagentoProductsEndpoint extends EndpointImpl<Partial<Product>> {
 
                     if (fields) getParams += `fields=items[${fields.join(',')}]`;
 
-                    let init: RequestInit = {
-                        agent: this.agent,
-                        headers: {
-                            "Authorization": 'Bearer ' + this.token,
-                            "Content-Type": "application/json"
-                        }
-                    }
-
-                    const products: {items: Partial<Product>[]} = await (await fetch(this.getUrl('/rest/V1/products?' + getParams), init)).json() as {items: Partial<Product>[]};
+                    const products = await this.endpoint.fetch('/rest/V1/products?' + getParams) as {items: Partial<Product>[]};
 
                     this.sendStartEvent();
                     for (const p of products.items) {
@@ -123,49 +187,11 @@ export class MagentoProductsEndpoint extends EndpointImpl<Partial<Product>> {
 
     public async push(value: NewProductAttributes) {
         super.push(value as Partial<Product>);
-        await this.updateToken();
-        let init: RequestInit = {
-            method: "POST", 
-            agent: this.agent,
-            headers: {
-                "Authorization": 'Bearer ' + this.token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                product: value
-            })
-        }
-        const res = await (await fetch(this.getUrl('/rest/V1/products'), init)).json();
-        return res as Partial<Product>;
+        await this.endpoint.updateToken();
+        return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 
-    protected async updateToken() {
-        let init: RequestInit = {
-            method: "POST", 
-            agent: this.agent,
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: this.login,
-                password: this.password
-            })
-        }
-        
-        this.token = await (await fetch(this.getUrl('/rest/V1/integration/admin/token'), init)).json() as string;
+    get endpoint(): MagentoEndpoint {
+        return super.endpoint as MagentoEndpoint;
     }
-
-    protected pathJoin(parts: string[], sep: string = '/') {
-        return parts
-          .map(part => {
-            const part2 = part.endsWith(sep) ? part.substring(0, part.length - 1) : part;
-            return part2.startsWith(sep) ? part2.substr(1) : part2;
-          })
-          .join(sep);
-    }
-
-    protected getUrl(...parts: string[]) {
-        return this.pathJoin([this.magentoUrl, ...parts], '/');
-    }
-
 }

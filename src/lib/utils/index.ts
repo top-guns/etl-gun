@@ -3,12 +3,21 @@ import { JSONPath } from 'jsonpath-plus';
 export { Header } from './header';
 
 export function pathJoin(parts: string[], sep: string = '/') {
-    return parts
-      .map(part => {
-        const part2 = part.endsWith(sep) ? part.substring(0, part.length - 1) : part;
-        return part2.startsWith(sep) ? part2.substr(1) : part2;
-      })
-      .join(sep);
+  return parts.reduce((prev, cur, i) => {
+    if (!cur || !prev) return cur + prev;
+
+    if (cur.startsWith(sep)) cur = cur.substring(1);
+    if (prev.endsWith(sep)) prev = prev.substring(0, prev.length - 1);
+    return prev + sep + cur;
+  })
+}
+
+export function extractFileName(path: string): string {
+  return path.substring(path.lastIndexOf('/') + 1);
+}
+
+export function extractParentFolderPath(path: string): string {
+  return path.substring(0, path.lastIndexOf('/'));
 }
 
 export function getByJsonPath(obj: {}, jsonPath?: string): any;

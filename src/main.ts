@@ -23,8 +23,9 @@ async function f() {
         //const telegram = new etl.TelegramEndpoint(process.env.TELEGRAM_BOT_TOKEN!);
         // const fs = new etl.FilesystemEndpoint('src');
         // const timer = new etl.IntervalEndpoint(500);
-        const magento = new etl.MagentoProductsEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
-        const csv = new etl.CsvEndpoint('data/products.csv');
+        const magento = new etl.MagentoEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
+        const product = magento.getProducts();
+        const csv = new etl.CsvEndpoint('data').getFile('products.csv');
         const header = new etl.Header('id', 'sku', 'name', 'price', 'visibility', 'type_id', 'status');
         const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
@@ -36,7 +37,7 @@ async function f() {
         //let test$ = csv.read()
 
 
-        let test$ = magento.read({})
+        let test$ = product.list({})
         .pipe(
             // etl.numerate("index", "value", 10),
             //map(v => (v.)), 

@@ -12,7 +12,8 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
 
-            const src = new etl.FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME, 'test', false);
 
             const res = loadFileContent(OUT_FILE_FULL_PATH);
@@ -30,7 +31,8 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
 
-            const src = new etl.FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const src = ep.getFolder('.');
             await src.push(OUT_FOLDER_NAME, '', true);
 
             const res = fs.existsSync(OUT_FOLDER_FULL_PATH);
@@ -48,12 +50,13 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const src = new etl.FilesystemEndpoint(ROOT_FOLDER);;
+            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME, 'test', false);
 
             let res = fs.existsSync(OUT_FILE_FULL_PATH);
             expect(res).toBe(true);
-
+            
             await src.clear();
 
             res = fs.existsSync(OUT_FILE_FULL_PATH);
@@ -76,12 +79,13 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const src = new etl.FilesystemEndpoint(ROOT_FOLDER);;
+            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME1, 'test1', false);
             await src.push(OUT_FILE_NAME2, 'test2', false);
 
             const res: string[] = [];
-            let stream$ = src.read().pipe(
+            let stream$ = src.list().pipe(
                 rx.tap(v => res.push(v.name))
             );
             await etl.run(stream$);

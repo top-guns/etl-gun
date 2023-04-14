@@ -3,8 +3,10 @@ import { glob } from "glob";
 import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
-import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
+import { extractFileName, extractParentFolderPath, pathJoin } from "../utils";
 
 
 export type PathDetails = {
@@ -17,7 +19,7 @@ export type PathDetails = {
     content?: Buffer;
 }
 
-export type ReadOptions = {
+export type FsReadOptions = {
     // false by default
     includeRootDir?: boolean;
     // all is default
@@ -26,22 +28,48 @@ export type ReadOptions = {
     withContent?: boolean;
 }
 
-export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
-    protected static instanceNo = 0;
-    protected rootFolderPath: string;
+export class LocalFilesystemEndpoint extends Endpoint {
+    protected rootFolder: string = null;
 
-    constructor(rootFolderPath: string, guiOptions: EndpointGuiOptions<PathDetails> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Filesystem (${rootFolderPath.substring(rootFolderPath.lastIndexOf('/') + 1)})`;
-        FilesystemEndpoint.instanceNo++;
-        super(guiOptions);
-        this.rootFolderPath = rootFolderPath.trim();
-        if (this.rootFolderPath.endsWith('/')) this.rootFolderPath.substring(0, this.rootFolderPath.lastIndexOf('/'));
+    constructor(rootFolder: string) {
+        super();
+        this.rootFolder = rootFolder.trim();
+        if (this.rootFolder.endsWith('/')) this.rootFolder.substring(0, this.rootFolder.lastIndexOf('/'));
+    }
+
+    getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): FilesystemCollection {
+        guiOptions.displayName ??= this.getName(folderName);
+
+        let path = folderName == '.' ? '' : folderName;
+        if (this.rootFolder) path = pathJoin([this.rootFolder, path], '/');
+        return this._addCollection(folderName, new FilesystemCollection(this, path, guiOptions));
+    }
+
+    releaseFolder(folderName: string) {
+        this._removeCollection(folderName);
+    }
+
+    protected getName(folderPath: string) {
+        return folderPath.substring(folderPath.lastIndexOf('/') + 1);
+    }
+}
+
+export class FilesystemCollection extends CollectionImpl<PathDetails> {
+    protected static instanceCount = 0;
+    protected folderPath: string;
+
+    constructor(endpoint: LocalFilesystemEndpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
+        FilesystemCollection.instanceCount++;
+        guiOptions.displayName ??= `Filesystem (${folderPath.substring(folderPath.lastIndexOf('/') + 1)})`;
+        super(endpoint, guiOptions);
+        this.folderPath = folderPath.trim();
+        if (this.folderPath.endsWith('/')) this.folderPath.substring(0, this.folderPath.lastIndexOf('/'));
     }
 
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public read(mask: string = '*', options: ReadOptions = {}): EtlObservable<PathDetails> {
+    public list(mask: string = '*', options: FsReadOptions = {}): EtlObservable<PathDetails> {
         const observable = new EtlObservable<any>((subscriber) => {
             try {
                 this.sendStartEvent();
@@ -52,7 +80,7 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
                     subscriber.next(res);
                 }
         
-                glob(mask, {cwd: this.rootFolderPath}, (err: Error, matches: string[]) => {
+                glob(mask, {cwd: this.folderPath}, (err: Error, matches: string[]) => {
                     if (err) {
                         this.sendErrorEvent(err);
                         subscriber.error(err);
@@ -94,15 +122,15 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
         let pathDetails: PathDetails;
         if (typeof fileInfo == 'string') {
             const relativePath = fileInfo;
-            const rootFolderPath = this.rootFolderPath ? this.rootFolderPath : '.';
+            const rootFolderPath = this.folderPath ? this.folderPath : '.';
             const fullPath = path.resolve(rootFolderPath + '/' + relativePath);
             pathDetails = {
                 isFolder,
-                name: this.extractFileName(relativePath),
+                name: extractFileName(relativePath),
                 relativePath,
                 fullPath,
-                parentFolderRelativePath: this.extractParentFolderPath(relativePath),
-                parentFolderFullPath: this.extractParentFolderPath(fullPath)
+                parentFolderRelativePath: extractParentFolderPath(relativePath),
+                parentFolderFullPath: extractParentFolderPath(fullPath)
             };
         }
         else {
@@ -125,17 +153,17 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
         }
     }
 
-    public async clear(mask: string = '*', options: ReadOptions = {}) {
+    public async clear(mask: string = '*', options: FsReadOptions = {}) {
         super.clear();
 
         if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
-            fs.rmSync(this.rootFolderPath, { recursive: true, force: true });
+            fs.rmSync(this.folderPath, { recursive: true, force: true });
             return;
         }
 
-        const matches = glob.sync(mask, {cwd: this.rootFolderPath});
+        const matches = glob.sync(mask, {cwd: this.folderPath});
         for (let i = 0; i < matches.length; i++) {
-            const matchPath = path.join(this.rootFolderPath, matches[i]);
+            const matchPath = path.join(this.folderPath, matches[i]);
             const isFolder = (await fs.promises.lstat(matchPath)).isDirectory();
 
             if ( isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch) ) {
@@ -149,54 +177,46 @@ export class FilesystemEndpoint extends EndpointImpl<PathDetails> {
         };
     }
 
-    protected extractFileName(path: string): string {
-        return path.substring(path.lastIndexOf('/') + 1);
-    }
-
-    protected extractParentFolderPath(path: string): string {
-        return path.substring(0, path.lastIndexOf('/'));
-    }
-
-    protected removeLeadingRoot(path: string): string {
-        if (path.startsWith(this.rootFolderPath)) path = path.substring(this.rootFolderPath.length);
-        if (path.startsWith('./')) path = path.substring(2);
-        if (path.startsWith('/')) path = path.substring(1);
-        return path;
-    }
-
     protected isRootCur(): boolean {
-        const r = path.join(this.rootFolderPath.trim()).trim();
-        return this.rootFolderPath == '.' || this.rootFolderPath == '';
+        const r = path.join(this.folderPath.trim()).trim();
+        return this.folderPath == '.' || this.folderPath == '';
     }
 
     protected getRootFolderDetails(): PathDetails {
-        const fullPath = path.resolve(this.rootFolderPath);
+        const fullPath = path.resolve(this.folderPath);
         return {
             isFolder: true,
-            name: this.extractFileName(fullPath),
+            name: extractFileName(fullPath),
             relativePath: '',
             fullPath,
             parentFolderRelativePath: '..',
-            parentFolderFullPath: path.resolve(this.rootFolderPath + '/..')
+            parentFolderFullPath: path.resolve(this.folderPath + '/..')
         }
     }
 
-    protected async getPathDetails(relativePath: string, options?: ReadOptions) {
-        const rootFolderPath = this.rootFolderPath ? this.rootFolderPath : '.';
+    protected async getPathDetails(relativePath: string, options?: FsReadOptions) {
+        const rootFolderPath = this.folderPath ? this.folderPath : '.';
         const fullPath = path.resolve(rootFolderPath + '/' + relativePath);
 
         const res = {
             isFolder: (await fs.promises.lstat(fullPath)).isDirectory(),
-            name: this.extractFileName(relativePath),
+            name: extractFileName(relativePath),
             relativePath,
             fullPath,
-            parentFolderRelativePath: this.extractParentFolderPath(relativePath),
-            parentFolderFullPath: this.extractParentFolderPath(fullPath)
+            parentFolderRelativePath: extractParentFolderPath(relativePath),
+            parentFolderFullPath: extractParentFolderPath(fullPath)
         } as PathDetails;
         if (options && options.withContent) {
             res.content = fs.readFileSync(fullPath);
         }
         return res;
+    }
+
+    protected removeLeadingRoot(path: string): string {
+        if (path.startsWith(this.folderPath)) path = path.substring(this.folderPath.length);
+        if (path.startsWith('./')) path = path.substring(2);
+        if (path.startsWith('/')) path = path.substring(1);
+        return path;
     }
     
 }

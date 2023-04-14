@@ -2,16 +2,41 @@ import * as fs from "fs";
 import { Observable, Subscriber } from 'rxjs';
 import { get } from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
-import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
+import { pathJoin } from "../utils";
 
-export type ReadOptions = {
+export type JsonReadOptions = {
     // foundedOnly is default
     searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
     addRelativePathAsField?: string;
 }
 
-export class JsonEndpoint extends EndpointImpl<any> {
+export class JsonEndpoint extends Endpoint {
+    protected rootFolder: string = null;
+    constructor(rootFolder: string = null) {
+        super();
+        this.rootFolder = rootFolder;
+    }
+
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): JsonCollection {
+        guiOptions.displayName ??= this.getName(filename);
+        let path = filename;
+        if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
+        return this._addCollection(filename, new JsonCollection(this, path, autosave, autoload, encoding, guiOptions));
+    }
+
+    releaseFile(filename: string) {
+        this._removeCollection(filename);
+    }
+
+    protected getName(filename: string) {
+        return filename.substring(filename.lastIndexOf('/') + 1);
+    }
+}
+
+export class JsonCollection extends CollectionImpl<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -19,10 +44,10 @@ export class JsonEndpoint extends EndpointImpl<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: EndpointGuiOptions<any> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`;
-        JsonEndpoint.instanceNo++;
-        super(guiOptions);
+    constructor(endpoint: JsonEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
+        JsonCollection.instanceNo++;
+        guiOptions.displayName ??= `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;
@@ -33,7 +58,7 @@ export class JsonEndpoint extends EndpointImpl<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public read(path: string = '', options: ReadOptions = {}): EtlObservable<any> {
+    public list(path: string = '', options: JsonReadOptions = {}): EtlObservable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -88,9 +113,9 @@ export class JsonEndpoint extends EndpointImpl<any> {
     // About path syntax read https://www.npmjs.com/package/jsonpath-plus
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
-    public readByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
-    public readByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
-    public readByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
+    public listByJsonPath(jsonPath?: string, options?: JsonReadOptions): Observable<any>;
+    public listByJsonPath(jsonPaths?: string[], options?: JsonReadOptions): Observable<any>;
+    public listByJsonPath(jsonPath: any = '', options: JsonReadOptions = {}): Observable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -144,7 +169,7 @@ export class JsonEndpoint extends EndpointImpl<any> {
         return observable;
     }
 
-    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: JsonReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
         await this.waitWhilePaused();
         this.sendDataEvent(element);

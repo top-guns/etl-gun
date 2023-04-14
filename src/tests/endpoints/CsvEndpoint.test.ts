@@ -8,7 +8,8 @@ describe('CsvEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_NAME);
 
-            const src = new etl.CsvEndpoint(OUT_FILE_NAME);
+            const endpoint = new etl.CsvEndpoint();
+            const src = endpoint.getFile(OUT_FILE_NAME);
             await src.push([1, '1']);
             await src.push([' a\\b/c;', '11,22']);
 
@@ -25,7 +26,8 @@ describe('CsvEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_NAME);
 
-            const src = new etl.CsvEndpoint(OUT_FILE_NAME);
+            const endpoint = new etl.CsvEndpoint();
+            const src = endpoint.getFile(OUT_FILE_NAME);
             await src.push([1, '1']);
             await src.push([' a\\b/c;', '11,22']);
 
@@ -43,13 +45,14 @@ describe('CsvEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_NAME);
 
-            const src = new etl.CsvEndpoint(OUT_FILE_NAME);
+            const endpoint = new etl.CsvEndpoint();
+            const src = endpoint.getFile(OUT_FILE_NAME);
             await src.push([10, 'abc']);
             await src.push(['11', ' a\\b/c;']);
             await src.push(['33', '66,55']);
 
             const res: any[][] = [];
-            let stream$ = src.read().pipe(
+            let stream$ = src.list().pipe(
                 rx.tap(v => res.push(v))
             );
             await etl.run(stream$);

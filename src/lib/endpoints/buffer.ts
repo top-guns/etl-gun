@@ -1,22 +1,34 @@
 import { from, Observable } from "rxjs";
-import { Endpoint, EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
 
-export class BufferEndpoint<T = any> extends EndpointImpl<T> {
-    protected static instanceNo = 0;
-    protected _buffer: T[];
+export class MemoryEndpoint extends Endpoint {
+    getBuffer<T>(name: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection {
+        guiOptions.displayName ??= name;
+        return this._addCollection(name, new BufferCollection(this, values, guiOptions));
+    }
+    releaseBuffer(name: string) {
+        this._removeCollection(name);
+    }
+}
 
+export class BufferCollection<T = any> extends CollectionImpl<T> {
+    protected static instanceCount = 0;
+
+    protected _buffer: T[];
     get buffer() {
         return this._buffer;
     }
 
-    constructor(values: T[] = [], guiOptions: EndpointGuiOptions<T> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `Buffer ${++BufferEndpoint.instanceNo}`;
-        super(guiOptions);
+    constructor(endpoint: MemoryEndpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
+        BufferCollection.instanceCount++;
+        guiOptions.displayName ??= `Buffer ${BufferCollection.instanceCount}`;
+        super(endpoint, guiOptions);
         this._buffer = [...values];
     }
 
-    public read(): EtlObservable<T> {
+    public list(): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
             (async () => {
                 try {

@@ -1,17 +1,42 @@
 import * as fs from "fs";
 import { parse } from "csv-parse";
-import { EndpointGuiOptions, EndpointImpl } from "../core/endpoint";
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from "../core/observable";
+import { pathJoin } from "../utils";
 
-export class CsvEndpoint extends EndpointImpl<string[]> {
-    protected static instanceNo = 0;
+export class CsvEndpoint extends Endpoint {
+    protected rootFolder: string = null;
+    constructor(rootFolder: string = null) {
+        super();
+        this.rootFolder = rootFolder;
+    }
+
+    getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): CsvCollection {
+        guiOptions.displayName ??= this.getName(filename);
+        let path = filename;
+        if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
+        return this._addCollection(filename, new CsvCollection(this, path, delimiter, guiOptions));
+    }
+
+    releaseFile(filename: string) {
+        this._removeCollection(filename);
+    }
+
+    protected getName(filename: string) {
+        return filename.substring(filename.lastIndexOf('/') + 1);
+    }
+}
+
+export class CsvCollection extends CollectionImpl<string[]> {
+    protected static instanceCount = 0;
     protected filename: string;
     protected delimiter: string;
 
-    constructor(filename: string, delimiter: string = ",", guiOptions: EndpointGuiOptions<string[]> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`;
-        CsvEndpoint.instanceNo++;
-        super(guiOptions);
+    constructor(endpoint: CsvEndpoint, filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
+        CsvCollection.instanceCount++;
+        guiOptions.displayName ??= `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`;
+        super(endpoint, guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;
     }
@@ -21,7 +46,7 @@ export class CsvEndpoint extends EndpointImpl<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public read(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
+    public list(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
         const rows = [];
         const observable = new EtlObservable<string[]>((subscriber) => {
             try {

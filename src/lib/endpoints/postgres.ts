@@ -1,32 +1,49 @@
 import * as pg from 'pg'
 import { Observable } from "rxjs";
-import { Endpoint, GuiManager } from '../core';
-import { EndpointGuiOptions, EndpointImpl } from '../core/endpoint';
+import { GuiManager } from '../core';
+import { Endpoint} from "../core/endpoint";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
 import { EtlObservable } from '../core/observable';
 
-export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
-    protected static instanceNo = 0;
-    protected table: string;
-    protected pool: any;
-
-    constructor(table: string, url: string, guiOptions?: EndpointGuiOptions<T>);
-    constructor(table: string, pool: any, guiOptions?: EndpointGuiOptions<T>);
-    constructor(table: string, connection: any, guiOptions: EndpointGuiOptions<T> = {}) {
-        guiOptions.displayName = guiOptions.displayName ?? `PostgreSQL (${table})`;
-        PostgresEndpoint.instanceNo++;
-        super(guiOptions);
-        this.table = table;
-
-        if (typeof connection == "string") {
-            const config = { connectionString: connection };
-            this.pool = new pg.Pool(config);
-        }
-        else {
-            this.pool = connection;
-        }
+export class PostgresEndpoint extends Endpoint {
+    protected _connectionPool: pg.Pool = null;
+    get connectionPool(): pg.Pool {
+        return this._connectionPool;
     }
 
-    public read(where: string | {} = ''): EtlObservable<T> {
+    constructor(connectionString: string);
+    constructor(connectionPool: pg.Pool);
+    constructor(connection: any) {
+        super();
+        if (typeof connection == 'string') {
+            const config = { connectionString: connection };
+            this._connectionPool = new pg.Pool(config);
+        }
+        else this._connectionPool = connection;
+    }
+
+    getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection {
+        guiOptions.displayName ??= `PostgreSQL ${table}`;
+        return this._addCollection(table, new TableCollection(this, table, guiOptions));
+    }
+
+    releaseTable(table: string) {
+        this._removeCollection(table);
+    }
+}
+
+export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> {
+    protected static instanceNo = 0;
+    protected table: string;
+
+    constructor(endpoint: PostgresEndpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
+        TableCollection.instanceNo++;
+        guiOptions.displayName ??= `PostgreSQL (${table})`;
+        super(endpoint, guiOptions);
+        this.table = table;
+    }
+
+    public list(where: string | {} = ''): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
             (async () => {
                 try {
@@ -38,7 +55,7 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
                     }
 
                     const query = `select * from ${this.table} ${where ? 'where ' + where : ''}`;
-                    const results = await this.pool.query(query, params);
+                    const results = await this.endpoint.connectionPool.query(query, params);
                     for (const row of results.rows) {
                         await this.waitWhilePaused();
                         this.sendDataEvent(row);
@@ -59,7 +76,7 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
     public async push(value: T) {
         super.push(value);
         const query = `insert into ${this.table}(${this.getCommaSeparatedFields(value)}) values ${this.getCommaSeparatedParams(value)}`;
-        await this.pool.query(query, this.getCommaSeparatedValues(value));
+        await this.endpoint.connectionPool.query(query, this.getCommaSeparatedValues(value));
         // TODO: returning id or the whole T-value
     }
 
@@ -72,7 +89,7 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
         }
 
         const query = `delete from ${this.table} ${where ? 'where ' + where : ''}`;
-        await this.pool.query(query, params);
+        await this.endpoint.connectionPool.query(query, params);
     }
 
     protected getCommaSeparatedFields(value: T) {
@@ -118,6 +135,10 @@ export class PostgresEndpoint<T = Record<string, any>> extends EndpointImpl<T> {
             }
         }
         return res;
+    }
+
+    get endpoint(): PostgresEndpoint {
+        return super.endpoint as PostgresEndpoint;
     }
 
 }

@@ -1,11 +1,11 @@
 import { from } from 'form-data';
 
-export { BufferEndpoint } from './buffer';
-export { CsvEndpoint } from './csv';
-export { PostgresEndpoint } from './postgres';
-export { JsonEndpoint } from './json';
-export { XmlEndpoint } from './xml';
-export { TelegramEndpoint } from './telegram';
-export { FilesystemEndpoint } from './filesystem';
-export { IntervalEndpoint } from './interval';
+export * from './buffer';
+export * from './csv';
+export * from './postgres';
+export * from './json';
+export * from './xml';
+export * from './telegram';
+export * from './filesystem';
+export * from './interval';
 export * from './magento';
