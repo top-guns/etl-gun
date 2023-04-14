@@ -26,6 +26,10 @@ export class CsvEndpoint extends Endpoint {
     protected getName(filename: string) {
         return filename.substring(filename.lastIndexOf('/') + 1);
     }
+
+    get displayName(): string {
+        return this.rootFolder ? `CSV (${this.rootFolder})` : `CSV (${this.instanceNo})`;
+    }
 }
 
 export class CsvCollection extends CollectionImpl<string[]> {
@@ -35,7 +39,6 @@ export class CsvCollection extends CollectionImpl<string[]> {
 
     constructor(endpoint: CsvEndpoint, filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
         CsvCollection.instanceCount++;
-        guiOptions.displayName ??= `CSV (${filename.substring(filename.lastIndexOf('/') + 1)})`;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;

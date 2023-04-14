@@ -23,12 +23,16 @@ export class PostgresEndpoint extends Endpoint {
     }
 
     getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection {
-        guiOptions.displayName ??= `PostgreSQL ${table}`;
+        guiOptions.displayName ??= `${table}`;
         return this._addCollection(table, new TableCollection(this, table, guiOptions));
     }
 
     releaseTable(table: string) {
         this._removeCollection(table);
+    }
+
+    get displayName(): string {
+        return `PostgreSQL (${this.instanceNo})`;
     }
 }
 
@@ -38,7 +42,6 @@ export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> 
 
     constructor(endpoint: PostgresEndpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
         TableCollection.instanceNo++;
-        guiOptions.displayName ??= `PostgreSQL (${table})`;
         super(endpoint, guiOptions);
         this.table = table;
     }

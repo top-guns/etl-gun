@@ -34,6 +34,8 @@ export interface Collection<T> {
 
     get isPaused(): boolean;
 
+    get endpoint(): Endpoint;
+
     // public async delete(where: any) {
     //     throw new Error("Method not implemented.");
     // }

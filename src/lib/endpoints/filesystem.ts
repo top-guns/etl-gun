@@ -52,6 +52,10 @@ export class LocalFilesystemEndpoint extends Endpoint {
     protected getName(folderPath: string) {
         return folderPath.substring(folderPath.lastIndexOf('/') + 1);
     }
+
+    get displayName(): string {
+        return this.rootFolder ? `Local filesystem (${this.rootFolder})` : `Local filesystem (${this.instanceNo})`;
+    }
 }
 
 export class FilesystemCollection extends CollectionImpl<PathDetails> {
@@ -60,7 +64,6 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
 
     constructor(endpoint: LocalFilesystemEndpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
         FilesystemCollection.instanceCount++;
-        guiOptions.displayName ??= `Filesystem (${folderPath.substring(folderPath.lastIndexOf('/') + 1)})`;
         super(endpoint, guiOptions);
         this.folderPath = folderPath.trim();
         if (this.folderPath.endsWith('/')) this.folderPath.substring(0, this.folderPath.lastIndexOf('/'));

@@ -35,6 +35,10 @@ export class XmlEndpoint extends Endpoint {
     protected getName(filename: string) {
         return filename.substring(filename.lastIndexOf('/') + 1);
     }
+
+    get displayName(): string {
+        return this.rootFolder ? `XML (${this.rootFolder})` : `XML (${this.instanceNo})`;
+    }
 }
 
 // Every node contains:
@@ -52,7 +56,6 @@ export class XmlCollection extends CollectionImpl<any> {
 
     constructor(endpoint: XmlEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
         XmlCollection.instanceNo++;
-        guiOptions.displayName ??= `XML (${filename.substring(filename.lastIndexOf('/') + 1)})`;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;

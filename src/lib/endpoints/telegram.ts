@@ -24,6 +24,10 @@ export class TelegramEndpoint extends Endpoint {
         this.collections[name].stop();
         this._removeCollection(name);
     }
+
+    get displayName(): string {
+        return `Telegram (${this.instanceNo})`;
+    }
 }
 
 export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
@@ -35,7 +39,6 @@ export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
 
     constructor(endpoint: TelegramEndpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
         TelegramCollection.instanceNo++;
-        guiOptions.displayName ??= `Telegram bot (${TelegramCollection.instanceNo})`;
         super(endpoint, guiOptions);
         this.token = token;
         this.keyboard = keyboard;

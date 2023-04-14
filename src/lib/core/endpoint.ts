@@ -14,5 +14,18 @@ export class Endpoint {
         if (!this.collections[name]) throw new Error(`Collection with name ${name} does not exists`);
         delete this.collections[name];
     }
+
+    protected static instanceCount = 0;
+    protected instanceNo: number;
+
+    constructor() {
+        Endpoint.instanceCount++;
+        this.instanceNo = Endpoint.instanceCount;
+        if (GuiManager.instance) GuiManager.instance.registerEndpoint(this);
+    }
+
+    get displayName(): string {
+        return `Endpoint ${this.instanceNo}`;
+    }
 }
   

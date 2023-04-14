@@ -11,6 +11,10 @@ export class MemoryEndpoint extends Endpoint {
     releaseBuffer(name: string) {
         this._removeCollection(name);
     }
+
+    get displayName(): string {
+        return `Memory buffers`;
+    }
 }
 
 export class BufferCollection<T = any> extends CollectionImpl<T> {
@@ -23,7 +27,6 @@ export class BufferCollection<T = any> extends CollectionImpl<T> {
 
     constructor(endpoint: MemoryEndpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
         BufferCollection.instanceCount++;
-        guiOptions.displayName ??= `Buffer ${BufferCollection.instanceCount}`;
         super(endpoint, guiOptions);
         this._buffer = [...values];
     }

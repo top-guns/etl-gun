@@ -6,11 +6,16 @@ import { EtlObservable } from "../core/observable";
 
 export class IntervalEndpoint extends Endpoint {
     getSequence(name: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
-        guiOptions.displayName ??= name;
+        guiOptions.displayName ??= `${name} (${interval}ms)`;
         return this._addCollection(name, new IntervalCollection(this, interval, guiOptions));
     }
+
     releaseSequence(name: string) {
         this._removeCollection(name);
+    }
+
+    get displayName(): string {
+        return `Intervals`;
     }
 }
 
@@ -23,7 +28,6 @@ export class IntervalCollection extends CollectionImpl<number> {
     
     constructor(endpoint: IntervalEndpoint, interval: number, guiOptions: CollectionGuiOptions<number> = {}) {
         IntervalCollection.instanceNo++;
-        guiOptions.displayName ??= `Interval ${IntervalCollection.instanceNo}(${interval}ms)`;
         super(endpoint, guiOptions);
         this.interval = interval;
     }

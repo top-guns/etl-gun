@@ -125,7 +125,7 @@ export class MagentoEndpoint extends Endpoint {
     }
 
     getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCollection {
-        guiOptions.displayName ??= `Magento products`;
+        guiOptions.displayName ??= `Products`;
         const collection = new ProductsCollection(this, guiOptions);
         this._addCollection(COLLECTIONS_NAMES.products, collection);
         return collection;
@@ -134,6 +134,10 @@ export class MagentoEndpoint extends Endpoint {
     releaseProducts() {
         this._removeCollection(COLLECTIONS_NAMES.products);
     }
+
+    get displayName(): string {
+        return `Magento (${this._magentoUrl})`;
+    }
 }
 
 export class ProductsCollection extends CollectionImpl<Partial<Product>> {
@@ -141,7 +145,6 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
 
     constructor(endpoint: MagentoEndpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
         ProductsCollection.instanceNo++;
-        guiOptions.displayName ??= `Products (${endpoint.url})`;
         super(endpoint, guiOptions);
     }
 

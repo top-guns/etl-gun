@@ -2,6 +2,12 @@ import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
 import { SimplifiedStyledElement } from 'console-gui-tools-cjs/dist/components/PageBuilder';
 import { Collection, CollectionGuiOptions } from './collection';
+import { Endpoint } from './endpoint';
+
+type EndpointDesc = {
+    endpoint: Endpoint;
+    collections: CollectionDesc[];
+}
 
 type CollectionDesc = {
     collection: Collection<any>;
@@ -19,7 +25,7 @@ export class GuiManager {
     public stepByStepMode: boolean = false;
     public makeStepForward: boolean = false;
     protected consoleManager: ConsoleManager;
-    protected collections: CollectionDesc[] = [];
+    protected endpoints: EndpointDesc[] = [];
     protected popup: ConfirmPopup = null;
 
     public static startGui(title = '', startPaused = false, logPageSize = 8) {
@@ -122,7 +128,7 @@ export class GuiManager {
     protected updateConsole(){
         const p: PageBuilder = new PageBuilder();
 
-        p.addRow({ text: " Process:  ", color: 'white' }, { 
+        p.addRow({ text: " Process:  ", color: 'white', bold: true }, { 
             text: ` ${this.processStatus} `, 
             color: this.processStatus == 'paused' ? 'black' : 'white', 
             bold: true, 
@@ -131,40 +137,52 @@ export class GuiManager {
 
         p.addSpacer();
 
-        p.addRow({ text: " Collections:", color: 'white', bg: 'bgBlack' });
-        this.collections.forEach(desc => {
-            let color: ForegroundColor;
-            switch (desc.status) {
-                case 'running':
-                    color = 'blueBright';
-                    break;
-                case 'finished':
-                    color = 'green';
-                    break;
-                case 'error':
-                    color = 'red';
-                    break;
-                case 'pushed':
-                    color = 'magenta';
-                    break;
-                case 'cleared':
-                    color = 'yellow';
-                    break;
-                case 'waiting':
-                    color = 'white';
-                    break;
-                default:
-                    color = 'white';
+        p.addRow({ text: " Collections:", color: 'white', bg: 'bgBlack', bold: true });
+
+        this.endpoints.forEach(epDesc => {
+            const parsedDisplayName = epDesc.endpoint.displayName.match(/^(.*[^\s])\s*\((.*)\)$/);
+            if (parsedDisplayName.length > 2) {
+                p.addRow({ text: `  ` }, { text: `${parsedDisplayName[1]}`, color: 'white', underline: true }, { text: ` ${parsedDisplayName[2]}`, color: 'whiteBright' } );
             }
-            p.addRow({ text: `  ` }, 
-                { text: `${this.getCollectionDisplayName(desc)}`, color: 'blueBright' }, 
-                { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
-                ...(
-                    desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
-                    !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
-                    this.dumpObject(desc.guiOptions.watch ? desc.guiOptions.watch(desc.value) : desc.value)
+            else {
+                p.addRow({ text: `  ` }, { text: `${epDesc.endpoint.displayName}`, color: 'white', underline: true } );
+            }
+            
+
+            epDesc.collections.forEach(desc => {
+                let color: ForegroundColor;
+                switch (desc.status) {
+                    case 'running':
+                        color = 'blueBright';
+                        break;
+                    case 'finished':
+                        color = 'green';
+                        break;
+                    case 'error':
+                        color = 'red';
+                        break;
+                    case 'pushed':
+                        color = 'magenta';
+                        break;
+                    case 'cleared':
+                        color = 'yellow';
+                        break;
+                    case 'waiting':
+                        color = 'white';
+                        break;
+                    default:
+                        color = 'white';
+                }
+                p.addRow({ text: `    ` }, 
+                    { text: `${this.getCollectionDisplayName(desc)}`, color: 'white' }, 
+                    { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
+                    ...(
+                        desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
+                        !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
+                        this.dumpObject(desc.guiOptions.watch ? desc.guiOptions.watch(desc.value) : desc.value)
+                    )
                 )
-            );
+            })
         })
 
         // Spacer
@@ -175,7 +193,7 @@ export class GuiManager {
         //     p.addSpacer(2)
         // }
 
-        p.addRow({ text: " Commands:", color: 'white', bg: 'bgBlack' });
+        p.addRow({ text: " Commands:", color: 'white', bg: 'bgBlack', bold: true });
         p.addRow({ text: `  'space'`, color: 'gray', bold: true },      { text: `    - Pause/resume process`, color: 'white', italic: true });
         p.addRow({ text: `  'enter'`, color: 'gray', bold: true },      { text: `    - Make one step in paused mode`, color: 'white', italic: true });
         p.addRow({ text: `  'esc'`, color: 'gray', bold: true },        { text: `      - Quit`, color: 'white', italic: true });
@@ -208,10 +226,28 @@ export class GuiManager {
         this.consoleManager.info(message);
     }
 
+    public registerEndpoint(endpoint: Endpoint) {
+        const desc: EndpointDesc = {endpoint, collections: []};
+        this.endpoints.push(desc);
+
+        this.updateConsole();
+    }
+
+    protected getEndpointDesc(endpoint: Endpoint) {
+        for (let desc of this.endpoints) {
+            if (desc.endpoint.displayName == endpoint.displayName) return desc;
+        }
+        return null;
+    }
+
     public registerCollection(collection: Collection<any>, guiOptions: CollectionGuiOptions<any> = {}) {
-        const displayName = guiOptions.displayName ? guiOptions.displayName : `Collection ${this.collections.length}`;
+        const endpoint = collection.endpoint;
+        const endpointdesc = this.getEndpointDesc(endpoint);
+        if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);
+
+        const displayName = guiOptions.displayName ? guiOptions.displayName : `Collection ${endpointdesc.collections.length}`;
         const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions};
-        this.collections.push(desc);
+        endpointdesc.collections.push(desc);
 
         collection.on('read.start', () => { desc.status = 'running'; this.updateConsole(); });
         collection.on('read.end', () => { desc.status = 'finished'; this.updateConsole(); });
@@ -225,8 +261,13 @@ export class GuiManager {
     }
 
     protected getCollectionNameLength(): number {
-        const maxName = this.collections.reduce((p, c) => p.displayName > c.displayName ? p : c);
-        return maxName.displayName.length;
+        let maxName = '';
+        for (let epDesc of this.endpoints) {
+            for (let colDesc of epDesc.collections) {
+                if (colDesc.displayName > maxName) maxName = colDesc.displayName;
+            }
+        }
+        return maxName.length;
     }
 
     protected getCollectionDisplayName(desc: CollectionDesc): string {
@@ -238,7 +279,9 @@ export class GuiManager {
     }
 
     protected setCursorAfterWindow() {
-        process.stdout.cursorTo(0, 14 + GuiManager._instance.collections.length + GuiManager._instance.consoleManager.getLogPageSize());
+        let colCount = 0;
+        for (let epDesc of this.endpoints) colCount += epDesc.collections.length + 1;
+        process.stdout.cursorTo(0, 14 + colCount + GuiManager._instance.consoleManager.getLogPageSize());
     }
 
     protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {

@@ -34,6 +34,10 @@ export class JsonEndpoint extends Endpoint {
     protected getName(filename: string) {
         return filename.substring(filename.lastIndexOf('/') + 1);
     }
+
+    get displayName(): string {
+        return this.rootFolder ? `JSON (${this.rootFolder})` : `JSON (${this.instanceNo})`;
+    }
 }
 
 export class JsonCollection extends CollectionImpl<any> {
@@ -46,7 +50,6 @@ export class JsonCollection extends CollectionImpl<any> {
 
     constructor(endpoint: JsonEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
         JsonCollection.instanceNo++;
-        guiOptions.displayName ??= `JSON (${filename.substring(filename.lastIndexOf('/') + 1)})`;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;
