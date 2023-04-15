@@ -2,7 +2,7 @@ import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
 
 import * as etl from './lib';
-import { GoogleTranslateHelper, GuiManager, NewProductAttributes } from "./lib";
+import { CsvEndpoint, GoogleTranslateHelper, GuiManager, Header, NewProductAttributes, PostgresEndpoint } from "./lib";
 
 dotenv.config()
 
@@ -10,7 +10,6 @@ console.log("START");
 
 async function f() {
     try {
-
         GuiManager.startGui("Test ETL process", true, 20);
 
         // const timer$ = interval(1000);
@@ -30,11 +29,11 @@ async function f() {
         const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
         // '$.store.book[*].author'
-        // json.readByJsonPath('$.store.book[*].author')
-        // xml.read('/store/book/author')
-        //let test$ = xml.read('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsAttribute: "path"})
-        //let test$ = fs.read('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
-        //let test$ = csv.read()
+        // json.listByJsonPath('$.store.book[*].author')
+        // xml.list('/store/book/author')
+        //let test$ = xml.list('store', {searchReturns: 'foundedWithDescendants', addRelativePathAsAttribute: "path"})
+        //let test$ = fs.list('**/*.ts', {objectsToSearch: 'all', includeRootDir: true})
+        //let test$ = csv.list()
 
 
         let test$ = product.list({})
@@ -66,8 +65,8 @@ async function f() {
             translator.operator(),
             etl.log()
             //etl.push(csv)
-            //etl.join(table.read().pipe(take(2))),
-            //etl.join(bufArrays.read()),
+            //etl.join(table.list().pipe(take(2))),
+            //etl.join(bufArrays.list()),
             //tap(() => (0))
 
             //map(v => v.firstChild.nodeValue),
@@ -75,12 +74,12 @@ async function f() {
         );
 
         // fs
-        // .on("read.start", () => console.log("start event"))
-        // .on("read.end", () => console.log("end event"))
-        // .on("read.data", (data) => console.log("data event", data))
-        // .on("read.up", () => console.log("up event"))
-        // .on("read.down", () => console.log("down event"))
-        // .on("read.error", (err) => console.log("error event: " + err))
+        // .on("list.start", () => console.log("start event"))
+        // .on("list.end", () => console.log("end event"))
+        // .on("list.data", (data) => console.log("data event", data))
+        // .on("list.up", () => console.log("up event"))
+        // .on("list.down", () => console.log("down event"))
+        // .on("list.error", (err) => console.log("error event: " + err))
 
         await etl.run(test$);// .toPromise();
 

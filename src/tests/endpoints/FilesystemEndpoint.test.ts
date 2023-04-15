@@ -12,7 +12,7 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
 
-            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME, 'test', false);
 
@@ -31,7 +31,7 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
 
-            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.push(OUT_FOLDER_NAME, '', true);
 
@@ -50,7 +50,7 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME, 'test', false);
 
@@ -79,7 +79,7 @@ describe('FilesystemEndpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.LocalFilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.push(OUT_FILE_NAME1, 'test1', false);
             await src.push(OUT_FILE_NAME2, 'test2', false);

@@ -15,9 +15,9 @@ export class TelegramEndpoint extends Endpoint {
         super();
     }
 
-    startBot(name: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): TelegramCollection {
+    startBot(name: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection {
         guiOptions.displayName ??= name;
-        return this._addCollection(name, new TelegramCollection(this, token, keyboard, guiOptions));
+        return this._addCollection(name, new MessageCollection(this, token, keyboard, guiOptions));
     }
 
     releaseBot(name: string) {
@@ -30,7 +30,7 @@ export class TelegramEndpoint extends Endpoint {
     }
 }
 
-export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
+export class MessageCollection extends CollectionImpl<TelegramInputMessage> {
     protected static instanceNo = 0;
     protected token: string;
     protected keyboard: any;
@@ -38,7 +38,7 @@ export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
     protected bot: TelegramBot;
 
     constructor(endpoint: TelegramEndpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
-        TelegramCollection.instanceNo++;
+        MessageCollection.instanceNo++;
         super(endpoint, guiOptions);
         this.token = token;
         this.keyboard = keyboard;
@@ -87,7 +87,7 @@ export class TelegramCollection extends CollectionImpl<TelegramInputMessage> {
     public async push(value: TelegramInputMessage);
     public async push(chatId: string, message: string);
     public async push(valueOrChartId: TelegramInputMessage | string, message?: string) {
-        if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call read() before.");
+        if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
         super.push(value);
         this.bot.sendMessage(value.chatId, value.message);

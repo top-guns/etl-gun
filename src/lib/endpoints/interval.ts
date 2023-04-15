@@ -11,6 +11,7 @@ export class IntervalEndpoint extends Endpoint {
     }
 
     releaseSequence(name: string) {
+        this.collections[name].stop();
         this._removeCollection(name);
     }
 

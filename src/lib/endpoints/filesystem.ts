@@ -28,7 +28,7 @@ export type FsReadOptions = {
     withContent?: boolean;
 }
 
-export class LocalFilesystemEndpoint extends Endpoint {
+export class FilesystemEndpoint extends Endpoint {
     protected rootFolder: string = null;
 
     constructor(rootFolder: string) {
@@ -62,7 +62,7 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
     protected static instanceCount = 0;
     protected folderPath: string;
 
-    constructor(endpoint: LocalFilesystemEndpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
+    constructor(endpoint: FilesystemEndpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
         FilesystemCollection.instanceCount++;
         super(endpoint, guiOptions);
         this.folderPath = folderPath.trim();

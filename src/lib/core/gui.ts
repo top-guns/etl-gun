@@ -249,11 +249,11 @@ export class GuiManager {
         const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions};
         endpointdesc.collections.push(desc);
 
-        collection.on('read.start', () => { desc.status = 'running'; this.updateConsole(); });
-        collection.on('read.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        collection.on('read.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
+        collection.on('list.start', () => { desc.status = 'running'; this.updateConsole(); });
+        collection.on('list.end', () => { desc.status = 'finished'; this.updateConsole(); });
+        collection.on('list.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
 
-        collection.on('read.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
+        collection.on('list.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
         collection.on('push', v => { desc.status = 'pushed'; desc.value = v; this.updateConsole(); });
         collection.on('clear', v => { desc.status = 'cleared'; desc.value = v; this.updateConsole(); });
 

@@ -37,6 +37,7 @@
 1. Web-interface
 1. Speed control in gui mode
 1. Add method to test connection to all endpoints
+1. General endpoint and collection for the REST resource
 
 
 ### Known problems
@@ -48,3 +49,4 @@
 1. Generator for unique id
 1. Encoding problem solver
 1. Make log functions interface as analog of console.log
+1. Add filesystem endpoint method to create a collection for unique temp folder

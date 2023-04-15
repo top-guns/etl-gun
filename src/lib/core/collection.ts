@@ -8,13 +8,13 @@ export type CollectionGuiOptions<T> = {
 }
 
 export type CollectionEvent = 
-    "read.start" |
-    "read.end" |
-    "read.data" |
-    "read.error" |
-    "read.skip" |
-    "read.up" |
-    "read.down" |
+    "list.start" |
+    "list.end" |
+    "list.data" |
+    "list.error" |
+    "list.skip" |
+    "list.up" |
+    "list.down" |
     "push" |
     "clear";
 
@@ -60,13 +60,13 @@ export class CollectionImpl<T> implements Collection<T> {
     protected listeners: Record<CollectionEvent, EventListener[]> = {
         "push": [],
         "clear": [],
-        "read.start": [],
-        "read.end": [],
-        "read.data": [],
-        "read.error": [],
-        "read.skip": [],
-        "read.up": [],
-        "read.down": []
+        "list.start": [],
+        "list.end": [],
+        "list.data": [],
+        "list.error": [],
+        "list.skip": [],
+        "list.up": [],
+        "list.down": []
     };
 
     protected _endpoint: Endpoint;
@@ -147,31 +147,31 @@ export class CollectionImpl<T> implements Collection<T> {
     }
   
     public sendStartEvent() {
-        this.sendEvent("read.start");
+        this.sendEvent("list.start");
     }
   
     public sendEndEvent() {
-        this.sendEvent("read.end");
+        this.sendEvent("list.end");
     }
   
     public sendErrorEvent(error: any) {
-        this.sendEvent("read.error", error);
+        this.sendEvent("list.error", error);
     }
   
     public sendDataEvent(data: any) {
-        this.sendEvent("read.data", data);
+        this.sendEvent("list.data", data);
     }
   
     public sendSkipEvent(data: any) {
-        this.sendEvent("read.skip", data);
+        this.sendEvent("list.skip", data);
     }
   
     public sendUpEvent() {
-      this.sendEvent("read.up");
+      this.sendEvent("list.up");
     }
   
     public sendDownEvent() {
-        this.sendEvent("read.down");
+        this.sendEvent("list.down");
     }
 }
   
