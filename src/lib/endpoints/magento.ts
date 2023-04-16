@@ -6,52 +6,33 @@ import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collec
 import { EtlObservable } from '../core/observable';
 import { pathJoin } from '../utils';
 
-export type ProductFields = 'id' | 'sku' | 'name' | 'price' | 'status' | 'visibility' | 'type_id' | 'created_at' | 'updated_at' | string;
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
 
 export type Product = {
-    id: number,
-    sku: string,
-    name: string,
-    attribute_set_id: number,
-    price: number,
-    status: number,
-    visibility: number,
-    type_id: string,
-    created_at: string,
-    updated_at: string,
+    id: number;
+    sku: string;
+    name: string;
+    attribute_set_id: number;
+    price: number;
+    status: number;
+    visibility: number;
+    type_id: string;
+    created_at: string;
+    updated_at: string;
     extension_attributes: {
-        website_ids: number[],
-        category_links: {}[]
-    },
-    product_links: [],
-    options: [],
-    media_gallery_entries: [],
-    tier_prices: [],
-    custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[]
-}
-
-export type NewProductAttributes = {
-    sku: string,
-    name: string,
-    attribute_set_id: number,
-    price?: number,
-    status?: number,
-    visibility?: number,
-    type_id?: string,
-    extension_attributes?: {
-        website_ids: number[],
-        category_links: {}[]
-    },
-    product_links?: [],
-    options?: [],
-    media_gallery_entries?: [],
-    tier_prices?: [],
-    custom_attributes?: {attribute_code: CustomAttributeCodes, value: any}[]
+        website_ids: number[];
+        category_links: {}[];
+    }
+    product_links: [];
+    options: [];
+    media_gallery_entries: [];
+    tier_prices: [];
+    custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[];
 }
 
 enum COLLECTIONS_NAMES {
-    products = 'products'
+    products = 'products',
+    categories = 'categories'
 }
 
 export class MagentoEndpoint extends Endpoint {
@@ -148,7 +129,7 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
         super(endpoint, guiOptions);
     }
 
-    public list(where: Partial<Product> = {}, fields: ProductFields[] = null): EtlObservable<Partial<Product>> {
+    public list(where: Partial<Product> = {}, fields: (keyof Product)[] = null): EtlObservable<Partial<Product>> {
         const observable = new EtlObservable<Partial<Product>>((subscriber) => {
             (async () => {
                 try {
@@ -188,7 +169,7 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
         return observable;
     }
 
-    public async push(value: NewProductAttributes) {
+    public async push(value: Omit<Partial<Product>, 'id'>) {
         super.push(value as Partial<Product>);
         await this.endpoint.updateToken();
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
