@@ -6,6 +6,7 @@ import { pathJoin } from '../../utils';
 import { Board, BoardsCollection } from './board';
 import { List, ListsCollection } from './list';
 import { Card, CardsCollection } from './card';
+import { CommentsCollection, Comment } from './comment';
 
 export type User = {
     id: string;
@@ -61,11 +62,6 @@ export type User = {
     uploadedAvatarUrl: string;
 }
 
-enum COLLECTIONS_NAMES {
-    boards = 'boards',
-    lists = 'lists',
-    cards = 'cards'
-}
 
 export class TrelloEndpoint extends Endpoint {
     protected url: string;
@@ -96,14 +92,16 @@ export class TrelloEndpoint extends Endpoint {
                 "Content-Type": "application/json"
             }
         }
-        if (body) RequestInit.body = JSON.stringify(body);
+        if (body) init.body = JSON.stringify(body);
 
         const  getParams = new URLSearchParams(params).toString();
 
         let fullUrl = url.startsWith('http') ? url : pathJoin([this.url, url], '/');
         fullUrl += `?key=${this.apiKey}&token=${this.authToken}${getParams ? '&' + getParams : ''}`;
-        console.log(fullUrl);
-        return await (await fetch(fullUrl, init)).json();
+        //console.log(fullUrl);
+        const res = await fetch(fullUrl, init);
+        //console.log(res)
+        return await res.json();
     }
 
     async getUser(username: string): Promise<User>;
@@ -115,21 +113,21 @@ export class TrelloEndpoint extends Endpoint {
     getUserBoards(username: string = 'me', collectionName: string = 'Boards', guiOptions: CollectionGuiOptions<Partial<Board>> = {}): BoardsCollection {
         guiOptions.displayName ??= `Boards`;
         const collection = new BoardsCollection(this, username, guiOptions);
-        this._addCollection(COLLECTIONS_NAMES.boards, collection);
+        this._addCollection(collectionName, collection);
         return collection;
     }
 
     getBoardLists(boardId: string, collectionName: string = 'Lists', guiOptions: CollectionGuiOptions<Partial<List>> = {}): ListsCollection {
         guiOptions.displayName ??= `Lists`;
         const collection = new ListsCollection(this, boardId, guiOptions);
-        this._addCollection(COLLECTIONS_NAMES.lists, collection);
+        this._addCollection(collectionName, collection);
         return collection;
     }
 
     getListCards(listId: string, collectionName: string = 'Cards', guiOptions: CollectionGuiOptions<Partial<Card>> = {}): CardsCollection {
         guiOptions.displayName ??= `Cards`;
         const collection = new CardsCollection(this, listId, guiOptions);
-        this._addCollection(COLLECTIONS_NAMES.cards, collection);
+        this._addCollection(collectionName, collection);
         return collection;
     }
     // getBoardCards(boardId: string, collectionName: string = 'Cards', guiOptions: CollectionGuiOptions<Partial<Card>> = {}): CardsCollection {
@@ -138,6 +136,13 @@ export class TrelloEndpoint extends Endpoint {
     //     this._addCollection(COLLECTIONS_NAMES.cards, collection);
     //     return collection;
     // }
+
+    getCardComments(cardId: string, collectionName: string = 'Comments', guiOptions: CollectionGuiOptions<Partial<Comment>> = {}): CommentsCollection {
+        guiOptions.displayName ??= `Cards`;
+        const collection = new CommentsCollection(this, cardId, guiOptions);
+        this._addCollection(collectionName, collection);
+        return collection;
+    }
 
     releaseCollection(collectionName: string) {
         this._removeCollection(collectionName);

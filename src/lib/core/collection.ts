@@ -133,7 +133,7 @@ export class CollectionImpl<T> implements Collection<T> {
         return this;
     }
 
-    public async push(value: T, ...params: any[]): Promise<any> {
+    public async push(value: any, ...params: any[]): Promise<any> {
         this.sendEvent("push", value);
     }
 

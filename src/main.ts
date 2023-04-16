@@ -42,10 +42,18 @@ async function f() {
         const list = (await lists.get())[0];
         console.log(4);
         const cards = trello.getListCards(list.id);
+        const card = (await cards.get())[0];
+
+        const comments = trello.getCardComments(card.id);
+
+
+
         //const cards = trello.getBoardCards(board.id);
         console.log(5);
 
-        let trello$ = boards.list({}, ["id", "name"])
+        comments.push('test comment 1')
+
+        let trello$ = comments.list({}, ['id', 'data'])
         .pipe(
             etl.log()
         );

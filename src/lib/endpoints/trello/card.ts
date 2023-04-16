@@ -48,10 +48,10 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
                         : {
                             ...params
                         }
-                    const boards = await this.endpoint.fetchJson(url, getParams) as Partial<Card>[];
+                    const cards = await this.endpoint.fetchJson(url, getParams) as Partial<Card>[];
 
                     this.sendStartEvent();
-                    for (const obj of boards) {
+                    for (const obj of cards) {
                         await this.waitWhilePaused();
                         this.sendDataEvent(obj);
                         subscriber.next(obj);
@@ -76,6 +76,13 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
     public async update(cardId: string, value: Omit<Partial<Card>, 'id'>) {
         super.push(value as Partial<Card>);
         return await this.endpoint.fetchJson(`1/cards/${cardId}`, {}, 'PUT', value);
+    }
+
+    async get(): Promise<Card[]>;
+    async get(cardId?: string): Promise<Card>;
+    async get(cardId?: string) {
+        if (cardId) return this.endpoint.fetchJson(`1/cards/${cardId}`);
+        return await this.endpoint.fetchJson(`1/lists/${this.listId}/cards`);
     }
 
     // public async getBoardCard(boardId: string, cardId: string): Promise<Card> {
