@@ -5,14 +5,14 @@ import { GuiManager } from "./gui";
 export class Endpoint {
     protected collections: Record<string, Collection<any>> = {};
 
-    protected _addCollection<T extends Collection<any>>(name: string, collection: T): T {
-        this.collections[name] = collection;
+    protected _addCollection<T extends Collection<any>>(collectionName: string, collection: T): T {
+        this.collections[collectionName] = collection;
         return collection;
     }
 
-    protected _removeCollection(name: string) {
-        if (!this.collections[name]) throw new Error(`Collection with name ${name} does not exists`);
-        delete this.collections[name];
+    protected _removeCollection(collectionName: string) {
+        if (!this.collections[collectionName]) throw new Error(`Collection with name ${collectionName} does not exists`);
+        delete this.collections[collectionName];
     }
 
     protected static instanceCount = 0;

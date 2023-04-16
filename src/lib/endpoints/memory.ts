@@ -4,12 +4,12 @@ import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collec
 import { EtlObservable } from "../core/observable";
 
 export class MemoryEndpoint extends Endpoint {
-    getBuffer<T>(name: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection {
-        guiOptions.displayName ??= name;
-        return this._addCollection(name, new BufferCollection(this, values, guiOptions));
+    getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection {
+        guiOptions.displayName ??= collectionName;
+        return this._addCollection(collectionName, new BufferCollection(this, values, guiOptions));
     }
-    releaseBuffer(name: string) {
-        this._removeCollection(name);
+    releaseBuffer(collectionName: string) {
+        this._removeCollection(collectionName);
     }
 
     get displayName(): string {

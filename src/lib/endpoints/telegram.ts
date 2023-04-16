@@ -15,14 +15,14 @@ export class TelegramEndpoint extends Endpoint {
         super();
     }
 
-    startBot(name: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection {
-        guiOptions.displayName ??= name;
-        return this._addCollection(name, new MessageCollection(this, token, keyboard, guiOptions));
+    startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection {
+        guiOptions.displayName ??= collectionName;
+        return this._addCollection(collectionName, new MessageCollection(this, token, keyboard, guiOptions));
     }
 
-    releaseBot(name: string) {
-        this.collections[name].stop();
-        this._removeCollection(name);
+    releaseBot(collectionName: string) {
+        this.collections[collectionName].stop();
+        this._removeCollection(collectionName);
     }
 
     get displayName(): string {

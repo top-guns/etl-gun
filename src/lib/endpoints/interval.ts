@@ -5,14 +5,14 @@ import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collec
 import { EtlObservable } from "../core/observable";
 
 export class IntervalEndpoint extends Endpoint {
-    getSequence(name: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
-        guiOptions.displayName ??= `${name} (${interval}ms)`;
-        return this._addCollection(name, new IntervalCollection(this, interval, guiOptions));
+    getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
+        guiOptions.displayName ??= `${collectionName} (${interval}ms)`;
+        return this._addCollection(collectionName, new IntervalCollection(this, interval, guiOptions));
     }
 
-    releaseSequence(name: string) {
-        this.collections[name].stop();
-        this._removeCollection(name);
+    releaseSequence(collectionName: string) {
+        this.collections[collectionName].stop();
+        this._removeCollection(collectionName);
     }
 
     get displayName(): string {
