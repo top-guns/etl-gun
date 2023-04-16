@@ -1,3 +1,8 @@
+/*********************************************************************************************************************************** 
+This file contains temporary code to test library while development process. 
+It is not contains any usefull code, is not a part of library and is not an example of library using.
+************************************************************************************************************************************/
+
 import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
