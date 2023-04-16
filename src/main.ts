@@ -2,8 +2,8 @@ import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 
-import * as etl from './lib';
-import { CsvEndpoint, DiscordHelper, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib";
+import * as etl from './lib/index.js';
+import { CsvEndpoint, DiscordHelper, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib/index.js";
 
 dotenv.config()
 

@@ -1,6 +1,6 @@
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection";
-import { EtlObservable } from '../../core/observable';
-import { TrelloEndpoint } from './endpoint';
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection.js";
+import { EtlObservable } from '../../core/observable.js';
+import { TrelloEndpoint } from './endpoint.js';
 
 
 export type Comment = {

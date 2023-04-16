@@ -1,12 +1,12 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
-import { Endpoint} from "../../core/endpoint";
-import { CollectionGuiOptions } from "../../core/collection";
-import { pathJoin } from '../../utils';
-import { Board, BoardsCollection } from './board';
-import { List, ListsCollection } from './list';
-import { Card, CardsCollection } from './card';
-import { CommentsCollection, Comment } from './comment';
+import { Endpoint} from "../../core/endpoint.js";
+import { CollectionGuiOptions } from "../../core/collection.js";
+import { pathJoin } from '../../utils/index.js';
+import { Board, BoardsCollection } from './board.js';
+import { List, ListsCollection } from './list.js';
+import { Card, CardsCollection } from './card.js';
+import { CommentsCollection, Comment } from './comment.js';
 
 export type User = {
     id: string;

@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import { Observable, Subscriber } from 'rxjs';
-import { get } from 'lodash';
+import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from "../core/observable";
-import { pathJoin } from "../utils";
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from "../core/observable.js";
+import { pathJoin } from "../utils/index.js";
 
 export type JsonReadOptions = {
     // foundedOnly is default
@@ -209,7 +209,7 @@ export class JsonCollection extends CollectionImpl<any> {
     public get(path: string = ''): any {
         if (this.autoload) this.load();
         path = path.trim();
-        let result: any = path ? get(this.json, path) : this.json;
+        let result: any = path ? _.get(this.json, path) : this.json;
         return result;
     }
 

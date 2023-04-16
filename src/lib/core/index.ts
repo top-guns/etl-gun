@@ -1,2 +1,2 @@
-export type { Endpoint } from './endpoint';
-export { GuiManager } from './gui';
+export type { Endpoint } from './endpoint.js';
+export { GuiManager } from './gui.js';

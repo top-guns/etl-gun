@@ -1,2 +1,2 @@
-export * from './google_translate';
-export * from './discord';
+export * from './google_translate.js';
+export * from './discord.js';

@@ -1,12 +1,12 @@
 import { from } from 'form-data';
 
-export * from './memory';
-export * from './csv';
-export * from './postgres';
-export * from './json';
-export * from './xml';
-export * from './telegram';
-export * from './filesystem';
-export * from './interval';
-export * from './magento';
-export * from './trello';
+export * from './memory.js';
+export * from './csv.js';
+export * from './postgres.js';
+export * from './json.js';
+export * from './xml.js';
+export * from './telegram.js';
+export * from './filesystem.js';
+export * from './interval.js';
+export * from './magento.js';
+export * from './trello/index.js';

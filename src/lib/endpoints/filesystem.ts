@@ -1,12 +1,12 @@
 import * as fs from "fs";
-import { glob } from "glob";
+import glob from "glob";
 import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from "../core/observable";
-import { extractFileName, extractParentFolderPath, pathJoin } from "../utils";
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from "../core/observable.js";
+import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
 
 
 export type PathDetails = {

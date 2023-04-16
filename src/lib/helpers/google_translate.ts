@@ -1,5 +1,5 @@
 // Imports the Google Cloud client library
-import { Translate } from '@google-cloud/translate/build/src/v2';
+import Translate from '@google-cloud/translate';
 import * as rxjs from 'rxjs';
 
 export class GoogleTranslateHelper {
@@ -7,9 +7,9 @@ export class GoogleTranslateHelper {
     protected to: string;
     protected apiKey: string;
 
-    protected _client: Translate = null;
+    protected _client: Translate.v2.Translate = null;
     protected get client() {
-        this._client ||= new Translate({key: this.apiKey});
+        this._client ||= new Translate.v2.Translate({key: this.apiKey});
         return this._client;
     }
 

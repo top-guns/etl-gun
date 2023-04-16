@@ -3,10 +3,10 @@ import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from "../core/observable";
-import { pathJoin } from "../utils";
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from "../core/observable.js";
+import { pathJoin } from "../utils/index.js";
 
 export type XmlReadOptions = {
     // foundedOnly is default

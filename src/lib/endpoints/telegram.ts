@@ -1,8 +1,8 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from '../core/observable';
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from '../core/observable.js';
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 export type TelegramInputMessage = {

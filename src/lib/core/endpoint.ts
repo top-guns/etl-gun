@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
-import { Collection, CollectionGuiOptions } from "./collection";
-import { GuiManager } from "./gui";
+import { Collection, CollectionGuiOptions } from "./collection.js";
+import { GuiManager } from "./gui.js";
 
 export class Endpoint {
     protected collections: Record<string, Collection<any>> = {};

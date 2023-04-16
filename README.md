@@ -97,12 +97,14 @@ yarn add rxjs-etl-kit
 
 # Usage
 
-Require the RxJs-ETL-Kit library in the desired file to make it accessible.
+Import the RxJs-ETL-Kit library in the desired file to make it accessible.
 
-Introductory example: postgresql -> .csv
+**Warning:** From the version 2.0.4 this library is native [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and no longer provides a CommonJS export. If your project uses CommonJS, you will have to [convert to ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) or use the [dynamic `import()`](https://v8.dev/features/dynamic-import) function.
+
+Introductory example of library using: postgresql -> .csv
 ```typescript
 import { map } from "rxjs";
-import { CsvEndpoint, GuiManager, Header, PostgresEndpoint, log, push, run } from "./lib";
+import { CsvEndpoint, GuiManager, Header, PostgresEndpoint, log, push, run } from "rxjs-etl-kit";
 
 // If you want to view GUI, uncomment the next line of code
 // new GuiManager();
@@ -189,8 +191,8 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 ### Export rows from Postgres table to csv-file (postgresql -> .csv)
 
 ```typescript
-const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
-const { map } = require("rxjs");
+import { PostgresEndpoint, CsvEndpoint, Header, log, push, run } from "rxjs-etl-kit";
+import { map } from "rxjs";
 
 const postgres = new PostgresEndpoint("postgres://user:password@127.0.0.1:5432/database");
 const source = postgres.getTable('users');
@@ -212,7 +214,7 @@ await run(sourceToDest$);
  ### Sort rows in csv-file by the first column (.csv -> .csv)
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const csvEndpoint = etl.CsvEndpoint();
 const csv = csvEndpoint.getFile('users.scv');
@@ -237,7 +239,7 @@ await etl.run(bufferToCsv$)
  ### Create telegram bot with translation functionality
 
  ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const telegram = new etl.TelegramEndpoint();
 const bot = telegram.startBot('bot 1', process.env.TELEGRAM_BOT_TOKEN!);
@@ -344,7 +346,7 @@ forEach(callbackfn: (value: T, index: number, array: T[]) => void);
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const csvEndpoint = etl.CsvEndpoint();
 const csv = csvEndpoint.getFile('users.scv');
@@ -445,8 +447,8 @@ type PathDetails = {
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
-const rx = require('rxjs');
+import * as etl from "rxjs-etl-kit";
+import * as rxjs from "rxjs";
 
 const fs = new etl.FilesystemEndpoint('~');
 const scripts = ep.getFolder('scripts');
@@ -500,7 +502,7 @@ async clear();
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const csv = etl.CsvEndpoint('~');
 const testFile = csv.getFile('test.csv')
@@ -585,8 +587,8 @@ type JsonReadOptions = {
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
-const { tap } = require('rxjs');
+import * as etl from "rxjs-etl-kit";
+import { tap } from "rxjs";
 
 const json = etl.JsonEndpoint('~');
 const testFile = etl.getFile('test.json');
@@ -673,8 +675,8 @@ export type XmlReadOptions = {
 Example
 
 ```typescript
-const etl = require('rxjs-etl-kit');
-const { map } = require('rxjs');
+import * as etl from "rxjs-etl-kit";
+import { map } from "rxjs";
 
 const xml = etl.XmlEndpoint('/tmp');
 const testFile = xml.XmlCollection('test.xml');
@@ -739,7 +741,7 @@ async clear(where: string | {} = '');
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const pg = etl.PostgresEndpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
@@ -795,7 +797,7 @@ async push(value: NewProductAttributes);
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const magento = etl.MagentoEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
 const products = magento.getProducts();
@@ -1070,7 +1072,7 @@ setKeyboard(keyboard: any)
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const telegram = new etl.TelegramEndpoint();
 const bot = telegram.startBot('bot 1', '**********');
@@ -1125,7 +1127,7 @@ async clear();
 Example:
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const timer = new etl.IntervalEndpoint();
 const seq = new etl.getSequence('every 500 ms', 500);
@@ -1148,7 +1150,7 @@ Apart from operators from this library, you can use any operators of **RxJs** li
 This function runs one or several streams and return promise to waiting when all streams are complites.
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 let memory = etl.MemoryEndpoint();
 let buffer = memory.getBuffer('test buffer', [1, 2, 3, 4, 5]);
@@ -1169,8 +1171,8 @@ Prints the value from the stream to the console.
 Example
 
 ```typescript
-const rx = require('rxjs');
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
+import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
     etl.log()
@@ -1188,8 +1190,8 @@ This operator is analog of **where** operation in SQL and is synonym of the **fi
 Example
 
 ```typescript
-const rx = require('rxjs');
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
+import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
     etl.where(v => v % 2 === 0),
@@ -1207,8 +1209,8 @@ This operator call the **Endpoint.push** method to push value from stream to the
 Example
 
 ```typescript
-const rx = require('rxjs');
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
+import * as rx from "rxjs";
 
 let csv = etl.CsvEndpoint();
 let dest = csv.getFile('test.csv');
@@ -1229,7 +1231,7 @@ This operator enumerate input values and add index field to value if it is objec
 Example
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 let csv = etl.CsvEndpoint();
 let src = csv.getFile('test.csv');
@@ -1251,7 +1253,7 @@ This operator applicable to the stream of objects. It calculate callback functio
 Example
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 const pg = etl.PostgresEndpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
@@ -1273,7 +1275,7 @@ This operator applicable to the stream of arrays. It calculate callback function
 Example
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 let csv = etl.CsvEndpoint();
 let src = csv.getFile('test.csv');
@@ -1295,7 +1297,7 @@ This operator is analog of join operation in SQL. It takes the second input stre
 Example
 
 ```typescript
-const etl = require('rxjs-etl-kit');
+import * as etl from "rxjs-etl-kit";
 
 let csv = etl.CsvEndpoint();
 let src = csv.getFile('test.csv');
@@ -1320,8 +1322,8 @@ etl.run(stream$);
 This class help you to use Google translate service.
 
 ```typescript
-const { CsvEndpoint, GoogleTranslateHelper, log, run } = require("rxjs-etl-kit");
-const { mergeMap } = require("rxjs");
+import { CsvEndpoint, GoogleTranslateHelper, log, run } from "rxjs-etl-kit";
+import { mergeMap } from "rxjs";
 
 let csv = CsvEndpoint();
 let src = csv.getFile('products.csv');
@@ -1340,8 +1342,8 @@ await run(translateProducts$);
 This class can store array of column names and convert object to array or array to object representation.
 
 ```typescript
-const { PostgresEndpoint, CsvEndpoint, Header, log, push, run } = require("rxjs-etl-kit");
-const { map } = require("rxjs");
+import { PostgresEndpoint, CsvEndpoint, Header, log, push, run } from "rxjs-etl-kit";
+import { map } from "rxjs";
 
 const pg = new PostgresEndpoint("postgres://user:password@127.0.0.1:5432/database");
 const source = pg.getTable("users");

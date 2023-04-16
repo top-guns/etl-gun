@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import { parse } from "csv-parse";
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from "../core/observable";
-import { pathJoin } from "../utils";
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from "../core/observable.js";
+import { pathJoin } from "../utils/index.js";
 
 export class CsvEndpoint extends Endpoint {
     protected rootFolder: string = null;

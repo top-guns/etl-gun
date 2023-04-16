@@ -1,8 +1,8 @@
 import { Subscriber } from "rxjs";
-import { GuiManager } from "../core";
-import { Endpoint} from "../core/endpoint";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection";
-import { EtlObservable } from "../core/observable";
+import { GuiManager } from "../core/index.js";
+import { Endpoint} from "../core/endpoint.js";
+import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { EtlObservable } from "../core/observable.js";
 
 export class IntervalEndpoint extends Endpoint {
     getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {

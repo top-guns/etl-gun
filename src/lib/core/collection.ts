@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
-import { GuiManager } from "./gui";
-import { Endpoint } from "./endpoint";
+import { GuiManager } from "./gui.js";
+import { Endpoint } from "./endpoint.js";
 
 export type CollectionGuiOptions<T> = {
     displayName?: string;

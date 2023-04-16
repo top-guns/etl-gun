@@ -1,8 +1,8 @@
 import { ForegroundColor } from 'chalk';
-import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools-cjs';
-import { SimplifiedStyledElement } from 'console-gui-tools-cjs/dist/components/PageBuilder';
-import { Collection, CollectionGuiOptions } from './collection';
-import { Endpoint } from './endpoint';
+import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
+import { SimplifiedStyledElement } from 'console-gui-tools';
+import { Collection, CollectionGuiOptions } from './collection.js';
+import { Endpoint } from './endpoint.js';
 
 type EndpointDesc = {
     endpoint: Endpoint;

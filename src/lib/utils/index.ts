@@ -1,6 +1,6 @@
 import { JSONPath } from 'jsonpath-plus';
 
-export { Header } from './header';
+export { Header } from './header.js';
 
 export function pathJoin(parts: string[], sep: string = '/') {
   return parts.reduce((prev, cur, i) => {
