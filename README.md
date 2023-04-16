@@ -841,6 +841,12 @@ getBoardLists(boardId: string, collectionName: string = 'Lists', guiOptions: Col
 // guiOptions: Some options how to display this endpoint
 getListCards(listId: string, collectionName: string = 'Cards', guiOptions: CollectionGuiOptions<Partial<Card>> = {}): CardsCollection;
 
+// Create collection object for the Trello card comments
+// cardId: card id
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getCardComments(cardId: string, collectionName: string = 'Comments', guiOptions: CollectionGuiOptions<Partial<Comment>> = {}): CommentsCollection;
+
 // Release collection data
 // collectionName: identificator of the releasing collection object
 releaseCollection(collectionName: string);
@@ -854,8 +860,8 @@ Methods:
 
 ```typescript
 // Create the observable object and send boards data from the Trello to it
-// where: you can filter boards by specifing object with fields as collumn names and it's values as fields values 
-// fields: you can select which board fields will be returned (null means 'all fields') 
+// where (does not working now!): you can filter boards by specifing object with fields as collumn names and it's values as fields values 
+// fields (does not working now!): you can select which board fields will be returned (null means 'all fields') 
 list(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
 
 // Add new board to the Trello
@@ -886,8 +892,8 @@ Methods:
 
 ```typescript
 // Create the observable object and send lists data from the Trello to it
-// where: you can filter lists by specifing object with fields as collumn names and it's values as fields values 
-// fields: you can select which list fields will be returned (null means 'all fields') 
+// where (does not working now!): you can filter lists by specifing object with fields as collumn names and it's values as fields values 
+// fields (does not working now!): you can select which list fields will be returned (null means 'all fields') 
 list(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
 
 // Add new list to the Trello
@@ -928,8 +934,8 @@ Methods:
 
 ```typescript
 // Create the observable object and send cards data from the Trello to it
-// where: you can filter cards by specifing object with fields as collumn names and it's values as fields values 
-// fields: you can select which card fields will be returned (null means 'all fields') 
+// where (does not working now!): you can filter cards by specifing object with fields as collumn names and it's values as fields values 
+// fields (does not working now!): you can select which card fields will be returned (null means 'all fields') 
 list(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
 
 // Add new card to the Trello
@@ -957,9 +963,39 @@ async archiveListCards();
 async moveListCards(destBoardId: string, destListId: string);
 ```
 
+### CommentsCollection
+
+Presents Trello card comments in card which was specified while collection creation. 
+
+Methods:
+
+```typescript
+// Create the observable object and send comments from the Trello to it
+// where (does not working now!): you can filter comments by specifing object with fields as collumn names and it's values as fields values 
+// fields (does not working now!): you can select which comment fields will be returned (null means 'all fields') 
+list(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>>;
+
+// Add new comment to the Trello card
+// text: comment text
+async push(text: string);
+
+// Update comment fields values by comment id
+// commentId: comment id
+// value: new comment fields values as hash object
+async update(commentId: string, value: Omit<Partial<Comment>, 'id'>);
+
+// Get all comments
+async get(): Promise<Comment[]>;
+
+// Get comment by id
+// commentId: card id
+async get(commentId?: string): Promise<Comment>;
+```
+
 Example:
 
 ```typescript
+import * as rx from 'rxjs';
 import * as etl from 'rxjs-etl-kit';
 
 const trello = etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
@@ -972,11 +1008,15 @@ const list = (await lists.get())[0];
 
 const cards = trello.getListCards(list.id);
 
-const logCards$ = cards.list({}, ["id", "name"]).pipe(
-    etl.log()
+const addCommentToAllCards$ = cards.list().pipe(
+    rx.tap(card => {
+        const comments = trello.getBoardLists(card.id, 'cards');
+        comments.push('New comment');
+        trello.releaseCollection('cards');
+    })
 );
 
-etl.run(logCards$)
+etl.run(addCommentToAllCards$)
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
