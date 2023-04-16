@@ -1,1 +1,2 @@
-export { GoogleTranslateHelper } from './google_translate';
+export * from './google_translate';
+export * from './discord';

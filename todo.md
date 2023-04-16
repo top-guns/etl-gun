@@ -4,22 +4,20 @@
 
 ### Should be implemented
 
-1. One endpoint for many collections
-1. Return new id or new object from push
+1. Return new id or new object from push 
+1. Change push to insert & update
 1. Batch operations support
 
 ### Desirable protocols and integrations
 
 1. Zendesk 
 1. Firebase (storage, settings)
-1. Magento 
 1. BigCommerce 
 1. Mongo 
 1. MySql (or general sql db) 
 1. Email 
 1. Slack
 1. Redis 
-1. Trello 
 1. Jira
 1. Yandex translate 
 1. Faker 
@@ -31,6 +29,8 @@
 1. Git
 1. WebSocket client & server
 1. Google tables
+1. Logs parsing
+1. System events
 
 ### Desirable features
 

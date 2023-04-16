@@ -1,8 +1,9 @@
 import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
+import fetch, { RequestInit } from 'node-fetch';
 
 import * as etl from './lib';
-import { CsvEndpoint, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib";
+import { CsvEndpoint, DiscordHelper, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib";
 
 dotenv.config()
 
@@ -30,36 +31,50 @@ async function f() {
         const translate = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru').operator;
 
 
-
-        const trello = new etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
-        const boards = trello.getUserBoards();
-        console.log(1);
+        // const trello = new etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
+        // const boards = trello.getUserBoards();
+        // console.log(1);
         
-        const board = await boards.getByBrowserUrl(process.env.TRELLO_BOARD_URL!);
-        console.log(2);
-        const lists = trello.getBoardLists(board.id);
-        console.log(3);
-        const list = (await lists.get())[0];
-        console.log(4);
-        const cards = trello.getListCards(list.id);
-        const card = (await cards.get())[0];
+        // const board = await boards.getByBrowserUrl(process.env.TRELLO_BOARD_URL!);
+        // console.log(2);
+        // const lists = trello.getBoardLists(board.id);
+        // console.log(3);
+        // const list = (await lists.get())[0];
+        // console.log(4);
+        // const cards = trello.getListCards(list.id);
+        // const card = (await cards.get())[0];
 
-        const comments = trello.getCardComments(card.id);
+        // const comments = trello.getCardComments(card.id);
 
 
 
-        //const cards = trello.getBoardCards(board.id);
-        console.log(5);
+        // //const cards = trello.getBoardCards(board.id);
+        // console.log(5);
 
-        comments.push('test comment 1')
+        // comments.push('test comment 1')
 
-        let trello$ = comments.list({}, ['id', 'data'])
-        .pipe(
-            etl.log()
-        );
+        // let trello$ = comments.list({}, ['id', 'data'])
+        // .pipe(
+        //     etl.log()
+        // );
 
-        await etl.run(trello$);
+        // await etl.run(trello$);
         //console.log(obj);
+
+
+
+        
+
+        //const res = await getCredentialsByCode('3HFAXfsharzRRdenqHnjsDPKtaa07d');
+        const discord = new DiscordHelper();
+        const credential = await discord.loginViaBrowser();
+        console.log(credential);
+
+
+
+        //res = await res.json();
+        //console.log(res)
+        //fetch('%s/oauth2/token' % API_ENDPOINT, data=data, headers=headers)
 
         GuiManager.quitApp();
 
