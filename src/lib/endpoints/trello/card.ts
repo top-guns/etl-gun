@@ -29,7 +29,7 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
     }
 
     public list(where: Partial<Card> = {}, fields: (keyof Card)[] = []): EtlObservable<Partial<Card>> {
-        if (this.listId) return this.listByUrl(`/1/lists/${this.listId}/cards`);
+        if (this.listId) return this.listByUrl(`/1/lists/${this.listId}/cards`, {}, fields);
         //let filter = '';
         //if (this.boardId) return this.listByUrl(`1/boards/${this.boardId}/cards${filter ? '/' + filter : ''}`);
         throw new Error('Error: listId cannot be empty in CardsCollection');

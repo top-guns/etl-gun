@@ -18,7 +18,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 [downloads-image]: https://img.shields.io/npm/dm/rxjs-etl-kit.svg
 [downloads-url]: https://npmjs.org/package/rxjs-etl-kit
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ### Table of Contents
 * [Why / when would I need this?](#why--when-would-i-need-this)
@@ -42,6 +42,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [XmlEndpoint](#xmlendpoint)
         * [PostgresEndpoint](#postgresendpoint)
         * [MagentoEndpoint](#magentoendpoint)
+        * [TrelloEndpoint](#trelloendpoint)
         * [TelegramEndpoint](#telegramendpoint)
         * [IntervalEndpoint](#intervalendpoint)
     * [Operators](#operators)
@@ -59,7 +60,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [Utility functions](#utility-functions) 
 - [License](#license)
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Why / when would I need this?
 
@@ -80,7 +81,7 @@ Here's some ways to use it:
 
 You can find many examples of using **RxJs-ETL-Kit** in the API Reference section of this file.
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Installation
 
@@ -92,7 +93,7 @@ or
 yarn add rxjs-etl-kit
 ```
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Usage
 
@@ -126,7 +127,7 @@ const sourceToDest$ = source.list().pipe(
 await run(sourceToDest$);
  ```
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Concept
 
@@ -152,7 +153,7 @@ Chaining:
 Chaning of data transformation performs with **pipe()** method of the input data stream. 
 Chaning of several streams performs by using **await** with **run()** procedure.
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Features
 
@@ -165,8 +166,9 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 * Work with any type of data, including hierarchical data structures (json, xml) and support typescript types
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
 * You can create Telegram bots with [TelegramEndpoint](#telegramendpoint) to control the ETL process for example
+* You can translate some data to another language with [GoogleTranslateHelper](#googletranslatehelper)
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # GUI
 
@@ -180,7 +182,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 * Logs are displayed in footer part of console window
 * You can select the log window with 'ctrl + l' and scroll it with up/down arrows
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Examples (how to)
 
@@ -250,7 +252,7 @@ const startTelegramBot$ = telegram.list().pipe(
 etl.run(startTelegramBot$);
 ```
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # API Reference
 
@@ -296,18 +298,20 @@ export type CollectionEvent =
 
 ## Endpoints and it's collections
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### MemoryEndpoint
 
 ```typescript
 // Creates new memory buffer. This is a generic method so you can specify type of data which will be stored in
-// name: user name of buffer
+// collectionName: identificator of the creating collection object
 // values: initial data
 // guiOptions: Some options how to display this endpoint
-getBuffer<T>(name: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection;
+getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection;
 
 // Release buffer data
-// name: user name of buffer
-releaseBuffer(name: string);
+// collectionName: identificator of the releasing collection object
+releaseBuffer(collectionName: string);
 ```
 
 ### BufferCollection
@@ -362,6 +366,8 @@ csv.clear();
 etl.run(bufferToCsv$)
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### FilesystemEndpoint
 
 Search for files and folders with standart unix shell wildcards [see glob documentation for details](https://www.npmjs.com/package/glob).
@@ -373,7 +379,7 @@ Methods:
 constructor(rootFolder: string);
 
 // Creates new FilesystemCollection
-// folderName: subfolder of the root folder and identificator of the created collection object
+// folderName: subfolder of the root folder and identificator of the creating collection object
 // guiOptions: Some options how to display this endpoint
 getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): FilesystemCollection;
 
@@ -453,6 +459,8 @@ const printAllJsFileNames$ = scripts.list('**/*.js').pipe(
 etl.run(printAllJsFileNames$)
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### CsvEndpoint
 
 Parses source csv file into individual records or write record to the end of destination csv file. Every record is csv-string and presented by array of values.
@@ -461,7 +469,7 @@ Methods:
 
 ```typescript
 // Create collection object for the specified file
-// filename: full or relative name of the csv file and identificator of the created collection object
+// filename: full or relative name of the csv file and identificator of the creating collection object
 // delimiter: delimiter of values in one string of file data, equals to ',' by default
 // guiOptions: Some options how to display this endpoint
 getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): CsvCollection;
@@ -504,6 +512,8 @@ const logTestFileRows$ = testFile.list().pipe(
 etl.run(logTestFileRows$)
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### JsonEndpoint
 
 Read and write json file with buffering it in memory. You can get objects from json by path specifing in JSONPath format or in lodash simple path manner (see logash 'get' function documentation).
@@ -512,7 +522,7 @@ Methods:
 
 ```typescript
 // Create collection object for the specified file
-// filename: full or relative name of the json file and identificator of the created collection object
+// filename: full or relative name of the json file and identificator of the creating collection object
 // autosave: save json from memory to the file after every change
 // autoload: load json from the file to memory before every get or search operation
 // encoding: file encoding
@@ -592,6 +602,8 @@ const printJsonAuthors$ = testFile.listByJsonPath('$.store.book[*].author', {sea
 await etl.run(printJsonAuthors$, printJsonBookNames$);
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### XmlEndpoint
 
 <a name="xml" href="#xml">#</a> etl.<b>XmlEndpoint</b>(<i>filename, autosave?, autoload?, encoding?</i>)
@@ -602,7 +614,7 @@ Methods:
 
 ```typescript
 // Create collection object for the specified file
-// filename: full or relative name of the xml file and identificator of the created collection object
+// filename: full or relative name of the xml file and identificator of the creating collection object
 // autosave: save xml from memory to the file after every change
 // autoload: load xml from the file to memory before every get or search operation
 // encoding: file encoding
@@ -675,6 +687,8 @@ const printXmlAuthors$ = testFile.list('/store/book/author').pipe(
 await etl.run(printXmlAuthors$);
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### PostgresEndpoint
 
 Represents PostgreSQL database. 
@@ -687,7 +701,7 @@ constructor(connectionString: string);
 constructor(connectionPool: pg.Pool);
 
 // Create collection object for the specified database table
-// table: name of database table and identificator of the created collection object
+// table: name of database table and identificator of the creating collection object
 // guiOptions: Some options how to display this endpoint
 getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection;
 
@@ -737,6 +751,8 @@ const logUsers$ = table.list().pipe(
 etl.run(logUsers$)
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### MagentoEndpoint
 
 Presents Magento CMS objects.
@@ -751,7 +767,7 @@ Methods:
 // rejectUnauthorized: You can set it to true to ignore ssl servificate problems while development.
 constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true);
 
-// Create collection object for the magento products
+// Create collection object for the Magento products
 // guiOptions: Some options how to display this endpoint
 getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCollection;
 
@@ -766,7 +782,7 @@ Presents Magento CMS products.
 Methods:
 
 ```typescript
-// Create the observable object and send product data from the Magento table to it
+// Create the observable object and send product data from the Magento to it
 // where: you can filter products by specifing object with fields as collumn names and it's values as fields values 
 // fields: you can select which products fields will be returned (null means 'all fields') 
 list(where: Partial<Product> = {}, fields: ProductFields[] = null): Observable<T>;
@@ -791,6 +807,180 @@ const logProductsWithPrice100$ = products.list({price: 100}).pipe(
 etl.run(logProductsWithPrice100$)
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### TrelloEndpoint
+
+Presents Trello task tracking system objects.
+For details how to get API key and authorization token please read [Trello documentation](https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/).
+
+Methods:
+
+```typescript
+// url: Trello web url
+// apiKey: Trello API key
+// authToken: Trello authorization token
+// rejectUnauthorized: You can set it to true to ignore ssl servificate problems while development.
+constructor(apiKey: string, authToken: string, url: string = "https://trello.com", rejectUnauthorized: boolean = true);
+
+// Create collection object for the Trello user boards
+// username: user, which boards we need to get, by default it is a Trello authorization token owner
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getUserBoards(username: string = 'me', collectionName: string = 'Boards', guiOptions: CollectionGuiOptions<Partial<Board>> = {}): BoardsCollection;
+
+// Create collection object for the Trello board lists
+// boardId: board id
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getBoardLists(boardId: string, collectionName: string = 'Lists', guiOptions: CollectionGuiOptions<Partial<List>> = {}): ListsCollection;
+
+// Create collection object for the Trello list cards
+// listId: list id
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getListCards(listId: string, collectionName: string = 'Cards', guiOptions: CollectionGuiOptions<Partial<Card>> = {}): CardsCollection;
+
+// Release collection data
+// collectionName: identificator of the releasing collection object
+releaseCollection(collectionName: string);
+```
+
+### BoardsCollection
+
+Presents Trello boards accessible by user which was specified while collection creation. 
+
+Methods:
+
+```typescript
+// Create the observable object and send boards data from the Trello to it
+// where: you can filter boards by specifing object with fields as collumn names and it's values as fields values 
+// fields: you can select which board fields will be returned (null means 'all fields') 
+list(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
+
+// Add new board to the Trello
+// value: board fields values
+async push(value: Omit<Partial<Board>, 'id'>);
+
+// Update board fields values by board id
+// boardId: board id
+// value: new board fields values as hash object
+async update(boardId: string, value: Omit<Partial<Board>, 'id'>);
+
+// Get all user boards
+async get(): Promise<Board[]>;
+
+// Get board by id
+// boardId: board id
+async get(boardId?: string): Promise<Board>;
+
+// Get board by url from browser
+async getByBrowserUrl(url: string): Promise<Board>;
+```
+
+### ListsCollection
+
+Presents Trello lists on board which was specified while collection creation. 
+
+Methods:
+
+```typescript
+// Create the observable object and send lists data from the Trello to it
+// where: you can filter lists by specifing object with fields as collumn names and it's values as fields values 
+// fields: you can select which list fields will be returned (null means 'all fields') 
+list(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
+
+// Add new list to the Trello
+// value: list fields values
+async push(value: Omit<Partial<List>, 'id'>);
+
+// Update list fields values by list id
+// listId: list id
+// value: new list fields values as hash object
+async update(listId: string, value: Omit<Partial<List>, 'id'>);
+
+// Get all lists
+async get(): Promise<List[]>;
+
+// Get list by id
+// listId: list id
+async get(listId?: string): Promise<List>;
+
+// Archive or unarchive a list
+// listId: list id
+async switchClosed(listId: string);
+
+// Move list to another board
+// listId: list id
+// destBoardId: destination board id
+async move(listId: string, destBoardId: string);
+
+// Get list actions
+// listId: list id
+async getActions(listId: string);
+```
+
+### CardsCollection
+
+Presents Trello cards in list which was specified while collection creation. 
+
+Methods:
+
+```typescript
+// Create the observable object and send cards data from the Trello to it
+// where: you can filter cards by specifing object with fields as collumn names and it's values as fields values 
+// fields: you can select which card fields will be returned (null means 'all fields') 
+list(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
+
+// Add new card to the Trello
+// value: card fields values
+async push(value: Omit<Partial<Card>, 'id'>);
+
+// Update card fields values by card id
+// listId: card id
+// value: new list fields values as hash object
+async update(cardId: string, value: Omit<Partial<Card>, 'id'>);
+
+// Get all cards
+async get(): Promise<Card[]>;
+
+// Get card by id
+// cardId: card id
+async get(cardId?: string): Promise<Card>;
+
+// Archive all cards in current list
+async archiveListCards();
+
+// Move all cards from the current list to another board and list
+// destBoardId: destination board id
+// destListId: destination list id
+async moveListCards(destBoardId: string, destListId: string);
+```
+
+Example:
+
+```typescript
+import * as etl from 'rxjs-etl-kit';
+
+const trello = etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
+
+const boards = trello.getUserBoards();
+const board = await boards.getByBrowserUrl('https://trello.com/b/C9zegsyz/board1');
+
+const lists = trello.getBoardLists(board.id);
+const list = (await lists.get())[0];
+
+const cards = trello.getListCards(list.id);
+
+const logCards$ = cards.list({}, ["id", "name"]).pipe(
+    etl.log()
+);
+
+etl.run(logCards$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### TelegramEndpoint
 
 With this endpoint you can create telegram bots and chats with users. It can listen for user messages and send the response massages. 
@@ -800,16 +990,16 @@ Methods:
 
 ```typescript
 // Start bot and return collection object for the bot messages
-// name: identificator of the created collection object
+// collectionName: identificator of the creating collection object
 // token: Bot token
 // keyboard: JSON keyboard description, see the node-telegram-bot-api for detailes
 //           Keyboard example: [["Text for command 1", "Text for command 2"], ["Text for command 3"]]
 // guiOptions: Some options how to display this endpoint
-startBot(name: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection;
+startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection;
 
 // Stop bot
-// name: identificator of the releasing collection object
-releaseBot(name: string);
+// collectionName: identificator of the releasing collection object
+releaseBot(collectionName: string);
 ```
 
 ### MessageCollection
@@ -853,6 +1043,8 @@ const startTelegramBot$ = bot.list().pipe(
 etl.run(startTelegramBot$);
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### IntervalEndpoint
 
 This endpoint is analog of **RxJs** interval() operator, with GUI support. It emits simple counter, which increments every interval.
@@ -861,14 +1053,14 @@ Methods:
 
 ```typescript
 // Create new interval collection object
-// name: identificator of the created collection object
+// collectionName: identificator of the creating collection object
 // interval: Time interval in milliseconds between two emitted values 
 // guiOptions: Some options how to display this endpoint
-getSequence(name: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection;
+getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection;
 
 // Stop interval
-// name: identificator of the releasing collection object
-releaseSequence(name: string);
+// collectionName: identificator of the releasing collection object
+releaseSequence(collectionName: string);
 ```
 
 ### IntervalCollection
@@ -904,6 +1096,8 @@ const startTimer$ = seq.list().pipe(
 
 etl.run(startTimer$);
 ```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Operators
 
@@ -1077,6 +1271,8 @@ let stream$ = src.list().pipe(
 etl.run(stream$);
 ```
 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ## Misc
 
 ### GoogleTranslateHelper
@@ -1136,7 +1332,7 @@ function getChildByPropVal(obj: {}, propName: string, propVal?: any): any;
 function dumpObject(obj: any, deep: number = 1): string;
  ```
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # License
 

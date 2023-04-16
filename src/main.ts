@@ -35,7 +35,7 @@ async function f() {
         const boards = trello.getUserBoards();
         console.log(1);
         
-        const board = await boards.getByBrowserUrl('https://trello.com/b/P4zegsyz/iiicrm');
+        const board = await boards.getByBrowserUrl(process.env.TRELLO_BOARD_URL!);
         console.log(2);
         const lists = trello.getBoardLists(board.id);
         console.log(3);
@@ -45,15 +45,12 @@ async function f() {
         //const cards = trello.getBoardCards(board.id);
         console.log(5);
 
-        //let trello$ = boards.list('me',{id: '62305ba0adba79689e160940'}, ["id"])
-        let trello$ = cards.list()
+        let trello$ = boards.list({}, ["id", "name"])
         .pipe(
             etl.log()
         );
 
         await etl.run(trello$);
-        //const obj = await trello.getBoard("b/P4zegsyz/iiicrm");
-        //const obj = await trello.getUser("igor.127@gmail.com");
         //console.log(obj);
 
         GuiManager.quitApp();

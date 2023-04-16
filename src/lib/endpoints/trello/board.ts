@@ -55,12 +55,17 @@ export class BoardsCollection extends CollectionImpl<Partial<Board>> {
         this.username = username;
     }
 
-    public list(where: Partial<Board> = {}, fields: (keyof Board)[] = []): EtlObservable<Partial<Board>> {
+    public list(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>> {
         const observable = new EtlObservable<Partial<Board>>((subscriber) => {
             (async () => {
                 try {
-                    const params = {
+                    if (!where) where = {};
+                    const params = 
+                    fields && fields.length ? {
                         fields,
+                        ...where
+                    }
+                    : {
                         ...where
                     }
                     const boards = await this.endpoint.fetchJson(`/1/members/${this.username}/boards`, params) as Partial<Board>[];
@@ -103,9 +108,9 @@ export class BoardsCollection extends CollectionImpl<Partial<Board>> {
         return await this.endpoint.fetchJson(`1/boards/${boardId}`, {}, 'PUT', value);
     }
 
-    public async getListBoard(listId: string): Promise<Board> {
-        return await this.endpoint.fetchJson(`1/lists/${listId}/board`, {}, 'GET');
-    }
+    // public async getListBoard(listId: string): Promise<Board> {
+    //     return await this.endpoint.fetchJson(`1/lists/${listId}/board`, {}, 'GET');
+    // }
 
     get endpoint(): TrelloEndpoint {
         return super.endpoint as TrelloEndpoint;

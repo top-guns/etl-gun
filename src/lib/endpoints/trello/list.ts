@@ -24,12 +24,17 @@ export class ListsCollection extends CollectionImpl<Partial<List>> {
         this.boardId = boardId;
     }
 
-    public list(where: Partial<List> = {}, fields: (keyof List)[] = []): EtlObservable<Partial<List>> {
+    public list(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>> {
         const observable = new EtlObservable<Partial<List>>((subscriber) => {
             (async () => {
                 try {
-                    const params = {
+                    if (!where) where = {};
+                    const params = 
+                    fields && fields.length ? {
                         fields,
+                        ...where
+                    }
+                    : {
                         ...where
                     }
                     const lists = await this.endpoint.fetchJson(`/1/boards/${this.boardId}/lists`, params) as Partial<List>[];
