@@ -29,13 +29,13 @@ export class GoogleTranslateHelper {
     observable(arr: [], translateColumns?: number[], from?: string, to?: string): rxjs.Observable<string[]>;
     observable(obj: {}, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): rxjs.Observable<{}>;
     observable(value: any, p1?: any, p2?: any, p3?: any, p4?: any): rxjs.Observable<any> {
-        return rxjs.from(this.translate(value, p1, p2, p3, p4));
+        return rxjs.from(this.function(value, p1, p2, p3, p4));
     }
 
-    async translate(text: string, from?: string, to?: string): Promise<string>;
-    async translate(arr: [], translateColumns?: number[], from?: string, to?: string): Promise<string[]>;
-    async translate(obj: {}, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): Promise<{}>;
-    async translate(value: any, p1?: any, p2?: any, p3?: any, p4?: any): Promise<any> {
+    async function(text: string, from?: string, to?: string): Promise<string>;
+    async function(arr: [], translateColumns?: number[], from?: string, to?: string): Promise<string[]>;
+    async function(obj: {}, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): Promise<{}>;
+    async function(value: any, p1?: any, p2?: any, p3?: any, p4?: any): Promise<any> {
         let from = p1 ?? this.from;
         let to = p2 ?? this.to;
 
