@@ -2,7 +2,7 @@ import { interval, map, take, tap, from, mergeMap } from "rxjs";
 import * as dotenv from 'dotenv';
 
 import * as etl from './lib';
-import { CsvEndpoint, GoogleTranslateHelper, GuiManager, Header, NewProductAttributes, PostgresEndpoint } from "./lib";
+import { CsvEndpoint, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib";
 
 dotenv.config()
 
@@ -10,7 +10,7 @@ console.log("START");
 
 async function f() {
     try {
-        GuiManager.startGui("Test ETL process", true, 20);
+        //GuiManager.startGui("Test ETL process", true, 20);
 
         // const timer$ = interval(1000);
         // const buf = new etl.BufferEndpoint<string>();
@@ -22,11 +22,41 @@ async function f() {
         //const telegram = new etl.TelegramEndpoint(process.env.TELEGRAM_BOT_TOKEN!);
         // const fs = new etl.FilesystemEndpoint('src');
         // const timer = new etl.IntervalEndpoint(500);
+
         const magento = new etl.MagentoEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
         const product = magento.getProducts();
         const csv = new etl.CsvEndpoint('data').getFile('products.csv');
         const header = new etl.Header('id', 'sku', 'name', 'price', 'visibility', 'type_id', 'status');
-        const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+        const translate = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru').operator;
+
+
+
+        const trello = new etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
+        const boards = trello.getUserBoards();
+        console.log(1);
+        
+        const board = await boards.getByBrowserUrl('https://trello.com/b/P4zegsyz/iiicrm');
+        console.log(2);
+        const lists = trello.getBoardLists(board.id);
+        console.log(3);
+        const list = (await lists.get())[0];
+        console.log(4);
+        const cards = trello.getListCards(list.id);
+        //const cards = trello.getBoardCards(board.id);
+        console.log(5);
+
+        //let trello$ = boards.list('me',{id: '62305ba0adba79689e160940'}, ["id"])
+        let trello$ = cards.list()
+        .pipe(
+            etl.log()
+        );
+
+        await etl.run(trello$);
+        //const obj = await trello.getBoard("b/P4zegsyz/iiicrm");
+        //const obj = await trello.getUser("igor.127@gmail.com");
+        //console.log(obj);
+
+        GuiManager.quitApp();
 
         // '$.store.book[*].author'
         // json.listByJsonPath('$.store.book[*].author')
@@ -62,7 +92,7 @@ async function f() {
                 // etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'supplier')?.value
             ]),
             //mergeMap(p => translator.observable(p)),
-            translator.operator(),
+            translate(),
             etl.log()
             //etl.push(csv)
             //etl.join(table.list().pipe(take(2))),
@@ -83,7 +113,7 @@ async function f() {
 
         await etl.run(test$);// .toPromise();
 
-        const p: NewProductAttributes = {
+        const p: Partial<Product> = {
             sku: 'test6',
             name: 'test product 6',
             price: 100,

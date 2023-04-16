@@ -9,3 +9,4 @@ export * from './telegram';
 export * from './filesystem';
 export * from './interval';
 export * from './magento';
+export * from './trello';

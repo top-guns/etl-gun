@@ -11,7 +11,7 @@
 ### Desirable protocols and integrations
 
 1. Zendesk 
-1. Firebase 
+1. Firebase (storage, settings)
 1. Magento 
 1. BigCommerce 
 1. Mongo 
@@ -30,6 +30,7 @@
 1. YAML
 1. Git
 1. WebSocket client & server
+1. Google tables
 
 ### Desirable features
 
@@ -38,6 +39,7 @@
 1. Speed control in gui mode
 1. Add method to test connection to all endpoints
 1. General endpoint and collection for the REST resource
+1. Reports (pdf)
 
 
 ### Known problems
