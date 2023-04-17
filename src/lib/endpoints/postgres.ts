@@ -6,6 +6,7 @@ import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collec
 import { EtlObservable } from '../core/observable.js';
 
 export class PostgresEndpoint extends Endpoint {
+    protected connectionString: string = null;
     protected _connectionPool: pg.Pool = null;
     get connectionPool(): pg.Pool {
         return this._connectionPool;
@@ -18,6 +19,7 @@ export class PostgresEndpoint extends Endpoint {
         if (typeof connection == 'string') {
             const config = { connectionString: connection };
             this._connectionPool = new pg.Pool(config);
+            this.connectionString = connection;
         }
         else this._connectionPool = connection;
     }
@@ -32,7 +34,7 @@ export class PostgresEndpoint extends Endpoint {
     }
 
     get displayName(): string {
-        return `PostgreSQL (${this.instanceNo})`;
+        return this.connectionString ? `PostgreSQL (${this.connectionString})` : `PostgreSQL (${this.instanceNo})`;
     }
 }
 
