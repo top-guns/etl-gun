@@ -22,22 +22,32 @@ function toBindObject(value: Record<string, any>): BindObject {
     const res: Record<string, string> = {};
     for (const key in value) {
         if (!value.hasOwnProperty(key)) continue;
+
         if (value[key] == null) {
             res[key] = null;
             continue;
         }
+
         switch (typeof value[key]) {
             case 'undefined':
                 res[key] = null;
                 break;
             case 'number':
+            case 'bigint':
                 res[key] = value[key];
                 break;
             case 'boolean':
                 res[key] = value[key] ? 'true' : 'false';
                 break;
-            default:
+            case 'string':
+            case 'symbol':
                 res[key] = '' + value[key];
+                break;
+            case 'object':
+                res[key] = value[key].toString();
+                break;
+            default:
+                throw new Error(`Error in convertion of properti '${key}' value '${value[key]}': type '${typeof value[key]}' cannot be converted to database field value`);
                 break;
         }
     }

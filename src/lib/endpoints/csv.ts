@@ -105,12 +105,7 @@ export class Collection extends BaseCollection<string[]> {
         let res = "";
         for (let i = 0; i < vals.length; i++) {
             if (res) res += ",";
-
-            let r = "" + vals[i];
-            r = r.replace(/"/g, '""');
-            r = '"' + r + '"';
-
-            res += r;
+            res += this.convertToCell(vals[i]);
         }
         return res;
     }
@@ -122,6 +117,13 @@ export class Collection extends BaseCollection<string[]> {
             res += this.getCsvStrFromStrArr(arr[i]);
         }
         return res;
+    }
+
+    protected convertToCell(val: any): string {
+        if (val === null) return '"null"';
+        if (typeof val === 'undefined') return '""';
+        let res = '' + val;
+        return '"' + res.replace(/"/g, '""') + '"';
     }
 
 }

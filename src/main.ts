@@ -3,12 +3,10 @@ This file contains temporary code to test library while development process.
 It is not contains any usefull code, is not a part of library and is not an example of library using.
 ************************************************************************************************************************************/
 
-import { interval, map, take, tap, from, mergeMap } from "rxjs";
+import * as rx from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
-
 import * as etl from './lib/index.js';
-import * as mysql from "./lib/endpoints/mysql.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
@@ -139,25 +137,68 @@ console.log("START");
 // .on("list.down", () => console.log("down event"))
 // .on("list.error", (err) => console.log("error event: " + err))
 
-const mysqlEndpoint = new mysql.Endpoint('mysql://test:test@localhost:7306/test');
-const table = mysqlEndpoint.getTable('test');
+const magentoEndpoint = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
+const product = magentoEndpoint.getProducts();
 
-// const newId = await table.insert({
-//     id: 5,
-//     name: '555'
-// })
-// console.log(newId);
+const csvEndpoint = new etl.Csv.Endpoint("./data");
+const csv = csvEndpoint.getFile("products.csv");
 
-console.log(await table.update({id: 4}, {name: 'pppp'}));
-console.log(await table.delete({id: 2}));
+const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
+const table = mysql.getTable('test1');
 
-const test$ = table.select().pipe(
-    etl.log()
+const translate = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+const header = new etl.Header(
+    'id', 
+    'sku', 
+    'name', 
+    'price',
+    'visibility',
+    'type_id',
+    'status', 
+    'attribute_set_id',
+    'options_container',
+    'url_key',
+    'tax_class_id'
 )
 
-await etl.run(test$);
+function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
+    return {
+        id: p.id, 
+        sku: p.sku, 
+        name: p.name, 
+        price: p.price, 
+        visibility: p.visibility, 
+        type_id: p.type_id, 
+        status: p.status, 
+        attribute_set_id: p.attribute_set_id,
+        options_container: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'options_container')?.value,
+        url_key: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'url_key')?.value,
+        tax_class_id: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'tax_class_id')?.value,
+    }
+}
 
-mysqlEndpoint.releaseEndpoint();
+//console.log(translate)
+//console.log(await translate.function('hello world', 'en', 'ru'));
+
+let magento_to_Csv$ = product.select({}).pipe(
+    rx.map(p => magentoProduct2ShortForm(p)),
+//    etl.log(),
+    rx.map(p => header.objToArr(p)),
+    etl.log(),
+    etl.push(csv)
+)
+
+let csv_to_MySql$ = csv.select().pipe(
+    //etl.log(),
+    rx.map(p => header.arrToObj(p)),
+    etl.log(),
+    //translate.operator(),
+    etl.push(table)
+)
+
+await etl.run(magento_to_Csv$);
+
+//mysql.releaseEndpoint();
 
 // const p: Partial<Product> = {
 //     sku: 'test6',
