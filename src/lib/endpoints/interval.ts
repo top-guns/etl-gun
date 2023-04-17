@@ -1,10 +1,10 @@
 import { Subscriber } from "rxjs";
-import { GuiManager } from "../core/index.js";
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { GuiManager } from "../core/gui.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 
-export class IntervalEndpoint extends Endpoint {
+export class IntervalEndpoint extends BaseEndpoint {
     getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
         guiOptions.displayName ??= `${collectionName} (${interval}ms)`;
         return this._addCollection(collectionName, new IntervalCollection(this, interval, guiOptions));
@@ -20,7 +20,7 @@ export class IntervalEndpoint extends Endpoint {
     }
 }
 
-export class IntervalCollection extends CollectionImpl<number> {
+export class IntervalCollection extends BaseCollection<number> {
     protected static instanceNo = 0;
     protected interval: number;
     protected intervalId: NodeJS.Timer;
@@ -33,7 +33,7 @@ export class IntervalCollection extends CollectionImpl<number> {
         this.interval = interval;
     }
 
-    public list(): EtlObservable<number> {
+    public select(): EtlObservable<number> {
         const observable = new EtlObservable<number>((subscriber) => {
             try {
                 this.subscriber = subscriber;
@@ -48,20 +48,20 @@ export class IntervalCollection extends CollectionImpl<number> {
         return observable;
     }
 
-    public async push(value: number) {
-        super.push(value);
+    public async insert(value: number) {
+        super.insert(value);
         this.counter = value;
     }
 
-    public async clear() {
-        super.clear();
+    public async delete() {
+        super.delete();
         this.counter = 0;
     }
 
     protected onTick() {
         if (this.isPaused) return;
         try {
-            this.sendDataEvent(this.counter);
+            this.sendValueEvent(this.counter);
             this.subscriber.next(this.counter);
             this.counter++;
         }

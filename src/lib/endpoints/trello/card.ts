@@ -1,4 +1,4 @@
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection.js";
+import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
 import { TrelloEndpoint } from './endpoint.js';
 
@@ -16,7 +16,7 @@ export type Card = {
 }
 
 
-export class CardsCollection extends CollectionImpl<Partial<Card>> {
+export class CardsCollection extends BaseCollection<Partial<Card>> {
     protected static instanceNo = 0;
     //protected boardId: string;
     protected listId: string;
@@ -28,7 +28,7 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
         this.listId = listId;
     }
 
-    public list(where: Partial<Card> = {}, fields: (keyof Card)[] = []): EtlObservable<Partial<Card>> {
+    public select(where: Partial<Card> = {}, fields: (keyof Card)[] = []): EtlObservable<Partial<Card>> {
         if (this.listId) return this.listByUrl(`/1/lists/${this.listId}/cards`, {}, fields);
         //let filter = '';
         //if (this.boardId) return this.listByUrl(`1/boards/${this.boardId}/cards${filter ? '/' + filter : ''}`);
@@ -53,7 +53,7 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
                     this.sendStartEvent();
                     for (const obj of cards) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(obj);
+                        this.sendValueEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();
@@ -68,13 +68,13 @@ export class CardsCollection extends CollectionImpl<Partial<Card>> {
         return observable;
     }
 
-    public async push(value: Omit<Partial<Card>, 'id'>) {
-        super.push(value as Partial<Card>);
+    public async insert(value: Omit<Partial<Card>, 'id'>) {
+        super.insert(value as Partial<Card>);
         return await this.endpoint.fetchJson('1/cards', {}, 'POST', value);
     }
 
     public async update(cardId: string, value: Omit<Partial<Card>, 'id'>) {
-        super.push(value as Partial<Card>);
+        super.insert(value as Partial<Card>);
         return await this.endpoint.fetchJson(`1/cards/${cardId}`, {}, 'PUT', value);
     }
 

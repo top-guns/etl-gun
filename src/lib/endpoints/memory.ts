@@ -1,9 +1,9 @@
 import { from, Observable } from "rxjs";
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 
-export class MemoryEndpoint extends Endpoint {
+export class MemoryEndpoint extends BaseEndpoint {
     getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection {
         guiOptions.displayName ??= collectionName;
         return this._addCollection(collectionName, new BufferCollection(this, values, guiOptions));
@@ -17,7 +17,7 @@ export class MemoryEndpoint extends Endpoint {
     }
 }
 
-export class BufferCollection<T = any> extends CollectionImpl<T> {
+export class BufferCollection<T = any> extends BaseCollection<T> {
     protected static instanceCount = 0;
 
     protected _buffer: T[];
@@ -31,14 +31,14 @@ export class BufferCollection<T = any> extends CollectionImpl<T> {
         this._buffer = [...values];
     }
 
-    public list(): EtlObservable<T> {
+    public select(): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
                     for(const value of this._buffer) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(value);
+                        this.sendValueEvent(value);
                         subscriber.next(value);
                     };
                     subscriber.complete();
@@ -53,13 +53,13 @@ export class BufferCollection<T = any> extends CollectionImpl<T> {
         return observable;
     }
 
-    public async push(value: T) {
-        super.push(value);
+    public async insert(value: T) {
+        super.insert(value);
         this._buffer.push(value); 
     }
 
-    public async clear() {
-        super.clear();
+    public async delete() {
+        super.delete();
         this._buffer = [];
     }
 

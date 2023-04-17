@@ -3,8 +3,8 @@ import { Observable, Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
@@ -14,7 +14,7 @@ export type XmlReadOptions = {
     addRelativePathAsAttribute?: string;
 }
 
-export class XmlEndpoint extends Endpoint {
+export class XmlEndpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
@@ -46,7 +46,7 @@ export class XmlEndpoint extends Endpoint {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class XmlCollection extends CollectionImpl<any> {
+export class XmlCollection extends BaseCollection<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -64,7 +64,7 @@ export class XmlCollection extends CollectionImpl<any> {
         this.load();
     }
 
-    public list(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node> {
+    public select(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -96,7 +96,7 @@ export class XmlCollection extends CollectionImpl<any> {
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
             if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
             await this.waitWhilePaused();
-            this.sendDataEvent(selectedValue);
+            this.sendValueEvent(selectedValue);
             subscriber.next(selectedValue);
             return;
         }
@@ -116,7 +116,7 @@ export class XmlCollection extends CollectionImpl<any> {
                 } 
                 if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
                 await this.waitWhilePaused();
-                this.sendDataEvent(value);
+                this.sendValueEvent(value);
                 subscriber.next(value);
             };
         }
@@ -126,7 +126,7 @@ export class XmlCollection extends CollectionImpl<any> {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         await this.waitWhilePaused();
-        this.sendDataEvent(selectedValue);
+        this.sendValueEvent(selectedValue);
         subscriber.next(selectedValue);
 
         if (element && element.hasChildNodes()) {
@@ -165,8 +165,8 @@ export class XmlCollection extends CollectionImpl<any> {
 
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
-    public async push(value: any, xpath: string = '', attribute: string = '') {
-        super.push(value);
+    public async insert(value: any, xpath: string = '', attribute: string = '') {
+        super.insert(value);
         
         const selectedValue = this.get(xpath);
         let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
@@ -190,8 +190,8 @@ export class XmlCollection extends CollectionImpl<any> {
         if (this.autosave) this.save();
     }
 
-    public async clear() {
-        super.clear();
+    public async delete() {
+        super.delete();
         this.xmlDocument = new DOMParser().parseFromString("", 'text/xml'); // ??? Test it !!!
         if (this.autosave) this.save();
     }

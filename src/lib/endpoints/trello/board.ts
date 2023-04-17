@@ -1,4 +1,4 @@
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection.js";
+import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
 import { TrelloEndpoint } from './endpoint.js';
 
@@ -45,7 +45,7 @@ export type Board = {
     premiumFeatures?: string[];
 }
 
-export class BoardsCollection extends CollectionImpl<Partial<Board>> {
+export class BoardsCollection extends BaseCollection<Partial<Board>> {
     protected static instanceNo = 0;
     protected username: string;
 
@@ -55,7 +55,7 @@ export class BoardsCollection extends CollectionImpl<Partial<Board>> {
         this.username = username;
     }
 
-    public list(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>> {
+    public select(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>> {
         const observable = new EtlObservable<Partial<Board>>((subscriber) => {
             (async () => {
                 try {
@@ -73,7 +73,7 @@ export class BoardsCollection extends CollectionImpl<Partial<Board>> {
                     this.sendStartEvent();
                     for (const obj of boards) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(obj);
+                        this.sendValueEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();
@@ -98,13 +98,13 @@ export class BoardsCollection extends CollectionImpl<Partial<Board>> {
     async getByBrowserUrl(url: string): Promise<Board> {
         return this.endpoint.fetchJson(url.endsWith('.json') ? url : url + ".json");
     }
-    public async push(value: Omit<Partial<Board>, 'id'>) {
-        super.push(value as Partial<Board>);
+    public async insert(value: Omit<Partial<Board>, 'id'>) {
+        super.insert(value as Partial<Board>);
         return await this.endpoint.fetchJson('1/boards', {}, 'POST', value);
     }
 
     public async update(boardId: string, value: Omit<Partial<Board>, 'id'>) {
-        super.push(value as Partial<Board>);
+        super.insert(value as Partial<Board>);
         return await this.endpoint.fetchJson(`1/boards/${boardId}`, {}, 'PUT', value);
     }
 

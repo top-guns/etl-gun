@@ -40,6 +40,7 @@
 1. Add method to test connection to all endpoints
 1. General endpoint and collection for the REST resource
 1. Reports (pdf)
+1. Add stream, generator, 'for await' notations support 
 
 
 ### Known problems

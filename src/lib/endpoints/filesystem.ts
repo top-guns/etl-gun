@@ -3,8 +3,8 @@ import glob from "glob";
 import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
 
@@ -28,7 +28,7 @@ export type FsReadOptions = {
     withContent?: boolean;
 }
 
-export class FilesystemEndpoint extends Endpoint {
+export class FilesystemEndpoint extends BaseEndpoint {
     protected rootFolder: string = null;
 
     constructor(rootFolder: string) {
@@ -58,7 +58,7 @@ export class FilesystemEndpoint extends Endpoint {
     }
 }
 
-export class FilesystemCollection extends CollectionImpl<PathDetails> {
+export class FilesystemCollection extends BaseCollection<PathDetails> {
     protected static instanceCount = 0;
     protected folderPath: string;
 
@@ -72,14 +72,14 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public list(mask: string = '*', options: FsReadOptions = {}): EtlObservable<PathDetails> {
+    public select(mask: string = '*', options: FsReadOptions = {}): EtlObservable<PathDetails> {
         const observable = new EtlObservable<any>((subscriber) => {
             try {
                 this.sendStartEvent();
 
                 if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
                     let res = this.getRootFolderDetails();
-                    this.sendDataEvent(res);
+                    this.sendValueEvent(res);
                     subscriber.next(res);
                 }
         
@@ -97,7 +97,7 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
                                 || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
                                 await this.waitWhilePaused();
-                                this.sendDataEvent(res);
+                                this.sendValueEvent(res);
                                 subscriber.next(res);
 
                                 if (i == matches.length - 1) {
@@ -117,9 +117,9 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
         return observable;
     }
 
-    public async push(pathDetails: PathDetails, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream);
-    public async push(filePath: string, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, isFolder?: boolean);
-    public async push(fileInfo: string | PathDetails, data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> 
+    public async insert(pathDetails: PathDetails, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream);
+    public async insert(filePath: string, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, isFolder?: boolean);
+    public async insert(fileInfo: string | PathDetails, data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> 
         | internal.Stream = '', isFolder: boolean = false) 
     {
         let pathDetails: PathDetails;
@@ -141,7 +141,7 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
         }
         if (!data && pathDetails.content) data = pathDetails.content;
 
-        super.push(pathDetails);
+        super.insert(pathDetails);
 
         if (pathDetails.isFolder) {
             if (!fs.existsSync(pathDetails.fullPath)) {
@@ -156,8 +156,8 @@ export class FilesystemCollection extends CollectionImpl<PathDetails> {
         }
     }
 
-    public async clear(mask: string = '*', options: FsReadOptions = {}) {
-        super.clear();
+    public async delete(mask: string = '*', options: FsReadOptions = {}) {
+        super.delete();
 
         if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
             fs.rmSync(this.folderPath, { recursive: true, force: true });

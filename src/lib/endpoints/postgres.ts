@@ -1,11 +1,11 @@
 import * as pg from 'pg'
 import { Observable } from "rxjs";
-import { GuiManager } from '../core/index.js';
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { GuiManager } from '../core/gui.js';
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 
-export class PostgresEndpoint extends Endpoint {
+export class PostgresEndpoint extends BaseEndpoint {
     protected connectionString: string = null;
     protected _connectionPool: pg.Pool = null;
     get connectionPool(): pg.Pool {
@@ -33,12 +33,17 @@ export class PostgresEndpoint extends Endpoint {
         this._removeCollection(table);
     }
 
+    releaseEndpoint() {
+        super.releaseEndpoint();
+        this._connectionPool.end();
+    }
+
     get displayName(): string {
         return this.connectionString ? `PostgreSQL (${this.connectionString})` : `PostgreSQL (${this.instanceNo})`;
     }
 }
 
-export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> {
+export class TableCollection<T = Record<string, any>> extends BaseCollection<T> {
     protected static instanceNo = 0;
     protected table: string;
 
@@ -48,7 +53,7 @@ export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> 
         this.table = table;
     }
 
-    public list(where: string | {} = ''): EtlObservable<T> {
+    public select(where: string | {} = ''): EtlObservable<T> {
         const observable = new EtlObservable<T>((subscriber) => {
             (async () => {
                 try {
@@ -63,7 +68,7 @@ export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> 
                     const results = await this.endpoint.connectionPool.query(query, params);
                     for (const row of results.rows) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(row);
+                        this.sendValueEvent(row);
                         subscriber.next(row);
                     }
                     subscriber.complete();
@@ -78,15 +83,15 @@ export class TableCollection<T = Record<string, any>> extends CollectionImpl<T> 
         return observable;
     }
 
-    public async push(value: T) {
-        super.push(value);
+    public async insert(value: T) {
+        super.insert(value);
         const query = `insert into ${this.table}(${this.getCommaSeparatedFields(value)}) values ${this.getCommaSeparatedParams(value)}`;
         await this.endpoint.connectionPool.query(query, this.getCommaSeparatedValues(value));
         // TODO: returning id or the whole T-value
     }
 
-    public async clear(where: string | {} = '') {
-        super.clear();
+    public async delete(where: string | {} = '') {
+        super.delete();
         let params = [];
         if (where && typeof where === 'object') {
             where = this.getWhereAsString(where);

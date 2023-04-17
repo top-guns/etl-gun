@@ -1,4 +1,4 @@
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection.js";
+import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
 import { TrelloEndpoint } from './endpoint.js';
 
@@ -14,7 +14,7 @@ export type List = {
 }
 
 
-export class ListsCollection extends CollectionImpl<Partial<List>> {
+export class ListsCollection extends BaseCollection<Partial<List>> {
     protected static instanceNo = 0;
     protected boardId: string;
 
@@ -24,7 +24,7 @@ export class ListsCollection extends CollectionImpl<Partial<List>> {
         this.boardId = boardId;
     }
 
-    public list(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>> {
+    public select(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>> {
         const observable = new EtlObservable<Partial<List>>((subscriber) => {
             (async () => {
                 try {
@@ -42,7 +42,7 @@ export class ListsCollection extends CollectionImpl<Partial<List>> {
                     this.sendStartEvent();
                     for (const obj of lists) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(obj);
+                        this.sendValueEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();
@@ -64,13 +64,13 @@ export class ListsCollection extends CollectionImpl<Partial<List>> {
         return await this.endpoint.fetchJson(`/1/boards/${this.boardId}/lists`);
     }
 
-    public async push(value: Omit<Partial<List>, 'id'>) {
-        super.push(value as Partial<List>);
+    public async insert(value: Omit<Partial<List>, 'id'>) {
+        super.insert(value as Partial<List>);
         return await this.endpoint.fetchJson('1/lists', {}, 'POST', value);
     }
 
     public async update(listId: string, value: Omit<Partial<List>, 'id'>) {
-        super.push(value as Partial<List>);
+        super.insert(value as Partial<List>);
         return await this.endpoint.fetchJson(`1/lists/${listId}`, {}, 'PUT', value);
     }
 

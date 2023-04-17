@@ -1,15 +1,16 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { getError } from '../../utils/getError.js';
+import { MemoryEndpoint } from '../../lib/endpoints/memory.js'
 
 describe('Operator addField()', () => {
     test('add field to objects', async () => {
         let res: {}[] = [];
 
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.addField("f2", v => v.f1 * 10),
             rx.tap(v => res.push(v))
         );
@@ -20,10 +21,10 @@ describe('Operator addField()', () => {
     });
 
     test('try to add field to scalars', async () => {
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.addField('f1', v => v * 10),
         );
 

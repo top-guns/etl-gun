@@ -1,6 +1,6 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
-import { Endpoint} from "../../core/endpoint.js";
+import { BaseEndpoint} from "../../core/endpoint.js";
 import { CollectionGuiOptions } from "../../core/collection.js";
 import { pathJoin } from '../../utils/index.js';
 import { Board, BoardsCollection } from './board.js';
@@ -63,7 +63,7 @@ export type User = {
 }
 
 
-export class TrelloEndpoint extends Endpoint {
+export class TrelloEndpoint extends BaseEndpoint {
     protected url: string;
     protected apiKey: string;
     protected authToken: string;

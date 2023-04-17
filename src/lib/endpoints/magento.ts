@@ -1,8 +1,8 @@
 import fetch, { RequestInit } from 'node-fetch';
 //let {fetch, RequestInit} = await import('node-fetch');
 import https from 'node:https';
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 import { pathJoin } from '../utils/index.js';
 
@@ -35,7 +35,7 @@ enum COLLECTIONS_NAMES {
     categories = 'categories'
 }
 
-export class MagentoEndpoint extends Endpoint {
+export class MagentoEndpoint extends BaseEndpoint {
     protected _magentoUrl: string;
     protected login: string;
     protected password: string;
@@ -121,7 +121,7 @@ export class MagentoEndpoint extends Endpoint {
     }
 }
 
-export class ProductsCollection extends CollectionImpl<Partial<Product>> {
+export class ProductsCollection extends BaseCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
     constructor(endpoint: MagentoEndpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
@@ -129,7 +129,7 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
         super(endpoint, guiOptions);
     }
 
-    public list(where: Partial<Product> = {}, fields: (keyof Product)[] = null): EtlObservable<Partial<Product>> {
+    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): EtlObservable<Partial<Product>> {
         const observable = new EtlObservable<Partial<Product>>((subscriber) => {
             (async () => {
                 try {
@@ -154,7 +154,7 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
                     this.sendStartEvent();
                     for (const p of products.items) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(p);
+                        this.sendValueEvent(p);
                         subscriber.next(p);
                     }
                     subscriber.complete();
@@ -169,8 +169,8 @@ export class ProductsCollection extends CollectionImpl<Partial<Product>> {
         return observable;
     }
 
-    public async push(value: Omit<Partial<Product>, 'id'>) {
-        super.push(value as Partial<Product>);
+    public async insert(value: Omit<Partial<Product>, 'id'>) {
+        super.insert(value as Partial<Product>);
         await this.endpoint.updateToken();
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
     }

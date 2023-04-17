@@ -1,5 +1,5 @@
 import { tap } from "rxjs";
-import { GuiManager } from "../core/index.js";
+import { GuiManager } from "../core/gui.js";
 
 export function log<T>(before: string = '', valuefn?: ((value: T) => string) | null, outStream: NodeJS.WritableStream = null) {
     const outConsole = outStream ? new console.Console(outStream) : console;

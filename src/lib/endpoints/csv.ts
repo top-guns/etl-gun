@@ -1,11 +1,11 @@
 import * as fs from "fs";
 import { parse } from "csv-parse";
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
-export class CsvEndpoint extends Endpoint {
+export class CsvEndpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
@@ -32,7 +32,7 @@ export class CsvEndpoint extends Endpoint {
     }
 }
 
-export class CsvCollection extends CollectionImpl<string[]> {
+export class CsvCollection extends BaseCollection<string[]> {
     protected static instanceCount = 0;
     protected filename: string;
     protected delimiter: string;
@@ -49,7 +49,7 @@ export class CsvCollection extends CollectionImpl<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public list(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
+    public select(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
         const rows = [];
         const observable = new EtlObservable<string[]>((subscriber) => {
             try {
@@ -67,7 +67,7 @@ export class CsvCollection extends CollectionImpl<string[]> {
                                 this.sendSkipEvent(row);
                                 return;
                             }
-                            this.sendDataEvent(row);
+                            this.sendValueEvent(row);
                             subscriber.next(row);
                         }
                         subscriber.complete();
@@ -87,8 +87,8 @@ export class CsvCollection extends CollectionImpl<string[]> {
         return observable;
     }
 
-    public async push(value: any[]) {
-        await super.push(value);
+    public async insert(value: any[]) {
+        await super.insert(value);
         const strVal = this.getCsvStrFromStrArr(value) + "\n";
         // await fs.appendFile(this.filename, strVal, function (err) {
         //     if (err) throw err;
@@ -96,8 +96,8 @@ export class CsvCollection extends CollectionImpl<string[]> {
         fs.appendFileSync(this.filename, strVal);
     }
 
-    public async clear() {
-        await super.clear();
+    public async delete() {
+        await super.delete();
         await fs.promises.writeFile(this.filename, '');
     }
 

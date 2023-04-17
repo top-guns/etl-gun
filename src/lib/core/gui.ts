@@ -1,18 +1,18 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
 import { SimplifiedStyledElement } from 'console-gui-tools';
-import { Collection, CollectionGuiOptions } from './collection.js';
-import { Endpoint } from './endpoint.js';
+import { BaseCollection, CollectionGuiOptions } from './collection.js';
+import { BaseEndpoint } from './endpoint.js';
 
 type EndpointDesc = {
-    endpoint: Endpoint;
+    endpoint: BaseEndpoint;
     collections: CollectionDesc[];
 }
 
 type CollectionDesc = {
-    collection: Collection<any>;
+    collection: BaseCollection<any>;
     displayName: string;
-    status: 'waiting' | 'running' | 'finished' | 'error' | 'pushed' | 'cleared';
+    status: 'waiting' | 'running' | 'finished' | 'error' | 'inserted' | 'deleted' | 'recived' | 'updated';
     value: any;
     guiOptions: CollectionGuiOptions<any>;
 }
@@ -155,16 +155,22 @@ export class GuiManager {
                     case 'running':
                         color = 'blueBright';
                         break;
+                    case 'recived':
+                        color = 'magentaBright';
+                        break;
                     case 'finished':
                         color = 'green';
                         break;
                     case 'error':
                         color = 'red';
                         break;
-                    case 'pushed':
-                        color = 'magenta';
+                    case 'inserted':
+                        color = 'yellow';
                         break;
-                    case 'cleared':
+                    case 'updated':
+                        color = 'yellow';
+                        break;
+                    case 'deleted':
                         color = 'yellow';
                         break;
                     case 'waiting':
@@ -226,21 +232,21 @@ export class GuiManager {
         this.consoleManager.info(message);
     }
 
-    public registerEndpoint(endpoint: Endpoint) {
+    public registerEndpoint(endpoint: BaseEndpoint) {
         const desc: EndpointDesc = {endpoint, collections: []};
         this.endpoints.push(desc);
 
         this.updateConsole();
     }
 
-    protected getEndpointDesc(endpoint: Endpoint) {
+    protected getEndpointDesc(endpoint: BaseEndpoint) {
         for (let desc of this.endpoints) {
             if (desc.endpoint.displayName == endpoint.displayName) return desc;
         }
         return null;
     }
 
-    public registerCollection(collection: Collection<any>, guiOptions: CollectionGuiOptions<any> = {}) {
+    public registerCollection(collection: BaseCollection<any>, guiOptions: CollectionGuiOptions<any> = {}) {
         const endpoint = collection.endpoint;
         const endpointdesc = this.getEndpointDesc(endpoint);
         if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);
@@ -249,13 +255,14 @@ export class GuiManager {
         const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions};
         endpointdesc.collections.push(desc);
 
-        collection.on('list.start', () => { desc.status = 'running'; this.updateConsole(); });
-        collection.on('list.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        collection.on('list.data', v => { desc.status = 'running'; desc.value = v; this.updateConsole(); });
+        collection.on('select.start', () => { desc.status = 'running'; this.updateConsole(); });
+        collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
+        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v; this.updateConsole(); });
 
-        collection.on('list.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
-        collection.on('push', v => { desc.status = 'pushed'; desc.value = v; this.updateConsole(); });
-        collection.on('clear', v => { desc.status = 'cleared'; desc.value = v; this.updateConsole(); });
+        collection.on('select.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
+        collection.on('insert', v => { desc.status = 'inserted'; desc.value = v; this.updateConsole(); });
+        collection.on('update', v => { desc.status = 'updated'; desc.value = v; this.updateConsole(); });
+        collection.on('delete', v => { desc.status = 'deleted'; desc.value = v; this.updateConsole(); });
 
         this.updateConsole();
     }

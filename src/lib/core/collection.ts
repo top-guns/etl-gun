@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
 import { GuiManager } from "./gui.js";
-import { Endpoint } from "./endpoint.js";
+import { BaseEndpoint } from "./endpoint.js";
 
 export type CollectionGuiOptions<T> = {
     displayName?: string;
@@ -8,74 +8,41 @@ export type CollectionGuiOptions<T> = {
 }
 
 export type CollectionEvent = 
-    "list.start" |
-    "list.end" |
-    "list.data" |
-    "list.error" |
-    "list.skip" |
-    "list.up" |
-    "list.down" |
-    "push" |
-    "clear";
+    "select.start" |
+    "select.end" |
+    "select.recive" |
+    "select.error" |
+    "select.skip" |
+    "select.up" |
+    "select.down" |
+    "insert" |
+    "update" |
+    "delete";
 
-export interface Collection<T> {
-
-    //public createReadStream(): Observable<T> {
-    list(): Observable<T>;
-
-    push(value: T, ...params: any[]): Promise<any>;
-    clear(): Promise<void>;
-
-    on(event: CollectionEvent, listener: (...data: any[]) => void): Collection<T>;
-
-    stop(): void;
-    pause(): void;
-    resume(): void;
-
-    get isPaused(): boolean;
-
-    get endpoint(): Endpoint;
-
-    // public async delete(where: any) {
-    //     throw new Error("Method not implemented.");
-    // }
-
-    // public async find(where: any): Promise<T[]> {
-    //     throw new Error("Method not implemented.");
-    // }
-
-    // public async pop(): Promise<T> {
-    //     throw new Error("Method not implemented.");
-    // }
-    
-    // public async updateCurrent(value) {
-    //     throw new Error("Method not implemented.");
-    // }
-    
-}
 
 type EventListener = (...data: any[]) => void;
 
-export class CollectionImpl<T> implements Collection<T> {
+export class BaseCollection<T> {
     protected listeners: Record<CollectionEvent, EventListener[]> = {
-        "push": [],
-        "clear": [],
-        "list.start": [],
-        "list.end": [],
-        "list.data": [],
-        "list.error": [],
-        "list.skip": [],
-        "list.up": [],
-        "list.down": []
+        "insert": [],
+        "update": [],
+        "delete": [],
+        "select.start": [],
+        "select.end": [],
+        "select.recive": [],
+        "select.error": [],
+        "select.skip": [],
+        "select.up": [],
+        "select.down": []
     };
 
-    protected _endpoint: Endpoint;
-    get endpoint(): Endpoint {
+    protected _endpoint: BaseEndpoint;
+    get endpoint(): BaseEndpoint {
         return this._endpoint;
     }
     protected _isPaused: boolean = false;
 
-    constructor(endpoint: Endpoint, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {
         this._endpoint = endpoint;
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, guiOptions);
     }
@@ -119,59 +86,64 @@ export class CollectionImpl<T> implements Collection<T> {
         return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
-    public list(): Observable<T> {
+    public select(): Observable<T> {
         throw new Error("Method not implemented.");
     }
 
+    public async insert(value: any, ...params: any[]): Promise<any> {
+        this.sendEvent("insert", { value });
+    }
+
+    public async update(where: any, value: any, ...params: any[]): Promise<any> {
+        this.sendEvent("update", { where, value });
+    }
+
+    public async delete(where?: any): Promise<any> {
+        this.sendEvent("delete", { where });
+    }
+ 
     public stop() {
         throw new Error("Method not implemented.");
     }
   
-    public on(event: CollectionEvent, listener: EventListener): Collection<T> {
+    public on(event: CollectionEvent, listener: EventListener): BaseCollection<T> {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].push(listener); 
         return this;
     }
 
-    public async push(value: any, ...params: any[]): Promise<any> {
-        this.sendEvent("push", value);
-    }
-
-    public async clear() {
-        this.sendEvent("clear");
-    }
-  
+   
     public sendEvent(event: CollectionEvent, ...data: any[]) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].forEach(listener => listener(...data));
     }
   
     public sendStartEvent() {
-        this.sendEvent("list.start");
+        this.sendEvent("select.start");
     }
   
     public sendEndEvent() {
-        this.sendEvent("list.end");
+        this.sendEvent("select.end");
     }
   
     public sendErrorEvent(error: any) {
-        this.sendEvent("list.error", error);
+        this.sendEvent("select.error", {error});
     }
   
-    public sendDataEvent(data: any) {
-        this.sendEvent("list.data", data);
+    public sendValueEvent(value: any) {
+        this.sendEvent("select.recive", {value});
     }
   
-    public sendSkipEvent(data: any) {
-        this.sendEvent("list.skip", data);
+    public sendSkipEvent(value: any) {
+        this.sendEvent("select.skip", {value});
     }
   
     public sendUpEvent() {
-      this.sendEvent("list.up");
+      this.sendEvent("select.up");
     }
   
     public sendDownEvent() {
-        this.sendEvent("list.down");
+        this.sendEvent("select.down");
     }
 }
   

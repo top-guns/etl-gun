@@ -1,15 +1,16 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { getError } from '../../utils/getError.js';
+import { MemoryEndpoint } from '../../lib/endpoints/memory.js'
 
 describe('Operator numerate()', () => {
     test('numerate arrays', async () => {
         let res: any[][] = [];
 
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.numerate(10),
             rx.tap(v => res.push(v))
         );
@@ -22,10 +23,10 @@ describe('Operator numerate()', () => {
     test('numerate objects', async () => {
         let res: {}[] = [];
 
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.numerate(10, "index"),
             rx.tap(v => res.push(v))
         );
@@ -38,10 +39,10 @@ describe('Operator numerate()', () => {
     test('numerate scalars', async () => {
         let res: any[][] = [];
 
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.numerate(10),
             rx.tap(v => res.push(v))
         );
@@ -53,10 +54,10 @@ describe('Operator numerate()', () => {
 
 
     test('numerate objects without field name specification', async () => {
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.numerate(10),
         );
 
@@ -66,10 +67,10 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate arrays with field name specification', async () => {
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             etl.numerate(10, "index"),
         );
 
@@ -78,10 +79,10 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate scalars with field name specification', async () => {
-        const mem = new etl.MemoryEndpoint();
+        const mem = new MemoryEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.list().pipe(
+        let stream$ = src.select().pipe(
             rx.map(v => v as unknown as Record<string, any>),
             etl.numerate(10, "index"),
         );

@@ -2,8 +2,8 @@ import * as fs from "fs";
 import { Observable, Subscriber } from 'rxjs';
 import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
@@ -13,7 +13,7 @@ export type JsonReadOptions = {
     addRelativePathAsField?: string;
 }
 
-export class JsonEndpoint extends Endpoint {
+export class JsonEndpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
@@ -40,7 +40,7 @@ export class JsonEndpoint extends Endpoint {
     }
 }
 
-export class JsonCollection extends CollectionImpl<any> {
+export class JsonCollection extends BaseCollection<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -61,7 +61,7 @@ export class JsonCollection extends CollectionImpl<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public list(path: string = '', options: JsonReadOptions = {}): EtlObservable<any> {
+    public select(path: string = '', options: JsonReadOptions = {}): EtlObservable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -72,7 +72,7 @@ export class JsonCollection extends CollectionImpl<any> {
                         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                             if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
                             await this.waitWhilePaused();
-                            this.sendDataEvent(result);
+                            this.sendValueEvent(result);
                             subscriber.next(result);
                         }
                         if (options.searchReturns == 'foundedWithDescendants') {
@@ -84,7 +84,7 @@ export class JsonCollection extends CollectionImpl<any> {
                                     const value = result[i];
                                     if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
                                     await this.waitWhilePaused();
-                                    this.sendDataEvent(value);
+                                    this.sendValueEvent(value);
                                     subscriber.next(value);
                                 };
                             }
@@ -93,7 +93,7 @@ export class JsonCollection extends CollectionImpl<any> {
                                     if (result.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
                                         await this.waitWhilePaused();
-                                        this.sendDataEvent(result[key]);
+                                        this.sendValueEvent(result[key]);
                                         subscriber.next(result[key]);
                                     }
                                 }
@@ -128,7 +128,7 @@ export class JsonCollection extends CollectionImpl<any> {
                         for (const value of result) {
                             if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``;
                             await this.waitWhilePaused();
-                            this.sendDataEvent(value);
+                            this.sendValueEvent(value);
                             subscriber.next(value);
                         };
                     }
@@ -144,7 +144,7 @@ export class JsonCollection extends CollectionImpl<any> {
                                     const child = value[i];
                                     if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
                                     await this.waitWhilePaused();
-                                    this.sendDataEvent(child);
+                                    this.sendValueEvent(child);
                                     subscriber.next(child);
                                 };
                             }
@@ -153,7 +153,7 @@ export class JsonCollection extends CollectionImpl<any> {
                                     if (value.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
                                         await this.waitWhilePaused();
-                                        this.sendDataEvent(value[key]);
+                                        this.sendValueEvent(value[key]);
                                         subscriber.next(value[key]);
                                     }
                                 }
@@ -175,7 +175,7 @@ export class JsonCollection extends CollectionImpl<any> {
     protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: JsonReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
         await this.waitWhilePaused();
-        this.sendDataEvent(element);
+        this.sendValueEvent(element);
         subscriber.next(element);
 
         if (Array.isArray(element)) {
@@ -227,8 +227,8 @@ export class JsonCollection extends CollectionImpl<any> {
 
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
-    public async push(value: any, path: string = '', fieldname: string = '') {
-        super.push(value);
+    public async insert(value: any, path: string = '', fieldname: string = '') {
+        super.insert(value);
 
         const obj = this.get(path);
 
@@ -238,8 +238,8 @@ export class JsonCollection extends CollectionImpl<any> {
         if (this.autosave) this.save();
     }
 
-    public async clear() {
-        super.clear();
+    public async delete() {
+        super.delete();
         this.json = {};
         if (this.autosave) this.save();
     }

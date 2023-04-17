@@ -1,4 +1,4 @@
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../../core/collection.js";
+import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
 import { TrelloEndpoint } from './endpoint.js';
 
@@ -51,7 +51,7 @@ export type Comment = {
 }
 
 
-export class CommentsCollection extends CollectionImpl<Partial<Comment>> {
+export class CommentsCollection extends BaseCollection<Partial<Comment>> {
     protected static instanceNo = 0;
     //protected boardId: string;
     protected cardId: string;
@@ -63,7 +63,7 @@ export class CommentsCollection extends CollectionImpl<Partial<Comment>> {
         this.cardId = cardId;
     }
 
-    public list(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>> {
+    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>> {
         const observable = new EtlObservable<Partial<Comment>>((subscriber) => {
             (async () => {
                 try {
@@ -83,7 +83,7 @@ export class CommentsCollection extends CollectionImpl<Partial<Comment>> {
                     this.sendStartEvent();
                     for (const obj of comments) {
                         await this.waitWhilePaused();
-                        this.sendDataEvent(obj);
+                        this.sendValueEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();
@@ -98,13 +98,13 @@ export class CommentsCollection extends CollectionImpl<Partial<Comment>> {
         return observable;
     }
 
-    public async push(text: string) {
-        super.push(text);
+    public async insert(text: string) {
+        super.insert(text);
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
     }
 
     public async update(commentId: string, value: Omit<Partial<Comment>, 'id'>) {
-        super.push(value as Partial<Comment>);
+        super.insert(value as Partial<Comment>);
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments/${commentId}`, {filter: 'commentCard'}, 'PUT', value);
     }
 

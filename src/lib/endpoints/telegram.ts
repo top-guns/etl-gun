@@ -1,7 +1,7 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
-import { Endpoint} from "../core/endpoint.js";
-import { Collection, CollectionGuiOptions, CollectionImpl } from "../core/collection.js";
+import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
@@ -10,7 +10,7 @@ export type TelegramInputMessage = {
     message: string;
 }
 
-export class TelegramEndpoint extends Endpoint {
+export class TelegramEndpoint extends BaseEndpoint {
     constructor() {
         super();
     }
@@ -30,7 +30,7 @@ export class TelegramEndpoint extends Endpoint {
     }
 }
 
-export class MessageCollection extends CollectionImpl<TelegramInputMessage> {
+export class MessageCollection extends BaseCollection<TelegramInputMessage> {
     protected static instanceNo = 0;
     protected token: string;
     protected keyboard: any;
@@ -44,7 +44,7 @@ export class MessageCollection extends CollectionImpl<TelegramInputMessage> {
         this.keyboard = keyboard;
     }
 
-    public list(): EtlObservable<TelegramInputMessage> {
+    public select(): EtlObservable<TelegramInputMessage> {
         const observable = new EtlObservable<TelegramInputMessage>((subscriber) => {
             try {
                 this.sendStartEvent();
@@ -61,7 +61,7 @@ export class MessageCollection extends CollectionImpl<TelegramInputMessage> {
                         }
 
                         await this.waitWhilePaused();
-                        this.sendDataEvent(message);
+                        this.sendValueEvent(message);
                         subscriber.next(message);
 
                         if (this.keyboard) this.installKeyboard(message.chatId, "", this.keyboard);
@@ -84,16 +84,16 @@ export class MessageCollection extends CollectionImpl<TelegramInputMessage> {
         this.bot = undefined;
     }
 
-    public async push(value: TelegramInputMessage);
-    public async push(chatId: string, message: string);
-    public async push(valueOrChartId: TelegramInputMessage | string, message?: string) {
+    public async insert(value: TelegramInputMessage);
+    public async insert(chatId: string, message: string);
+    public async insert(valueOrChartId: TelegramInputMessage | string, message?: string) {
         if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
-        super.push(value);
+        super.insert(value);
         this.bot.sendMessage(value.chatId, value.message);
     }
 
-    public async clear() {
+    public async delete() {
         //super.clear();
         throw new Error("Method not implemented.");
     }
