@@ -1,25 +1,25 @@
-import * as trello from './trello/index.js'
-import * as csv from './csv.js'
-import * as filesystem from './filesystem.js'
-import * as interval from './interval.js'
-import * as json from './json.js'
-import * as magento from './magento.js'
-import * as memory from './memory.js'
-import * as mysql from './mysql.js'
-import * as postgres from './postgres.js'
-import * as telegram from './telegram.js'
-import * as xml from './xml.js'
+import * as Trello from './trello/index.js'
+import * as Csv from './csv.js'
+import * as Filesystem from './filesystem.js'
+import * as Interval from './interval.js'
+import * as Json from './json.js'
+import * as Magento from './magento.js'
+import * as Memory from './memory.js'
+import * as Mysql from './mysql.js'
+import * as Postgres from './postgres.js'
+import * as Telegram from './telegram.js'
+import * as Xml from './xml.js'
 
 export {
-    trello,
-    csv,
-    filesystem,
-    interval,
-    json,
-    magento,
-    memory,
-    mysql,
-    postgres,
-    telegram,
-    xml
+    Trello,
+    Csv,
+    Filesystem,
+    Interval,
+    Json,
+    Magento,
+    Memory,
+    Mysql,
+    Postgres,
+    Telegram,
+    Xml
 }

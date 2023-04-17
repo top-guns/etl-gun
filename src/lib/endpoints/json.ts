@@ -116,9 +116,9 @@ export class Collection extends BaseCollection<any> {
     // About path syntax read https://www.npmjs.com/package/jsonpath-plus
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
-    public listByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
-    public listByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
-    public listByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
+    public selectByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
+    public selectByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
+    public selectByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {

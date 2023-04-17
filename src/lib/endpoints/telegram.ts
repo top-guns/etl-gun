@@ -5,7 +5,7 @@ import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
-export type TelegramInputMessage = {
+export type InputMessage = {
     chatId: string;
     message: string;
 }
@@ -15,9 +15,9 @@ export class Endpoint extends BaseEndpoint {
         super();
     }
 
-    startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection {
+    startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<InputMessage> = {}): Collection {
         guiOptions.displayName ??= collectionName;
-        return this._addCollection(collectionName, new MessageCollection(this, token, keyboard, guiOptions));
+        return this._addCollection(collectionName, new Collection(this, token, keyboard, guiOptions));
     }
 
     releaseBot(collectionName: string) {
@@ -30,22 +30,22 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
-export class MessageCollection extends BaseCollection<TelegramInputMessage> {
+export class Collection extends BaseCollection<InputMessage> {
     protected static instanceNo = 0;
     protected token: string;
     protected keyboard: any;
-    protected subscriber: Subscriber<TelegramInputMessage>;
+    protected subscriber: Subscriber<InputMessage>;
     protected bot: TelegramBot;
 
-    constructor(endpoint: Endpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
-        MessageCollection.instanceNo++;
+    constructor(endpoint: Endpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<InputMessage> = {}) {
+        Collection.instanceNo++;
         super(endpoint, guiOptions);
         this.token = token;
         this.keyboard = keyboard;
     }
 
-    public select(): EtlObservable<TelegramInputMessage> {
-        const observable = new EtlObservable<TelegramInputMessage>((subscriber) => {
+    public select(): EtlObservable<InputMessage> {
+        const observable = new EtlObservable<InputMessage>((subscriber) => {
             try {
                 this.sendStartEvent();
 
@@ -55,7 +55,7 @@ export class MessageCollection extends BaseCollection<TelegramInputMessage> {
 
                 this.bot.onText(/(.+)/, (msg: any, match: any) => {
                     (async () => {
-                        const message: TelegramInputMessage = {
+                        const message: InputMessage = {
                             chatId: msg.chat.id,
                             message: match[1]
                         }
@@ -84,9 +84,9 @@ export class MessageCollection extends BaseCollection<TelegramInputMessage> {
         this.bot = undefined;
     }
 
-    public async insert(value: TelegramInputMessage);
+    public async insert(value: InputMessage);
     public async insert(chatId: string, message: string);
-    public async insert(valueOrChartId: TelegramInputMessage | string, message?: string) {
+    public async insert(valueOrChartId: InputMessage | string, message?: string) {
         if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
         super.insert(value);

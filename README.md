@@ -35,16 +35,16 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
     * [Core](#core)
         * [Collection](#collection)
     * [Endpoints and it's collections](#endpoints-and-its-collections)
-        * [MemoryEndpoint](#memoryendpoint)
-        * [FilesystemEndpoint](#filesystemendpoint)
-        * [CsvEndpoint](#csvendpoint)
-        * [JsonEndpoint](#jsonendpoint)
-        * [XmlEndpoint](#xmlendpoint)
-        * [PostgresEndpoint](#postgresendpoint)
-        * [MagentoEndpoint](#magentoendpoint)
-        * [TrelloEndpoint](#trelloendpoint)
-        * [TelegramEndpoint](#telegramendpoint)
-        * [IntervalEndpoint](#intervalendpoint)
+        * [Memory](#memory)
+        * [Filesystem](#filesystem)
+        * [Csv](#csv)
+        * [Json](#json)
+        * [Xml](#xml)
+        * [Postgres](#postgres)
+        * [Magento](#magento)
+        * [Trello](#trello)
+        * [Telegram](#telegram)
+        * [Interval](#interval)
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
@@ -77,7 +77,7 @@ Here's some ways to use it:
 2. Create file converters
 3. Filter or sort content of some files
 4. Run some queries in database
-5. Create Telegram bots with [TelegramEndpoint](#telegramendpoint)
+5. Create Telegram bots with [Telegram.Endpoint](#telegram)
 
 You can find many examples of using **RxJs-ETL-Kit** in the API Reference section of this file.
 
@@ -104,22 +104,22 @@ Import the RxJs-ETL-Kit library in the desired file to make it accessible.
 Introductory example of library using: postgresql -> .csv
 ```typescript
 import { map } from "rxjs";
-import { CsvEndpoint, GuiManager, Header, PostgresEndpoint, log, push, run } from "rxjs-etl-kit";
+import { Csv, GuiManager, Header, Postgres, log, push, run } from "rxjs-etl-kit";
 
 // If you want to view GUI, uncomment the next line of code
 // new GuiManager();
 
 // Step 1: endpoint creation
-const postgres = new PostgresEndpoint("postgres://user:password@127.0.0.1:5432/database");
+const postgres = new Postgres.Endpoint("postgres://user:password@127.0.0.1:5432/database");
 const source = postgres.getTable('users');
 
-const csvEndpoint = new CsvEndpoint('./dest-folder');
-const dest = csvEndpoint.getFile('users.scv');
+const csv = new Csv.Endpoint('./dest-folder');
+const dest = csv.getFile('users.scv');
 
 const header = new Header("id", "name", "login", "email");
 
 // Step 2: transformation streams creation
-const sourceToDest$ = source.list().pipe(
+const sourceToDest$ = source.select().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
@@ -146,8 +146,8 @@ Using of this library consists of 3 steps:
 
 ETL process:
 
-* **Extract**: Data extraction from the source collection performs with **list()** method, which returns the **RxJs** stream
-* **Transform**: Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **MemoryEndpoint** class, which can store data and which collections have **forEach()** and some other methods to manipulate with data in it
+* **Extract**: Data extraction from the source collection performs with **select()** method, which returns the **RxJs** stream
+* **Transform**: Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **Memory.Endpoint** class, which can store data and which collections have **forEach()** and some other methods to manipulate with data in it
 * **Load**: Loading of data to the destination endpoint performs with **push()** collection operator
 
 Chaining:
@@ -167,7 +167,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 * Many kind of source and destination endpoints, for example PostgreSql, csv, json, xml
 * Work with any type of data, including hierarchical data structures (json, xml) and support typescript types
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
-* You can create Telegram bots with [TelegramEndpoint](#telegramendpoint) to control the ETL process for example
+* You can create Telegram bots with [Telegram.Endpoint](#telegram) to control the ETL process for example
 * You can translate some data to another language with [GoogleTranslateHelper](#googletranslatehelper)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -191,18 +191,18 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 ### Export rows from Postgres table to csv-file (postgresql -> .csv)
 
 ```typescript
-import { PostgresEndpoint, CsvEndpoint, Header, log, push, run } from "rxjs-etl-kit";
+import { Postgres, Csv, Header, log, push, run } from "rxjs-etl-kit";
 import { map } from "rxjs";
 
-const postgres = new PostgresEndpoint("postgres://user:password@127.0.0.1:5432/database");
+const postgres = new Postgres.Endpoint("postgres://user:password@127.0.0.1:5432/database");
 const source = postgres.getTable('users');
 
-const csvEndpoint = new CsvEndpoint('./dest-folder');
-const dest = csvEndpoint.getFile('users.scv');
+const csv = new Csv.Endpoint('./dest-folder');
+const dest = csv.getFile('users.scv');
 
 const header = new Header("id", "name", "login", "email");
 
-const sourceToDest$ = source.list().pipe(
+const sourceToDest$ = source.select().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
@@ -216,22 +216,22 @@ await run(sourceToDest$);
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const csvEndpoint = etl.CsvEndpoint();
+const csvEndpoint = new etl.Csv.Endpoint();
 const csv = csvEndpoint.getFile('users.scv');
-const memory = etl.BufferEndpoint();
+const memory = new etl.Memory.Endpoint();
 const buffer = memory.getBuffer('buffer 1');
 
-const scvToBuffer$ = csv.list().pipe(
+const scvToBuffer$ = csv.select().pipe(
     etl.push(buffer)
 );
-const bufferToCsv$ = buffer.list().pipe(
+const bufferToCsv$ = buffer.select().pipe(
     etl.push(csv)
 );
 
 await etl.run(scvToBuffer$);
 
 buffer.sort((row1, row2) => row1[0] > row2[0]);
-csv.clear();
+csv.delete();
 
 await etl.run(bufferToCsv$)
  ```
@@ -241,14 +241,14 @@ await etl.run(bufferToCsv$)
  ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const telegram = new etl.TelegramEndpoint();
+const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', process.env.TELEGRAM_BOT_TOKEN!);
 const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
-const startTelegramBot$ = telegram.list().pipe(
+const startTelegramBot$ = bot.select().pipe(
     etl.log(),          // log user messages to the console
     translator.operator([], [message]), // translate 'message' field
-    etl.push(telegram)  // echo input message back to the user
+    etl.push(bot)  // echo input message back to the user
 );
 
 etl.run(startTelegramBot$);
@@ -268,14 +268,21 @@ Methods:
 
 ```typescript
 // Read elements from the collection and create data stream to process it
-list(): Observable<any>;
+// where: condition of the element selection
+select(where?: any): Observable<any>;
 
 // Add value to the collection (usually to the end of stream)
 // value: what will be added to the collection
-async push(value: any);
+async insert(value: any);
+
+// Update collection elements
+// where: condition of the element selection
+// value: what will be added to the collection
+async update(where: any, value: any);
 
 // Clear data of the collection
-async clear();
+// where: condition of the element selection
+async delete(where?: any);
 
 // Add listener of specified event
 // event: which event we want to listen, see below
@@ -287,36 +294,41 @@ Types:
 
 ```typescript
 export type CollectionEvent = 
-    "list.start" |  // fires at the start of stream
-    "list.end" |    // at the end of stream
-    "list.data" |   // for every data value in the stream 
-    "list.error" |  // on error
-    "list.skip" |   // when the endpoint skip some data 
-    "list.up" |     // when the endpoint go to the parent element while the tree data processing
-    "list.down" |   // when the endpoint go to the child element while the tree data processing
-    "push" |        // when data is pushed to the endpoint
-    "clear";        // when the Endpoint.clear method is called
+    "select.start" |  // fires at the start of stream
+    "select.end" |    // at the end of stream
+    "select.recive" | // for every data value in the stream 
+    "select.error" |  // on error
+    "select.skip" |   // when the collection skip some data 
+    "select.up" |     // when the collection go to the parent element while the tree data processing
+    "select.down" |   // when the collection go to the child element while the tree data processing
+    "insert" |        // when data is inserted to the collection
+    "update" |        // when data is updated in the collection
+    "delete";        // when data is deleted from the collection
 ```
 
 ## Endpoints and it's collections
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### MemoryEndpoint
+### Memory
+
+Create and manipulate with collections of objects in memory.
+
+#### Endpoint
 
 ```typescript
 // Creates new memory buffer. This is a generic method so you can specify type of data which will be stored in
 // collectionName: identificator of the creating collection object
 // values: initial data
 // guiOptions: Some options how to display this endpoint
-getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection;
+getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): Collection;
 
 // Release buffer data
 // collectionName: identificator of the releasing collection object
 releaseBuffer(collectionName: string);
 ```
 
-### BufferCollection
+#### Collection
 
 Buffer to store values in memory and perform complex operations on it. Should be created with **getBuffer** method of **MemoryEndpoint**
 
@@ -324,14 +336,14 @@ Methods:
 
 ```typescript
 // Create the observable object and send data from the buffer to it
-list(): Observable<T>;
+select(): Observable<T>;
 
 // Pushes the value to the buffer 
 // value: what will be added to the buffer
-async push(value: T);
+async insert(value: T);
 
 // Clear endpoint data buffer
-async clear();
+async delete();
 
 // Sort buffer data
 // compareFn: You can spacify the comparison function which returns number 
@@ -348,31 +360,33 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const csvEndpoint = etl.CsvEndpoint();
+const csvEndpoint = new etl.Csv.Endpoint();
 const csv = csvEndpoint.getFile('users.scv');
-const memory = etl.BufferEndpoint();
+const memory = new etl.Memory.Endpoint();
 const buffer = memory.getBuffer('buffer 1');
 
-const scvToBuffer$ = csv.list().pipe(
+const scvToBuffer$ = csv.select().pipe(
     etl.push(buffer);
 )
-const bufferToCsv$ = buffer.list().pipe(
+const bufferToCsv$ = buffer.select().pipe(
     etl.push(csv)
 )
 
 await etl.run(scvToBuffer$);
 
 buffer.sort((row1, row2) => row1[0] > row2[0]);
-csv.clear();
+csv.delete();
 
 etl.run(bufferToCsv$)
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### FilesystemEndpoint
+### Filesystem
 
 Search for files and folders with standart unix shell wildcards [see glob documentation for details](https://www.npmjs.com/package/glob).
+
+#### Endpoint
 
 Methods:
 
@@ -383,14 +397,14 @@ constructor(rootFolder: string);
 // Creates new FilesystemCollection
 // folderName: subfolder of the root folder and identificator of the creating collection object
 // guiOptions: Some options how to display this endpoint
-getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): FilesystemCollection;
+getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): Collection;
 
 // Release FilesystemCollection
 // folderName: identificator of the releasing collection object
 releaseFolder(folderName: string);
 ```
 
-### FilesystemCollection
+#### Collection
 
 Methods:
 
@@ -401,22 +415,22 @@ Methods:
 //       *.js - all js files in root folder
 //       **/*.png - all png files in root folder and subfolders
 // options: Search options, see below
-list(mask: string = '*', options?: ReadOptions): Observable<string[]>;
+select(mask: string = '*', options?: ReadOptions): Observable<string[]>;
 
 // Create folder or file
-// pathDetails: Information about path, which returns from list() method
+// pathDetails: Information about path, which returns from select() method
 // filePath: File or folder path
 // isFolder: Is it file or folder
 // data: What will be added to the file, if it is a file, ignore for folders
-async push(pathDetails: PathDetails, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream);
-async push(filePath: string, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, isFolder?: boolean);
+async insert(pathDetails: PathDetails, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream);
+async insert(filePath: string, data?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Stream, isFolder?: boolean);
 
 // Clear the root folder by mask
 // mask: Which files and folders we need to delete
 // options: Search options, see below 
 //          IMPORTANT! Be careful with option includeRootDir because if it is true, and the objectsToSearch is not 'filesOnly',
 //          then the root folder will be deleted with all its content! Including folder itself.
-async clear(mask: string = '*', options?: ReadOptions);
+async delete(mask: string = '*', options?: ReadOptions);
 ```
 
 Types:
@@ -450,10 +464,10 @@ Example:
 import * as etl from "rxjs-etl-kit";
 import * as rxjs from "rxjs";
 
-const fs = new etl.FilesystemEndpoint('~');
+const fs = new etl.Filesystem.Endpoint('~');
 const scripts = ep.getFolder('scripts');
 
-const printAllJsFileNames$ = scripts.list('**/*.js').pipe(
+const printAllJsFileNames$ = scripts.select('**/*.js').pipe(
     rx.map(v => v.name)
     etl.log()
 );
@@ -463,9 +477,11 @@ etl.run(printAllJsFileNames$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### CsvEndpoint
+### Csv
 
 Parses source csv file into individual records or write record to the end of destination csv file. Every record is csv-string and presented by array of values.
+
+#### Endpoint
 
 Methods:
 
@@ -474,14 +490,14 @@ Methods:
 // filename: full or relative name of the csv file and identificator of the creating collection object
 // delimiter: delimiter of values in one string of file data, equals to ',' by default
 // guiOptions: Some options how to display this endpoint
-getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): CsvCollection;
+getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): Collection;
 
 // Release collection object
 // filename: identificator of the releasing collection object
 releaseFile(filename: string);
 ```
 
-### CsvCollection
+#### Collection
 
 Methods:
 
@@ -489,14 +505,14 @@ Methods:
 // Create the observable object and send file data to it string by string
 // skipFirstLine: skip the first line in the file, useful for skip header
 // skipEmptyLines: skip all empty lines in file
-list(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]>;
+select(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]>;
 
 // Add row to the end of file with specified value 
 // value: what will be added to the file
-async push(value: string[]);
+async insert(value: string[]);
 
 // Clear the csv file
-async clear();
+async delete();
 ```
 
 Example:
@@ -504,10 +520,10 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const csv = etl.CsvEndpoint('~');
+const csv = new etl.Csv.Endpoint('~');
 const testFile = csv.getFile('test.csv')
 
-const logTestFileRows$ = testFile.list().pipe(
+const logTestFileRows$ = testFile.select().pipe(
     etl.log()
 );
 
@@ -516,9 +532,11 @@ etl.run(logTestFileRows$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### JsonEndpoint
+### Json
 
 Read and write json file with buffering it in memory. You can get objects from json by path specifing in JSONPath format or in lodash simple path manner (see logash 'get' function documentation).
+
+#### Endpoint
 
 Methods:
 
@@ -529,14 +547,14 @@ Methods:
 // autoload: load json from the file to memory before every get or search operation
 // encoding: file encoding
 // guiOptions: Some options how to display this endpoint
-getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): JsonCollection;
+getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): Collection;
 
 // Release collection object
 // filename: identificator of the releasing collection object
 releaseFile(filename: string);
 ```
 
-### JsonCollection
+#### Collection
 
 Methods:
 
@@ -545,8 +563,8 @@ Methods:
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
 // options: see below
-list(path: string, options?: ReadOptions): Observable<any>;
-listByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>;
+select(path: string, options?: ReadOptions): Observable<any>;
+selectByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>;
 
 // Find and return child object by specified path
 // path: search path in lodash simple path manner
@@ -560,10 +578,10 @@ getByJsonPath(jsonPath: string): any;
 // path: where value will be added as child, specified in lodash simple path manner
 // fieldname: name of the field to which the value will be added, 
 //            and flag - is we add value to array or to object
-async push(value: any, path?: string, fieldname?: string);
+async insert(value: any, path?: string, fieldname?: string);
 
 // Clear the json file and write an empty object to it
-async clear();
+async delete();
 
 // Reload the json to the memory from the file
 load();
@@ -590,14 +608,14 @@ Example:
 import * as etl from "rxjs-etl-kit";
 import { tap } from "rxjs";
 
-const json = etl.JsonEndpoint('~');
+const json = new etl.Json.Endpoint('~');
 const testFile = etl.getFile('test.json');
 
-const printJsonBookNames$ = testFile.list('store.book').pipe(
+const printJsonBookNames$ = testFile.select('store.book').pipe(
     tap(book => console.log(book.name))
 );
 
-const printJsonAuthors$ = testFile.listByJsonPath('$.store.book[*].author', {searchReturns: 'foundedOnly', addRelativePathAsField: "path"}).pipe(
+const printJsonAuthors$ = testFile.selectByJsonPath('$.store.book[*].author', {searchReturns: 'foundedOnly', addRelativePathAsField: "path"}).pipe(
     etl.log()
 );
 
@@ -606,11 +624,13 @@ await etl.run(printJsonAuthors$, printJsonBookNames$);
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### XmlEndpoint
+### Xml
 
 <a name="xml" href="#xml">#</a> etl.<b>XmlEndpoint</b>(<i>filename, autosave?, autoload?, encoding?</i>)
 
 Read and write XML document with buffering it in memory. You can get nodes from XML by path specifing in XPath format.
+
+#### Endpoint
 
 Methods:
 
@@ -621,14 +641,14 @@ Methods:
 // autoload: load xml from the file to memory before every get or search operation
 // encoding: file encoding
 // guiOptions: Some options how to display this endpoint
-getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<string[]> = {}): XmlCollection;
+getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<string[]> = {}): Collection;
 
 // Release collection object
 // filename: identificator of the releasing collection object
 releaseFile(filename: string);
 ```
 
-### XmlCollection
+#### Collection
 
 Methods:
 
@@ -636,7 +656,7 @@ Methods:
 // Find and send to observable child objects by specified xpath
 // xpath: xpath to search
 // options: see below
-list(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node>;
+select(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node>;
 
 // Find and return child node by specified path
 // xpath: search path
@@ -648,10 +668,10 @@ get(xpath: string = ''): XPath.SelectedValue
 // xpath: where value will be added as child, specified in lodash simple path manner
 // attribute: name of the attribute which value will be setted, 
 //            and flag - is we add value as attribute or as node
-async push(value: any, xpath: string = '', attribute: string = '');
+async insert(value: any, xpath: string = '', attribute: string = '');
 
 // Clear the xml file and write an empty object to it
-async clear();
+async delete();
 
 // Reload the xml to the memory from the file
 load();
@@ -678,10 +698,10 @@ Example
 import * as etl from "rxjs-etl-kit";
 import { map } from "rxjs";
 
-const xml = etl.XmlEndpoint('/tmp');
-const testFile = xml.XmlCollection('test.xml');
+const xml = new etl.Xml.Endpoint('/tmp');
+const testFile = xml.getFile('test.xml');
 
-const printXmlAuthors$ = testFile.list('/store/book/author').pipe(
+const printXmlAuthors$ = testFile.select('/store/book/author').pipe(
     map(v => v.firstChild.nodeValue),
     etl.log()
 );
@@ -691,9 +711,11 @@ await etl.run(printXmlAuthors$);
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### PostgresEndpoint
+### Postgres
 
 Represents PostgreSQL database. Based on [node-postgres (aka 'pg')](https://github.com/brianc/node-postgres) module.
+
+#### Endpoint
 
 Methods:
 
@@ -715,7 +737,7 @@ releaseTable(table: string);
 releaseEndpoint();
 ```
 
-### TableCollection
+#### TableCollection
 
 Presents the table from the PostgreSQL database. 
 
@@ -754,7 +776,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = etl.PostgresEndpoint('postgres://user:password@127.0.0.1:5432/database');
+const pg = new etl.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -766,9 +788,11 @@ etl.run(logUsers$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### MysqlEndpoint
+### Mysql
 
 Represents MySQL database. Based on [mysql2-async](https://github.com/txstate-etc/mysql2-async) module.
+
+#### Endpoint
 
 Methods:
 
@@ -790,7 +814,7 @@ releaseTable(table: string);
 releaseEndpoint();
 ```
 
-### TableCollection
+#### TableCollection
 
 Presents the table from the MySQL database. 
 
@@ -829,7 +853,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const mysql = etl.PostgresEndpoint('mysql://user:password@localhost:3306/database');
+const mysql = new etl.Postgres.Endpoint('mysql://user:password@localhost:3306/database');
 const table = mysql.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -841,10 +865,12 @@ etl.run(logUsers$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### MagentoEndpoint
+### Magento
 
 Presents Magento CMS objects.
 Go to https://meetanshi.com/blog/create-update-product-using-rest-api-in-magento-2/ for details how to configure Magento integration to get access to it's API. 
+
+#### Endpoint
 
 Methods:
 
@@ -863,7 +889,7 @@ getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCo
 releaseProducts();
 ```
 
-### ProductsCollection
+#### ProductsCollection
 
 Presents Magento CMS products. 
 
@@ -873,11 +899,11 @@ Methods:
 // Create the observable object and send product data from the Magento to it
 // where: you can filter products by specifing object with fields as collumn names and it's values as fields values 
 // fields: you can select which products fields will be returned (null means 'all fields') 
-list(where: Partial<Product> = {}, fields: ProductFields[] = null): Observable<T>;
+select(where: Partial<Product> = {}, fields: ProductFields[] = null): Observable<T>;
 
 // Add new product to the Magento
 // value: product fields values
-async push(value: NewProductAttributes);
+async insert(value: NewProductAttributes);
 ```
 
 Example:
@@ -885,10 +911,10 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const magento = etl.MagentoEndpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
+const magento = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
 const products = magento.getProducts();
 
-const logProductsWithPrice100$ = products.list({price: 100}).pipe(
+const logProductsWithPrice100$ = products.select({price: 100}).pipe(
     etl.log()
 );
 
@@ -897,10 +923,12 @@ etl.run(logProductsWithPrice100$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### TrelloEndpoint
+### Trello
 
 Presents Trello task tracking system objects.
 For details how to get API key and authorization token please read [Trello documentation](https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/).
+
+#### Endpoint
 
 Methods:
 
@@ -940,7 +968,7 @@ getCardComments(cardId: string, collectionName: string = 'Comments', guiOptions:
 releaseCollection(collectionName: string);
 ```
 
-### BoardsCollection
+#### BoardsCollection
 
 Presents Trello boards accessible by user which was specified while collection creation. 
 
@@ -950,11 +978,11 @@ Methods:
 // Create the observable object and send boards data from the Trello to it
 // where (does not working now!): you can filter boards by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which board fields will be returned (null means 'all fields') 
-list(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
+select(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
 
 // Add new board to the Trello
 // value: board fields values
-async push(value: Omit<Partial<Board>, 'id'>);
+async insert(value: Omit<Partial<Board>, 'id'>);
 
 // Update board fields values by board id
 // boardId: board id
@@ -972,7 +1000,7 @@ async get(boardId?: string): Promise<Board>;
 async getByBrowserUrl(url: string): Promise<Board>;
 ```
 
-### ListsCollection
+#### ListsCollection
 
 Presents Trello lists on board which was specified while collection creation. 
 
@@ -982,11 +1010,11 @@ Methods:
 // Create the observable object and send lists data from the Trello to it
 // where (does not working now!): you can filter lists by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which list fields will be returned (null means 'all fields') 
-list(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
+select(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
 
 // Add new list to the Trello
 // value: list fields values
-async push(value: Omit<Partial<List>, 'id'>);
+async insert(value: Omit<Partial<List>, 'id'>);
 
 // Update list fields values by list id
 // listId: list id
@@ -1014,7 +1042,7 @@ async move(listId: string, destBoardId: string);
 async getActions(listId: string);
 ```
 
-### CardsCollection
+#### CardsCollection
 
 Presents Trello cards in list which was specified while collection creation. 
 
@@ -1024,11 +1052,11 @@ Methods:
 // Create the observable object and send cards data from the Trello to it
 // where (does not working now!): you can filter cards by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which card fields will be returned (null means 'all fields') 
-list(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
+select(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
 
 // Add new card to the Trello
 // value: card fields values
-async push(value: Omit<Partial<Card>, 'id'>);
+async insert(value: Omit<Partial<Card>, 'id'>);
 
 // Update card fields values by card id
 // listId: card id
@@ -1051,7 +1079,7 @@ async archiveListCards();
 async moveListCards(destBoardId: string, destListId: string);
 ```
 
-### CommentsCollection
+#### CommentsCollection
 
 Presents Trello card comments in card which was specified while collection creation. 
 
@@ -1061,11 +1089,11 @@ Methods:
 // Create the observable object and send comments from the Trello to it
 // where (does not working now!): you can filter comments by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which comment fields will be returned (null means 'all fields') 
-list(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>>;
+select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>>;
 
 // Add new comment to the Trello card
 // text: comment text
-async push(text: string);
+async insert(text: string);
 
 // Update comment fields values by comment id
 // commentId: comment id
@@ -1086,7 +1114,7 @@ Example:
 import * as rx from 'rxjs';
 import * as etl from 'rxjs-etl-kit';
 
-const trello = etl.TrelloEndpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
+const trello = new etl.Trello.Endpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
 
 const boards = trello.getUserBoards();
 const board = await boards.getByBrowserUrl('https://trello.com/b/C9zegsyz/board1');
@@ -1096,7 +1124,7 @@ const list = (await lists.get())[0];
 
 const cards = trello.getListCards(list.id);
 
-const addCommentToAllCards$ = cards.list().pipe(
+const addCommentToAllCards$ = cards.select().pipe(
     rx.tap(card => {
         const comments = trello.getBoardLists(card.id, 'cards');
         comments.push('New comment');
@@ -1109,10 +1137,12 @@ etl.run(addCommentToAllCards$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### TelegramEndpoint
+### Telegram
 
 With this endpoint you can create telegram bots and chats with users. It can listen for user messages and send the response massages. 
 It also can set the user keyboard for the chat.
+
+#### Endpoint
 
 Methods:
 
@@ -1123,14 +1153,14 @@ Methods:
 // keyboard: JSON keyboard description, see the node-telegram-bot-api for detailes
 //           Keyboard example: [["Text for command 1", "Text for command 2"], ["Text for command 3"]]
 // guiOptions: Some options how to display this endpoint
-startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): MessageCollection;
+startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}): Collection;
 
 // Stop bot
 // collectionName: identificator of the releasing collection object
 releaseBot(collectionName: string);
 ```
 
-### MessageCollection
+#### Collection
 
 Presents all chat bot messages.
 
@@ -1138,7 +1168,7 @@ Methods:
 
 ```typescript
 // Start reciving of all users messages
-list(): Observable<T>;
+select(): Observable<T>;
 
 // Stop reciving of user messages
 async stop();
@@ -1147,8 +1177,8 @@ async stop();
 // value: Message in TelegramInputMessage type
 // chatId: id of the destination chat, get it from input user messages
 // message: Message to send
-async push(value: TelegramInputMessage);
-async push(chatId: string, message: string);
+async insert(value: TelegramInputMessage);
+async insert(chatId: string, message: string);
 
 // Update keyboard structure to specified
 // keyboard: JSON keyboard description, constructor for detailes
@@ -1160,10 +1190,10 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const telegram = new etl.TelegramEndpoint();
+const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', '**********');
 
-const startTelegramBot$ = bot.list().pipe(
+const startTelegramBot$ = bot.select().pipe(
     etl.log(),          // log user messages to the console
     etl.push(bot)  // echo input message back to the user
 );
@@ -1173,9 +1203,11 @@ etl.run(startTelegramBot$);
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### IntervalEndpoint
+### Interval
 
 This endpoint is analog of **RxJs** interval() operator, with GUI support. It emits simple counter, which increments every interval.
+
+#### Endpoint
 
 Methods:
 
@@ -1184,30 +1216,30 @@ Methods:
 // collectionName: identificator of the creating collection object
 // interval: Time interval in milliseconds between two emitted values 
 // guiOptions: Some options how to display this endpoint
-getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection;
+getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): Collection;
 
 // Stop interval
 // collectionName: identificator of the releasing collection object
 releaseSequence(collectionName: string);
 ```
 
-### IntervalCollection
+#### Collection
 
 Methods:
 
 ```typescript
 // Start interval generation, create observable and emit counter of intervals to it
-list(): Observable<number>;
+select(): Observable<number>;
 
 // Stop endpoint reading
 async stop();
 
 // Set value of interval counter
 // value: new value of the interval counter
-async push(value: number);
+async insert(value: number);
 
 // Set interval counter to 0
-async clear();
+async delete();
 ```
 
 Example:
@@ -1215,10 +1247,10 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const timer = new etl.IntervalEndpoint();
+const timer = new etl.Interval.Endpoint();
 const seq = new etl.getSequence('every 500 ms', 500);
 
-const startTimer$ = seq.list().pipe(
+const startTimer$ = seq.select().pipe(
     etl.log()          // log counter
 );
 
@@ -1238,10 +1270,10 @@ This function runs one or several streams and return promise to waiting when all
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-let memory = etl.MemoryEndpoint();
+let memory = new etl.Memory.Endpoint();
 let buffer = memory.getBuffer('test buffer', [1, 2, 3, 4, 5]);
 
-let stream$ = buffer.list().pipe(
+let stream$ = buffer.select().pipe(
     etl.log()
 );
 
@@ -1298,7 +1330,7 @@ Example
 import * as etl from "rxjs-etl-kit";
 import * as rx from "rxjs";
 
-let csv = etl.CsvEndpoint();
+let csv = new etl.Csv.Endpoint();
 let dest = csv.getFile('test.csv');
 
 let stream$ = rx.interval(1000).pipe(
@@ -1319,10 +1351,10 @@ Example
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-let csv = etl.CsvEndpoint();
+let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
 
-let stream$ = src.list().pipe(
+let stream$ = src.select().pipe(
     etl.numerate(10), // 10 is the first value for numeration
     etl.log()
 );
@@ -1341,10 +1373,10 @@ Example
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = etl.PostgresEndpoint('postgres://user:password@127.0.0.1:5432/database');
+const pg = new etl.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.list().pipe(
+const logUsers$ = table.select().pipe(
     etl.addField('NAME_IN_UPPERCASE', value => value.name.toUpperCase()),
     etl.log()
 );
@@ -1363,10 +1395,10 @@ Example
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-let csv = etl.CsvEndpoint();
+let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
 
-const stream$ = src.list().pipe(
+const stream$ = src.select().pipe(
     etl.addColumn(value => value[2].toUpperCase()), 
     etl.log()
 );
@@ -1385,13 +1417,13 @@ Example
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-let csv = etl.CsvEndpoint();
+let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
 
-let mem = etl.MemoryEndpoint();
+let mem = new etl.Memory.Endpoint();
 let buffer = mem.getBuffer('buffer 1', [1, 2, 3, 4, 5]);
 
-let stream$ = src.list().pipe(
+let stream$ = src.select().pipe(
     etl.join(buffer),
     etl.log()
 );
@@ -1408,15 +1440,15 @@ etl.run(stream$);
 This class help you to use Google translate service.
 
 ```typescript
-import { CsvEndpoint, GoogleTranslateHelper, log, run } from "rxjs-etl-kit";
+import { Csv, GoogleTranslateHelper, log, run } from "rxjs-etl-kit";
 import { mergeMap } from "rxjs";
 
-let csv = CsvEndpoint();
+let csv = new Csv.Endpoint();
 let src = csv.getFile('products.csv');
 
 const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
-let translateProducts$ = src.list().pipe(
+let translateProducts$ = src.select().pipe(
     translator.operator(),
     log()
 );
@@ -1428,17 +1460,17 @@ await run(translateProducts$);
 This class can store array of column names and convert object to array or array to object representation.
 
 ```typescript
-import { PostgresEndpoint, CsvEndpoint, Header, log, push, run } from "rxjs-etl-kit";
+import { Postgres, Csv, Header, log, push, run } from "rxjs-etl-kit";
 import { map } from "rxjs";
 
-const pg = new PostgresEndpoint("postgres://user:password@127.0.0.1:5432/database");
+const pg = new Postgres.Endpoint("postgres://user:password@127.0.0.1:5432/database");
 const source = pg.getTable("users");
 
-let csv = CsvEndpoint();
+let csv = new Csv.Endpoint();
 const dest = csv.getFile("users.csv");
 const header = new Header("id", "name", "login", "email");
 
-let sourceToDest$ = source.list().pipe(
+let sourceToDest$ = source.select().pipe(
     map(v => header.objToArr(v)),
     push(dest)
 );
