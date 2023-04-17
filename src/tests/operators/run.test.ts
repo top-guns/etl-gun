@@ -1,6 +1,6 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { MemoryEndpoint } from '../../lib/endpoints/memory.js'
+import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory.js'
 
 describe('Operator run()', () => {
     test('wait for two streams and check calls order', async () => {

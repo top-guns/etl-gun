@@ -1,6 +1,6 @@
 import { tap } from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { MemoryEndpoint } from '../../lib/endpoints/memory.js'
+import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory.js'
 
 describe('Operator where()', () => {
     test('function-style criteria', async () => {
