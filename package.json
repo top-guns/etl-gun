@@ -5,17 +5,7 @@
   "type": "module",
   "--main": "dist/index.js",
   "exports": {
-    ".": "./dist/index.js",
-    "./trello": "./dist/endpoints/trello/index.js",
-    "./csv": "./dist/endpoints/csv.js",
-    "./filesystem": "./dist/endpoints/filesystem.js",
-    "./interval": "./dist/endpoints/interval.js",
-    "./json": "./dist/endpoints/json.js",
-    "./magento": "./dist/endpoints/magento.js",
-    "./memory": "./dist/endpoints/memory.js",
-    "./mysql": "./dist/endpoints/mysql.js",
-    "./postgres": "./dist/endpoints/postgres.js",
-    "./telegram": "./dist/endpoints/telegram.js"
+    ".": "./dist/index.js"
   },
   "types": "./dist/index.d.ts",
   "node": ">=16",

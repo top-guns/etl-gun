@@ -19,7 +19,7 @@ export type PathDetails = {
     content?: Buffer;
 }
 
-export type FsReadOptions = {
+export type ReadOptions = {
     // false by default
     includeRootDir?: boolean;
     // all is default
@@ -28,7 +28,7 @@ export type FsReadOptions = {
     withContent?: boolean;
 }
 
-export class FilesystemEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
 
     constructor(rootFolder: string) {
@@ -37,12 +37,12 @@ export class FilesystemEndpoint extends BaseEndpoint {
         if (this.rootFolder.endsWith('/')) this.rootFolder.substring(0, this.rootFolder.lastIndexOf('/'));
     }
 
-    getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): FilesystemCollection {
+    getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): Collection {
         guiOptions.displayName ??= this.getName(folderName);
 
         let path = folderName == '.' ? '' : folderName;
         if (this.rootFolder) path = pathJoin([this.rootFolder, path], '/');
-        return this._addCollection(folderName, new FilesystemCollection(this, path, guiOptions));
+        return this._addCollection(folderName, new Collection(this, path, guiOptions));
     }
 
     releaseFolder(folderName: string) {
@@ -58,12 +58,12 @@ export class FilesystemEndpoint extends BaseEndpoint {
     }
 }
 
-export class FilesystemCollection extends BaseCollection<PathDetails> {
+export class Collection extends BaseCollection<PathDetails> {
     protected static instanceCount = 0;
     protected folderPath: string;
 
-    constructor(endpoint: FilesystemEndpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
-        FilesystemCollection.instanceCount++;
+    constructor(endpoint: Endpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
+        Collection.instanceCount++;
         super(endpoint, guiOptions);
         this.folderPath = folderPath.trim();
         if (this.folderPath.endsWith('/')) this.folderPath.substring(0, this.folderPath.lastIndexOf('/'));
@@ -72,7 +72,7 @@ export class FilesystemCollection extends BaseCollection<PathDetails> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(mask: string = '*', options: FsReadOptions = {}): EtlObservable<PathDetails> {
+    public select(mask: string = '*', options: ReadOptions = {}): EtlObservable<PathDetails> {
         const observable = new EtlObservable<any>((subscriber) => {
             try {
                 this.sendStartEvent();
@@ -156,7 +156,7 @@ export class FilesystemCollection extends BaseCollection<PathDetails> {
         }
     }
 
-    public async delete(mask: string = '*', options: FsReadOptions = {}) {
+    public async delete(mask: string = '*', options: ReadOptions = {}) {
         super.delete();
 
         if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
@@ -197,7 +197,7 @@ export class FilesystemCollection extends BaseCollection<PathDetails> {
         }
     }
 
-    protected async getPathDetails(relativePath: string, options?: FsReadOptions) {
+    protected async getPathDetails(relativePath: string, options?: ReadOptions) {
         const rootFolderPath = this.folderPath ? this.folderPath : '.';
         const fullPath = path.resolve(rootFolderPath + '/' + relativePath);
 

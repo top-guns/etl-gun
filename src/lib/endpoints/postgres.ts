@@ -5,7 +5,7 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 
-export class PostgresEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected connectionString: string = null;
     protected _connectionPool: pg.Pool = null;
     get connectionPool(): pg.Pool {
@@ -47,7 +47,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
     protected static instanceNo = 0;
     protected table: string;
 
-    constructor(endpoint: PostgresEndpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: Endpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
         TableCollection.instanceNo++;
         super(endpoint, guiOptions);
         this.table = table;
@@ -147,8 +147,8 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         return res;
     }
 
-    get endpoint(): PostgresEndpoint {
-        return super.endpoint as PostgresEndpoint;
+    get endpoint(): Endpoint {
+        return super.endpoint as Endpoint;
     }
 
 }

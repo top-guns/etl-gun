@@ -4,10 +4,10 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 
-export class IntervalEndpoint extends BaseEndpoint {
-    getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): IntervalCollection {
+export class Endpoint extends BaseEndpoint {
+    getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): Collection {
         guiOptions.displayName ??= `${collectionName} (${interval}ms)`;
-        return this._addCollection(collectionName, new IntervalCollection(this, interval, guiOptions));
+        return this._addCollection(collectionName, new Collection(this, interval, guiOptions));
     }
 
     releaseSequence(collectionName: string) {
@@ -20,15 +20,15 @@ export class IntervalEndpoint extends BaseEndpoint {
     }
 }
 
-export class IntervalCollection extends BaseCollection<number> {
+export class Collection extends BaseCollection<number> {
     protected static instanceNo = 0;
     protected interval: number;
     protected intervalId: NodeJS.Timer;
     protected counter: number = 0;
     protected subscriber: Subscriber<number>;
     
-    constructor(endpoint: IntervalEndpoint, interval: number, guiOptions: CollectionGuiOptions<number> = {}) {
-        IntervalCollection.instanceNo++;
+    constructor(endpoint: Endpoint, interval: number, guiOptions: CollectionGuiOptions<number> = {}) {
+        Collection.instanceNo++;
         super(endpoint, guiOptions);
         this.interval = interval;
     }

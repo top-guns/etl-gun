@@ -7,24 +7,24 @@ import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
-export type JsonReadOptions = {
+export type ReadOptions = {
     // foundedOnly is default
     searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
     addRelativePathAsField?: string;
 }
 
-export class JsonEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): JsonCollection {
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): Collection {
         guiOptions.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new JsonCollection(this, path, autosave, autoload, encoding, guiOptions));
+        return this._addCollection(filename, new Collection(this, path, autosave, autoload, encoding, guiOptions));
     }
 
     releaseFile(filename: string) {
@@ -40,7 +40,7 @@ export class JsonEndpoint extends BaseEndpoint {
     }
 }
 
-export class JsonCollection extends BaseCollection<any> {
+export class Collection extends BaseCollection<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -48,8 +48,8 @@ export class JsonCollection extends BaseCollection<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(endpoint: JsonEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
-        JsonCollection.instanceNo++;
+    constructor(endpoint: Endpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
+        Collection.instanceNo++;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;
@@ -61,7 +61,7 @@ export class JsonCollection extends BaseCollection<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(path: string = '', options: JsonReadOptions = {}): EtlObservable<any> {
+    public select(path: string = '', options: ReadOptions = {}): EtlObservable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -116,9 +116,9 @@ export class JsonCollection extends BaseCollection<any> {
     // About path syntax read https://www.npmjs.com/package/jsonpath-plus
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
-    public listByJsonPath(jsonPath?: string, options?: JsonReadOptions): Observable<any>;
-    public listByJsonPath(jsonPaths?: string[], options?: JsonReadOptions): Observable<any>;
-    public listByJsonPath(jsonPath: any = '', options: JsonReadOptions = {}): Observable<any> {
+    public listByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
+    public listByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
+    public listByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -172,7 +172,7 @@ export class JsonCollection extends BaseCollection<any> {
         return observable;
     }
 
-    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: JsonReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
         await this.waitWhilePaused();
         this.sendValueEvent(element);

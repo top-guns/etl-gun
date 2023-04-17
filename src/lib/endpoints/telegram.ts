@@ -10,7 +10,7 @@ export type TelegramInputMessage = {
     message: string;
 }
 
-export class TelegramEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     constructor() {
         super();
     }
@@ -37,7 +37,7 @@ export class MessageCollection extends BaseCollection<TelegramInputMessage> {
     protected subscriber: Subscriber<TelegramInputMessage>;
     protected bot: TelegramBot;
 
-    constructor(endpoint: TelegramEndpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
+    constructor(endpoint: Endpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<TelegramInputMessage> = {}) {
         MessageCollection.instanceNo++;
         super(endpoint, guiOptions);
         this.token = token;

@@ -1,6 +1,6 @@
 import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
-import { TrelloEndpoint } from './endpoint.js';
+import { Endpoint } from './endpoint.js';
 
 
 export type Comment = {
@@ -56,7 +56,7 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
     //protected boardId: string;
     protected cardId: string;
 
-    constructor(endpoint: TrelloEndpoint, cardId: string, guiOptions: CollectionGuiOptions<Partial<Comment>> = {}) {
+    constructor(endpoint: Endpoint, cardId: string, guiOptions: CollectionGuiOptions<Partial<Comment>> = {}) {
         CommentsCollection.instanceNo++;
         super(endpoint, guiOptions);
         //this.boardId = boardId;
@@ -115,7 +115,7 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
         return await this.endpoint.fetchJson(`1/cards/${this.cardId}/actions/comments`);
     }
 
-    get endpoint(): TrelloEndpoint {
-        return super.endpoint as TrelloEndpoint;
+    get endpoint(): Endpoint {
+        return super.endpoint as Endpoint;
     }
 }

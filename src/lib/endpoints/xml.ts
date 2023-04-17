@@ -8,24 +8,24 @@ import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
-export type XmlReadOptions = {
+export type ReadOptions = {
     // foundedOnly is default
     searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
     addRelativePathAsAttribute?: string;
 }
 
-export class XmlEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<string[]> = {}): XmlCollection {
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<string[]> = {}): Collection {
         guiOptions.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new XmlCollection(this, path, autosave, autoload, encoding, guiOptions));
+        return this._addCollection(filename, new Collection(this, path, autosave, autoload, encoding, guiOptions));
     }
 
     releaseFile(filename: string) {
@@ -46,7 +46,7 @@ export class XmlEndpoint extends BaseEndpoint {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class XmlCollection extends BaseCollection<any> {
+export class Collection extends BaseCollection<any> {
     protected static instanceNo = 0;
     protected filename: string;
     protected encoding: BufferEncoding;
@@ -54,8 +54,8 @@ export class XmlCollection extends BaseCollection<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(endpoint: XmlEndpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
-        XmlCollection.instanceNo++;
+    constructor(endpoint: Endpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
+        Collection.instanceNo++;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.encoding = encoding;
@@ -64,7 +64,7 @@ export class XmlCollection extends BaseCollection<any> {
         this.load();
     }
 
-    public select(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node> {
+    public select(xpath: string = '', options: ReadOptions = {}): EtlObservable<Node> {
         const observable = new EtlObservable<any>((subscriber) => {
             (async () => {
                 try {
@@ -90,7 +90,7 @@ export class XmlCollection extends BaseCollection<any> {
         return observable;
     }
 
-    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: XmlReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
+    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
@@ -122,7 +122,7 @@ export class XmlCollection extends BaseCollection<any> {
         }
     }
 
-    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: XmlReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         await this.waitWhilePaused();

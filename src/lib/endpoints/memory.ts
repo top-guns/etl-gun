@@ -3,10 +3,10 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 
-export class MemoryEndpoint extends BaseEndpoint {
-    getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection {
+export class Endpoint extends BaseEndpoint {
+    getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): Collection {
         guiOptions.displayName ??= collectionName;
-        return this._addCollection(collectionName, new BufferCollection(this, values, guiOptions));
+        return this._addCollection(collectionName, new Collection(this, values, guiOptions));
     }
     releaseBuffer(collectionName: string) {
         this._removeCollection(collectionName);
@@ -17,7 +17,7 @@ export class MemoryEndpoint extends BaseEndpoint {
     }
 }
 
-export class BufferCollection<T = any> extends BaseCollection<T> {
+export class Collection<T = any> extends BaseCollection<T> {
     protected static instanceCount = 0;
 
     protected _buffer: T[];
@@ -25,8 +25,8 @@ export class BufferCollection<T = any> extends BaseCollection<T> {
         return this._buffer;
     }
 
-    constructor(endpoint: MemoryEndpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
-        BufferCollection.instanceCount++;
+    constructor(endpoint: Endpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
+        Collection.instanceCount++;
         super(endpoint, guiOptions);
         this._buffer = [...values];
     }

@@ -1,6 +1,6 @@
 import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
 import { EtlObservable } from '../../core/observable.js';
-import { TrelloEndpoint } from './endpoint.js';
+import { Endpoint } from './endpoint.js';
 
 
 export type List = {
@@ -18,7 +18,7 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
     protected static instanceNo = 0;
     protected boardId: string;
 
-    constructor(endpoint: TrelloEndpoint, boardId: string, guiOptions: CollectionGuiOptions<Partial<List>> = {}) {
+    constructor(endpoint: Endpoint, boardId: string, guiOptions: CollectionGuiOptions<Partial<List>> = {}) {
         ListsCollection.instanceNo++;
         super(endpoint, guiOptions);
         this.boardId = boardId;
@@ -91,7 +91,7 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
         return await this.endpoint.fetchJson(`1/lists/${listId}/actions`, {}, 'GET');
     }
 
-    get endpoint(): TrelloEndpoint {
-        return super.endpoint as TrelloEndpoint;
+    get endpoint(): Endpoint {
+        return super.endpoint as Endpoint;
     }
 }

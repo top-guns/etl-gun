@@ -5,18 +5,18 @@ import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
-export class CsvEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
     constructor(rootFolder: string = null) {
         super();
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): CsvCollection {
+    getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): Collection {
         guiOptions.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new CsvCollection(this, path, delimiter, guiOptions));
+        return this._addCollection(filename, new Collection(this, path, delimiter, guiOptions));
     }
 
     releaseFile(filename: string) {
@@ -32,13 +32,13 @@ export class CsvEndpoint extends BaseEndpoint {
     }
 }
 
-export class CsvCollection extends BaseCollection<string[]> {
+export class Collection extends BaseCollection<string[]> {
     protected static instanceCount = 0;
     protected filename: string;
     protected delimiter: string;
 
-    constructor(endpoint: CsvEndpoint, filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
-        CsvCollection.instanceCount++;
+    constructor(endpoint: Endpoint, filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
+        Collection.instanceCount++;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;

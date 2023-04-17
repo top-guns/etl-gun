@@ -63,7 +63,7 @@ export type User = {
 }
 
 
-export class TrelloEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected url: string;
     protected apiKey: string;
     protected authToken: string;

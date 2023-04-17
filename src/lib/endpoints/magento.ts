@@ -35,7 +35,7 @@ enum COLLECTIONS_NAMES {
     categories = 'categories'
 }
 
-export class MagentoEndpoint extends BaseEndpoint {
+export class Endpoint extends BaseEndpoint {
     protected _magentoUrl: string;
     protected login: string;
     protected password: string;
@@ -124,7 +124,7 @@ export class MagentoEndpoint extends BaseEndpoint {
 export class ProductsCollection extends BaseCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: MagentoEndpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
+    constructor(endpoint: Endpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
         ProductsCollection.instanceNo++;
         super(endpoint, guiOptions);
     }
@@ -175,7 +175,7 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 
-    get endpoint(): MagentoEndpoint {
-        return super.endpoint as MagentoEndpoint;
+    get endpoint(): Endpoint {
+        return super.endpoint as Endpoint;
     }
 }
