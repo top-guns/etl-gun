@@ -1,5 +1,5 @@
 import http from "http";
-import open, {openApp, apps} from 'open';
+import open from "open";
 
 type Credentials = {
     access_token: string

@@ -8,7 +8,8 @@ import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 
 import * as etl from './lib/index.js';
-import { CsvEndpoint, DiscordHelper, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib/index.js";
+import { CsvEndpoint, GoogleTranslateHelper, GuiManager, Header, PostgresEndpoint, Product } from "./lib/index.js";
+//import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
 
@@ -71,9 +72,9 @@ async function f() {
         
 
         //const res = await getCredentialsByCode('3HFAXfsharzRRdenqHnjsDPKtaa07d');
-        const discord = new DiscordHelper();
-        const credential = await discord.loginViaBrowser();
-        console.log(credential);
+        // const discord = new DiscordHelper();
+        // const credential = await discord.loginViaBrowser();
+        // console.log(credential);
 
 
 

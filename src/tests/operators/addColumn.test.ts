@@ -1,5 +1,5 @@
 import * as rx from 'rxjs';
-import * as etl from '../../lib';
+import * as etl from '../../lib/index.js';
 
 describe('Operator addColumn()', () => {
     test('add column to arrays', async () => {

@@ -1,5 +1,5 @@
 import * as rx from 'rxjs';
-import * as etl from '../../lib';
+import * as etl from '../../lib/index.js';
 import { deleteFileIfExists, getTempPath, loadFileContent } from '../../utils/filesystem';
 
 describe('CsvEndpoint', () => {

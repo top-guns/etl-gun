@@ -1,8 +1,8 @@
 import path from 'path';
 import * as fs from "fs";
 import * as rx from 'rxjs';
-import * as etl from '../../lib';
-import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../utils/filesystem';
+import * as etl from '../../lib/index.js';
+import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../utils/filesystem.js';
 
 describe('FilesystemEndpoint', () => {
     test('push method with simple parameters to create file', async () => {

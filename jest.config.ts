@@ -67,7 +67,8 @@ export default {
   // A set of global variables that need to be available in all test environments
   // globals: {
   //   "ts-jest": {
-  //     tsconfig: "src/tests/tsconfig.tests.json"
+  //     //tsconfig: "src/tests/tsconfig.tests.json"
+  //     useESM: true
   //   }
   // },
 
@@ -104,7 +105,7 @@ export default {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  preset: "ts-jest",
+  //preset: "ts-jest",
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -119,7 +120,7 @@ export default {
   // resetModules: false,
 
   // A path to a custom resolver
-  // resolver: undefined,
+  //resolver: "ts-jest-resolver",
 
   // Automatically restore mock state and implementation before every test
   // restoreMocks: false,
@@ -181,6 +182,19 @@ export default {
   // transform: {
   // <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
   // },
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+  transform: {
+    '^.+\\.ts?$': [
+      'ts-jest',
+      {
+        useESM: true,
+      },
+    ],
+  }
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   // transformIgnorePatterns: [
