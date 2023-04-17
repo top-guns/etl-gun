@@ -42,6 +42,7 @@
     "xpath",
     "database",
     "postgresql",
+    "mysql",
     "extract",
     "transform",
     "load",
