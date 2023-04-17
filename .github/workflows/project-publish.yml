@@ -48,7 +48,7 @@ jobs:
       #     cd ../..
       - run: yarn install --frozen-lockfile
       - run: yarn build
-      - run: node ./src/utils/bump-package-json-version.js
+      - run: node ./src/utils/bump-package-json-version.cjs
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Bump version"
