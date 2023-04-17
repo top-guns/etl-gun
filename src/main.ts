@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 
 import * as etl from './lib/index.js';
-import * as MySqlEndpoint from "./lib/endpoints/mysql.js";
+import * as mysql from "./lib/endpoints/mysql.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
@@ -139,8 +139,8 @@ console.log("START");
 // .on("list.down", () => console.log("down event"))
 // .on("list.error", (err) => console.log("error event: " + err))
 
-const mysql = new MySqlEndpoint.Endpoint('mysql://test:test@localhost:7306/test');
-const table = mysql.getTable('test');
+const mysqlEndpoint = new mysql.Endpoint('mysql://test:test@localhost:7306/test');
+const table = mysqlEndpoint.getTable('test');
 
 // const newId = await table.insert({
 //     id: 5,
@@ -157,7 +157,7 @@ const test$ = table.select().pipe(
 
 await etl.run(test$);
 
-mysql.releaseEndpoint();
+mysqlEndpoint.releaseEndpoint();
 
 // const p: Partial<Product> = {
 //     sku: 'test6',
