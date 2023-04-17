@@ -693,7 +693,7 @@ await etl.run(printXmlAuthors$);
 
 ### PostgresEndpoint
 
-Represents PostgreSQL database. 
+Represents PostgreSQL database. Based on [node-postgres (aka 'pg')](https://github.com/brianc/node-postgres) module.
 
 Methods:
 
@@ -710,6 +710,9 @@ getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableC
 // Release collection object
 // table: identificator of the releasing collection object
 releaseTable(table: string);
+
+// Release all collection objects, endpoint object and release connections to database.
+releaseEndpoint();
 ```
 
 ### TableCollection
@@ -724,18 +727,26 @@ Methods:
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-list(where: string | {} = ''): Observable<T>;
+select(where: string | {} = ''): Observable<T>;
 
 // Insert value to the database table
 // value: what will be added to the database
-async push(value: T);
+async insert(value: T);
 
-// Clear database table
+// Update all rows in database table which match to the specified condition
 // where: you can filter table rows to deleting by this parameter
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-async clear(where: string | {} = '');
+// value: what will be set as new value for updated rows
+async update(where: string | {} = ''value: T);
+
+// Delete rows from the database table by condition
+// where: you can filter table rows to deleting by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+async delete(where: string | {} = '');
 ```
 
 Example:
@@ -746,7 +757,82 @@ import * as etl from "rxjs-etl-kit";
 const pg = etl.PostgresEndpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.list().pipe(
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### MysqlEndpoint
+
+Represents MySQL database. Based on [mysql2-async](https://github.com/txstate-etc/mysql2-async) module.
+
+Methods:
+
+```typescript
+// Connection to the database can be performed using connection string or through the existing pool.
+constructor(connectionString: string);
+constructor(connectionPool: Db.Pool);
+
+// Create collection object for the specified database table
+// table: name of database table and identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection;
+
+// Release collection object
+// table: identificator of the releasing collection object
+releaseTable(table: string);
+
+// Release all collection objects, endpoint object and release connections to database.
+releaseEndpoint();
+```
+
+### TableCollection
+
+Presents the table from the MySQL database. 
+
+Methods:
+
+```typescript
+// Create the observable object and send data from the database table to it
+// where: you can filter incoming data by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+select(where: string | {} = ''): Observable<T>;
+
+// Insert value to the database table
+// value: what will be added to the database
+async insert(value: T);
+
+// Update all rows in database table which match to the specified condition
+// where: you can filter table rows to deleting by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+// value: what will be set as new value for updated rows
+async update(where: string | {} = ''value: T);
+
+// Delete rows from the database table by condition
+// where: you can filter table rows to deleting by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+async delete(where: string | {} = '');
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const mysql = etl.PostgresEndpoint('mysql://user:password@localhost:3306/database');
+const table = mysql.getTable('users');
+
+const logUsers$ = table.select().pipe(
     etl.log()
 );
 
