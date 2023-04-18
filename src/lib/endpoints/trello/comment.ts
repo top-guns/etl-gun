@@ -83,7 +83,7 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
                     this.sendStartEvent();
                     for (const obj of comments) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(obj);
+                        this.sendReciveEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();

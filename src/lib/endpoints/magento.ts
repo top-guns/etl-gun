@@ -154,7 +154,7 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
                     this.sendStartEvent();
                     for (const p of products.items) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(p);
+                        this.sendReciveEvent(p);
                         subscriber.next(p);
                     }
                     subscriber.complete();

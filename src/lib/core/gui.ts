@@ -12,7 +12,7 @@ type EndpointDesc = {
 type CollectionDesc = {
     collection: BaseCollection<any>;
     displayName: string;
-    status: 'waiting' | 'running' | 'finished' | 'error' | 'inserted' | 'deleted' | 'recived' | 'updated';
+    status: 'waiting' | 'running' | 'finished' | 'error' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
     value: any;
     guiOptions: CollectionGuiOptions<any>;
 }
@@ -165,13 +165,16 @@ export class GuiManager {
                         color = 'red';
                         break;
                     case 'inserted':
-                        color = 'yellow';
+                        color = 'greenBright';
                         break;
                     case 'updated':
-                        color = 'yellow';
+                        color = 'cyanBright';
+                        break;
+                    case 'upserted':
+                        color = 'yellowBright';
                         break;
                     case 'deleted':
-                        color = 'yellow';
+                        color = 'redBright';
                         break;
                     case 'waiting':
                         color = 'white';
@@ -262,6 +265,7 @@ export class GuiManager {
         collection.on('select.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
         collection.on('insert', v => { desc.status = 'inserted'; desc.value = v; this.updateConsole(); });
         collection.on('update', v => { desc.status = 'updated'; desc.value = v; this.updateConsole(); });
+        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v; this.updateConsole(); }); // ???
         collection.on('delete', v => { desc.status = 'deleted'; desc.value = v; this.updateConsole(); });
 
         this.updateConsole();

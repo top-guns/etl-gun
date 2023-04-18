@@ -68,7 +68,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
                     const results = await this.endpoint.connectionPool.query(query, params);
                     for (const row of results.rows) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(row);
+                        this.sendReciveEvent(row);
                         subscriber.next(row);
                     }
                     subscriber.complete();

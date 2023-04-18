@@ -96,7 +96,7 @@ export class Collection extends BaseCollection<any> {
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
             if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
             await this.waitWhilePaused();
-            this.sendValueEvent(selectedValue);
+            this.sendReciveEvent(selectedValue);
             subscriber.next(selectedValue);
             return;
         }
@@ -116,7 +116,7 @@ export class Collection extends BaseCollection<any> {
                 } 
                 if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
                 await this.waitWhilePaused();
-                this.sendValueEvent(value);
+                this.sendReciveEvent(value);
                 subscriber.next(value);
             };
         }
@@ -126,7 +126,7 @@ export class Collection extends BaseCollection<any> {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         await this.waitWhilePaused();
-        this.sendValueEvent(selectedValue);
+        this.sendReciveEvent(selectedValue);
         subscriber.next(selectedValue);
 
         if (element && element.hasChildNodes()) {

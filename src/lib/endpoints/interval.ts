@@ -61,7 +61,7 @@ export class Collection extends BaseCollection<number> {
     protected onTick() {
         if (this.isPaused) return;
         try {
-            this.sendValueEvent(this.counter);
+            this.sendReciveEvent(this.counter);
             this.subscriber.next(this.counter);
             this.counter++;
         }

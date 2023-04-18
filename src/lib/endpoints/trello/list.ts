@@ -42,7 +42,7 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
                     this.sendStartEvent();
                     for (const obj of lists) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(obj);
+                        this.sendReciveEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();

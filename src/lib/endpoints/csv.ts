@@ -3,7 +3,7 @@ import { parse } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
-import { pathJoin } from "../utils/index.js";
+import { Header, pathJoin } from "../utils/index.js";
 
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
@@ -12,11 +12,11 @@ export class Endpoint extends BaseEndpoint {
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): Collection {
+    getFile(filename: string, header: Header = null, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): Collection {
         guiOptions.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new Collection(this, path, delimiter, guiOptions));
+        return this._addCollection(filename, new Collection(this, path, header, delimiter, guiOptions));
     }
 
     releaseFile(filename: string) {
@@ -36,12 +36,14 @@ export class Collection extends BaseCollection<string[]> {
     protected static instanceCount = 0;
     protected filename: string;
     protected delimiter: string;
+    protected header: Header;
 
-    constructor(endpoint: Endpoint, filename: string, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
+    constructor(endpoint: Endpoint, filename: string, header: Header = null, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
         Collection.instanceCount++;
         super(endpoint, guiOptions);
         this.filename = filename;
         this.delimiter = delimiter;
+        this.header = header;
     }
 
    /**
@@ -57,7 +59,9 @@ export class Collection extends BaseCollection<string[]> {
                 fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
                 .on("data", (row: string[]) => {
-                    rows.push(row);
+                    const r = this.cropRowToHeader(row);
+                    for (let i = 0; i < r.length; i++) r[i] = this.readedFieldValueToObj(i, r[i]);
+                    rows.push(r);
                 })
                 .on("end", () => {
                     (async () => {
@@ -67,7 +71,7 @@ export class Collection extends BaseCollection<string[]> {
                                 this.sendSkipEvent(row);
                                 return;
                             }
-                            this.sendValueEvent(row);
+                            this.sendReciveEvent(row);
                             subscriber.next(row);
                         }
                         subscriber.complete();
@@ -87,9 +91,9 @@ export class Collection extends BaseCollection<string[]> {
         return observable;
     }
 
-    public async insert(value: any[]) {
+    public async insert(value: any[], nullValue: string = '') {
         await super.insert(value);
-        const strVal = this.getCsvStrFromStrArr(value) + "\n";
+        const strVal = this.getCsvStrFromArr(value) + "\n";
         // await fs.appendFile(this.filename, strVal, function (err) {
         //     if (err) throw err;
         // });
@@ -101,29 +105,35 @@ export class Collection extends BaseCollection<string[]> {
         await fs.promises.writeFile(this.filename, '');
     }
 
-    protected getCsvStrFromStrArr(vals: string[]) {
+    protected getCsvStrFromArr(vals: any[]) {
+        vals = this.cropRowToHeader(vals);
         let res = "";
         for (let i = 0; i < vals.length; i++) {
             if (res) res += ",";
-            res += this.convertToCell(vals[i]);
+            res += this.convertToCell(i, vals[i]);
         }
         return res;
     }
 
-    protected arrayToScv(arr: string[][]) {
-        let res = "";
-        for (let i = 0; i < arr.length; i++) {
-            if (res) res += "\n";
-            res += this.getCsvStrFromStrArr(arr[i]);
+    protected convertToCell(i: number, val: any): string {
+        let strVal: string;
+        if (!this.header) {
+            if (val === null) return '"null"';
+            if (typeof val === 'undefined') return '"undefined"';
+            strVal = '' + val;
         }
-        return res;
+        else strVal = this.header.valToStr(i, val);
+        return '"' + strVal.replace(/"/g, '""') + '"';
     }
 
-    protected convertToCell(val: any): string {
-        if (val === null) return '"null"';
-        if (typeof val === 'undefined') return '""';
-        let res = '' + val;
-        return '"' + res.replace(/"/g, '""') + '"';
+    protected readedFieldValueToObj(i: number, val: string): any {
+        if (!this.header) return val;
+        return this.header.strToVal(i, val);
+    }
+
+    protected cropRowToHeader(row: any[]): any[] {
+        if (!this.header) return row;
+        return row.slice(0, this.header.getFieldsCount());
     }
 
 }

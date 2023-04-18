@@ -79,7 +79,7 @@ export class Collection extends BaseCollection<PathDetails> {
 
                 if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
                     let res = this.getRootFolderDetails();
-                    this.sendValueEvent(res);
+                    this.sendReciveEvent(res);
                     subscriber.next(res);
                 }
         
@@ -97,7 +97,7 @@ export class Collection extends BaseCollection<PathDetails> {
                                 || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
                                 await this.waitWhilePaused();
-                                this.sendValueEvent(res);
+                                this.sendReciveEvent(res);
                                 subscriber.next(res);
 
                                 if (i == matches.length - 1) {

@@ -5,7 +5,8 @@ import { CollectionGuiOptions, BaseCollection } from "../core/collection.js";
 import { EtlObservable } from '../core/observable.js';
 
 class DbExt extends Db {
-    close() {
+    async close() {
+        await this.wait();
         this.pool.end();
     }
 }
@@ -23,14 +24,13 @@ function toBindObject(value: Record<string, any>): BindObject {
     for (const key in value) {
         if (!value.hasOwnProperty(key)) continue;
 
-        if (value[key] == null) {
+        if (value[key] === null) {
             res[key] = null;
             continue;
         }
 
         switch (typeof value[key]) {
             case 'undefined':
-                res[key] = null;
                 break;
             case 'number':
             case 'bigint':
@@ -122,7 +122,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
 
                     for await (const row of stream) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(row);
+                        this.sendReciveEvent(row);
                         subscriber.next(row);
                     }
 
@@ -140,8 +140,9 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
 
     public async insert(value: T) {
         super.insert(value);
-        const query = `insert into ${this.table}(${this.getCommaSeparatedKeys(value)}) values (${this.getCommaSeparatedKeys(value, ':')})`;
-        return await this.endpoint.db.insert(query, toBindObject(value));
+        const val = toBindObject(value);
+        const query = `insert into ${this.table}(${this.getCommaSeparatedKeys(val)}) values (${this.getCommaSeparatedKeys(val, ':')})`;
+        return await this.endpoint.db.insert(query, toBindObject(val));
     }
 
     public async update(where: string | {} = '', value: T) {
@@ -150,36 +151,25 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         return await this.endpoint.db.update(query, {value: toBindObject(value), where: toBindObject(where as {})});
     }
 
+    public async upsert(value: T) {
+        super.upsert(value);
+
+        const val = toBindObject(value);
+        const query = `
+            insert into ${this.table}(${this.getCommaSeparatedKeys(val)}) 
+            values (${this.getCommaSeparatedKeys(val, ':')})
+            on duplicate key update :value_with_all_object_
+        `;
+
+        return await this.endpoint.db.execute(query, {...val, value_with_all_object_: val});
+    }
+
     public async delete(where: string | {} = '') {
         super.delete(where);
         const query = `delete from ${this.table} where ${where ? (typeof where == 'string' ? where : ':where') : '1 = 1'}`;
         return await this.endpoint.db.delete(query, {where: toBindObject(where as {})});
     }
 
-    protected getCommaSeparatedFields(value: T) {
-        let res = '';
-        for (let key in value) {
-            if (value.hasOwnProperty(key)) {
-                if (res) res += ", ";
-                res += key;
-            }
-        }
-        return res;
-    }
-
-    protected getCommaSeparatedParams(value: T) {
-        let res = '', n = 1;
-        for (let key in value) {
-            if (value.hasOwnProperty(key)) {
-                if (res) res += ", ";
-                res += "$" + n;
-                n++;
-            }
-        }
-        return res;
-    }
-
-    
 
     protected getCommaSeparatedValues(value: {}) {
         let res = [];
@@ -191,11 +181,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         return res;
     }
 
-    
-
-
-
-    protected getCommaSeparatedKeys(value: T, withPrefix: string = '') {
+    protected getCommaSeparatedKeys(value: BindObject, withPrefix: string = '') {
         let res = '';
         for (let key in value) {
             if (value.hasOwnProperty(key)) {

@@ -53,7 +53,7 @@ export class CardsCollection extends BaseCollection<Partial<Card>> {
                     this.sendStartEvent();
                     for (const obj of cards) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(obj);
+                        this.sendReciveEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();

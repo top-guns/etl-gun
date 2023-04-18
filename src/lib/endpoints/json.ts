@@ -72,7 +72,7 @@ export class Collection extends BaseCollection<any> {
                         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                             if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
                             await this.waitWhilePaused();
-                            this.sendValueEvent(result);
+                            this.sendReciveEvent(result);
                             subscriber.next(result);
                         }
                         if (options.searchReturns == 'foundedWithDescendants') {
@@ -84,7 +84,7 @@ export class Collection extends BaseCollection<any> {
                                     const value = result[i];
                                     if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
                                     await this.waitWhilePaused();
-                                    this.sendValueEvent(value);
+                                    this.sendReciveEvent(value);
                                     subscriber.next(value);
                                 };
                             }
@@ -93,7 +93,7 @@ export class Collection extends BaseCollection<any> {
                                     if (result.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
                                         await this.waitWhilePaused();
-                                        this.sendValueEvent(result[key]);
+                                        this.sendReciveEvent(result[key]);
                                         subscriber.next(result[key]);
                                     }
                                 }
@@ -128,7 +128,7 @@ export class Collection extends BaseCollection<any> {
                         for (const value of result) {
                             if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``;
                             await this.waitWhilePaused();
-                            this.sendValueEvent(value);
+                            this.sendReciveEvent(value);
                             subscriber.next(value);
                         };
                     }
@@ -144,7 +144,7 @@ export class Collection extends BaseCollection<any> {
                                     const child = value[i];
                                     if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
                                     await this.waitWhilePaused();
-                                    this.sendValueEvent(child);
+                                    this.sendReciveEvent(child);
                                     subscriber.next(child);
                                 };
                             }
@@ -153,7 +153,7 @@ export class Collection extends BaseCollection<any> {
                                     if (value.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
                                         await this.waitWhilePaused();
-                                        this.sendValueEvent(value[key]);
+                                        this.sendReciveEvent(value[key]);
                                         subscriber.next(value[key]);
                                     }
                                 }
@@ -175,7 +175,7 @@ export class Collection extends BaseCollection<any> {
     protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
         await this.waitWhilePaused();
-        this.sendValueEvent(element);
+        this.sendReciveEvent(element);
         subscriber.next(element);
 
         if (Array.isArray(element)) {

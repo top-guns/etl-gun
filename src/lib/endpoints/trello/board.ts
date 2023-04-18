@@ -73,7 +73,7 @@ export class BoardsCollection extends BaseCollection<Partial<Board>> {
                     this.sendStartEvent();
                     for (const obj of boards) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(obj);
+                        this.sendReciveEvent(obj);
                         subscriber.next(obj);
                     }
                     subscriber.complete();

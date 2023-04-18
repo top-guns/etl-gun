@@ -40,7 +40,8 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [Csv](#csv)
         * [Json](#json)
         * [Xml](#xml)
-        * [Postgres](#postgres)
+        * [PostgreSQL](#postgres)
+        * [MqSQL](#mysql)
         * [Magento](#magento)
         * [Trello](#trello)
         * [Telegram](#telegram)
@@ -1468,7 +1469,7 @@ const source = pg.getTable("users");
 
 let csv = new Csv.Endpoint();
 const dest = csv.getFile("users.csv");
-const header = new Header("id", "name", "login", "email");
+const header = new Header([{"id": "number"}, "name", {"login": "string", nullValue: "-null-"}, "email"]);
 
 let sourceToDest$ = source.select().pipe(
     map(v => header.objToArr(v)),

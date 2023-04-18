@@ -38,7 +38,7 @@ export class Collection<T = any> extends BaseCollection<T> {
                     this.sendStartEvent();
                     for(const value of this._buffer) {
                         await this.waitWhilePaused();
-                        this.sendValueEvent(value);
+                        this.sendReciveEvent(value);
                         subscriber.next(value);
                     };
                     subscriber.complete();

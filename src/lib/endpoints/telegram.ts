@@ -61,7 +61,7 @@ export class Collection extends BaseCollection<InputMessage> {
                         }
 
                         await this.waitWhilePaused();
-                        this.sendValueEvent(message);
+                        this.sendReciveEvent(message);
                         subscriber.next(message);
 
                         if (this.keyboard) this.installKeyboard(message.chatId, "", this.keyboard);

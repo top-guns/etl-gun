@@ -17,6 +17,7 @@ export type CollectionEvent =
     "select.down" |
     "insert" |
     "update" |
+    "upsert" |
     "delete";
 
 
@@ -26,6 +27,7 @@ export class BaseCollection<T> {
     protected listeners: Record<CollectionEvent, EventListener[]> = {
         "insert": [],
         "update": [],
+        "upsert": [],
         "delete": [],
         "select.start": [],
         "select.end": [],
@@ -98,6 +100,10 @@ export class BaseCollection<T> {
         this.sendEvent("update", { where, value });
     }
 
+    public async upsert(value: any, ...params: any[]): Promise<any> {
+        this.sendEvent("upsert", { value });
+    }
+
     public async delete(where?: any): Promise<any> {
         this.sendEvent("delete", { where });
     }
@@ -130,7 +136,7 @@ export class BaseCollection<T> {
         this.sendEvent("select.error", {error});
     }
   
-    public sendValueEvent(value: any) {
+    public sendReciveEvent(value: any) {
         this.sendEvent("select.recive", {value});
     }
   

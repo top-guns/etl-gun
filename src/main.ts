@@ -140,18 +140,11 @@ console.log("START");
 const magentoEndpoint = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
 const product = magentoEndpoint.getProducts();
 
-const csvEndpoint = new etl.Csv.Endpoint("./data");
-const csv = csvEndpoint.getFile("products.csv");
-
-const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
-const table = mysql.getTable('test1');
-
-const translate = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
-const header = new etl.Header(
+const header = new etl.Header([
     'id', 
     'sku', 
     'name', 
-    'price',
+    {'price': 'number', undefinedValue: ''},
     'visibility',
     'type_id',
     'status', 
@@ -159,7 +152,16 @@ const header = new etl.Header(
     'options_container',
     'url_key',
     'tax_class_id'
-)
+])
+
+const csvEndpoint = new etl.Csv.Endpoint("./data");
+const csv = csvEndpoint.getFile("products.csv", header);
+
+const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
+const table = mysql.getTable('test1');
+
+const translate = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+
 
 function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
     return {
@@ -191,12 +193,20 @@ let magento_to_Csv$ = product.select({}).pipe(
 let csv_to_MySql$ = csv.select().pipe(
     //etl.log(),
     rx.map(p => header.arrToObj(p)),
+    //etl.where({id: 3}),
     etl.log(),
     //translate.operator(),
-    etl.push(table)
+    rx.tap(p => table.upsert(p))
 )
 
-await etl.run(magento_to_Csv$);
+// await csv.delete();
+//await etl.run(magento_to_Csv$);
+
+await etl.run(csv_to_MySql$);
+
+mysql.releaseEndpoint();
+if (etl.GuiManager.isGuiStarted()) etl. GuiManager.stopGui();
+console.log("END");
 
 //mysql.releaseEndpoint();
 
@@ -211,6 +221,5 @@ await etl.run(magento_to_Csv$);
 //console.log(res.id);
 
 
-if (etl.GuiManager.isGuiStarted()) etl. GuiManager.stopGui();
-console.log("END");
+
 
