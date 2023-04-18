@@ -97,7 +97,7 @@ export class Header {
         if (fieldType == 'number') {
             if (!val) return null;
             let r = parseFloat(val); 
-            if (r === NaN) throw new Error(`Error: value '${val}' cannot be converted to number`);
+            if (isNaN(r)) throw new Error(`Error: value '${val}' cannot be converted to number`);
             return r;
         }
         if (fieldType == 'boolean') {
