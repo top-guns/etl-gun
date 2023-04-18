@@ -64,7 +64,7 @@
     "@google-cloud/translate": "^7.2.0",
     "chalk": "^5.0.1",
     "console-gui-tools": "^3.0.2",
-    "csv": "^6.2.0",
+    "csv": "^6.2.10",
     "dotenv": "^16.0.3",
     "glob": "^8.0.3",
     "jsonpath-plus": "^7.2.0",

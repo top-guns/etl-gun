@@ -7,6 +7,7 @@
 1. Return new id or new object from push 
 1. Change push to insert & update
 1. Batch operations support
+1. Ignore mode - where all errors in data are logging and ignoring and all data without errors are processing
 
 ### Desirable protocols and integrations
 

@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { parse } from "csv-parse";
+import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
 import { EtlObservable } from "../core/observable.js";
@@ -51,13 +51,13 @@ export class Collection extends BaseCollection<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public select(skipFirstLine: boolean = false, skipEmptyLines = false): EtlObservable<string[]> {
+    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): EtlObservable<string[]> {
         const rows = [];
         const observable = new EtlObservable<string[]>((subscriber) => {
             try {
                 this.sendStartEvent();
                 fs.createReadStream(this.filename)
-                .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1 }))
+                .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1, ...options}))
                 .on("data", (row: string[]) => {
                     const r = this.cropRowToHeader(row);
                     for (let i = 0; i < r.length; i++) r[i] = this.readedFieldValueToObj(i, r[i]);

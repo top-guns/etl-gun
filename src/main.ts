@@ -140,7 +140,7 @@ console.log("START");
 const magentoEndpoint = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
 const product = magentoEndpoint.getProducts();
 
-const header = new etl.Header([
+const headerMagento = new etl.Header([
     'id', 
     'sku', 
     'name', 
@@ -154,8 +154,23 @@ const header = new etl.Header([
     'tax_class_id'
 ])
 
-const csvEndpoint = new etl.Csv.Endpoint("./data");
-const csv = csvEndpoint.getFile("products.csv", header);
+const headerPuma = new etl.Header([
+    'image',
+    'name',
+    'vendor_code',
+    {'price': 'number'},
+    'currency',
+    {'availability': 'boolean', trueValue: 'Да', falseValue: 'Нет'},
+    'category',
+    'url',
+    'desctiption',
+    'renk',
+    'beden'
+])
+
+const csv = new etl.Csv.Endpoint("./data");
+const csvMagento = csv.getFile("magento.csv", headerMagento);
+const csvPuma = csv.getFile("puma.csv", headerPuma, ';',);
 
 const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
 const table = mysql.getTable('test1');
@@ -182,27 +197,33 @@ function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
 //console.log(translate)
 //console.log(await translate.function('hello world', 'en', 'ru'));
 
-let magento_to_Csv$ = product.select({}).pipe(
+let Magento_to_Csv$ = product.select({}).pipe(
     rx.map(p => magentoProduct2ShortForm(p)),
 //    etl.log(),
-    rx.map(p => header.objToArr(p)),
+    rx.map(p => headerMagento.objToArr(p)),
     etl.log(),
-    etl.push(csv)
+    etl.push(csvMagento)
 )
 
-let csv_to_MySql$ = csv.select().pipe(
+let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
     //etl.log(),
-    rx.map(p => header.arrToObj(p)),
+    rx.map(p => headerMagento.arrToObj(p)),
     //etl.where({id: 3}),
     etl.log(),
     //translate.operator(),
-    rx.tap(p => table.upsert(p))
+    //rx.tap(p => table.upsert(p))
+)
+
+let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
+    //etl.log(),
+    rx.map(p => headerPuma.arrToObj(p)),
+    etl.log(),
 )
 
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
 
-await etl.run(csv_to_MySql$);
+await etl.run(PumaCsv_to_MySql$);
 
 mysql.releaseEndpoint();
 if (etl.GuiManager.isGuiStarted()) etl. GuiManager.stopGui();
