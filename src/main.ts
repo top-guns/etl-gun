@@ -7,15 +7,15 @@ import * as rx from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 import * as etl from './lib/index.js';
-import { GuiManager } from "./lib/index.js";
+import { GuiManager, Magento } from "./lib/index.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
 
+GuiManager.startGui("Test ETL process", true, 20);
 console.log("START");
 
 
-GuiManager.startGui("Test ETL process", true, 20);
 
 // const timer$ = interval(1000);
 // const buf = new etl.BufferEndpoint<string>();
@@ -139,7 +139,7 @@ GuiManager.startGui("Test ETL process", true, 20);
 // .on("list.error", (err) => console.log("error event: " + err))
 
 const magentoEndpoint = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
-const product = magentoEndpoint.getProducts();
+const magentoProducts = magentoEndpoint.getProducts();
 
 const headerMagento = new etl.Header([
     'id', 
@@ -191,7 +191,7 @@ const csvMagento = csv.getFile("magento.csv", headerMagento);
 const csvPuma = csv.getFile("puma.csv", headerPuma, ';',);
 
 const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
-const table = mysql.getTable('test1');
+const table = mysql.getTable<DbProduct>('test1');
 
 const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
@@ -224,18 +224,29 @@ function pumaProduct2Db(p: any): DbProduct {
     }
 }
 
+function db2Magento(p: DbProduct): Partial<Magento.Product> {
+    return {
+        sku: p.sku, 
+        name: p.name, 
+        price: p.price ?? 0, 
+        status: p.status ?? 0,
+        attribute_set_id: 4
+    }
+}
+
 //console.log(translate)
 //console.log(await translate.function('hello world', 'en', 'ru'));
 
-let Magento_to_Csv$ = product.select({}).pipe(
+let Magento_to_Csv$ = magentoProducts.select().pipe(
     rx.map(p => magentoProduct2ShortForm(p)),
-//    etl.log(),
-    rx.map(p => headerMagento.objToArr(p)),
     etl.log(),
-    etl.push(csvMagento)
+    //rx.map(p => headerMagento.objToArr(p)),
+    //etl.log(),
+    //etl.push(csvMagento)
 )
 
 let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
+    rx.take(1),
     //etl.log(),
     rx.map(p => headerMagento.arrToObj(p)),
     //etl.where({id: 3}),
@@ -246,21 +257,33 @@ let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
 
 let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     //etl.log(),
-    translator.operator([1]),
+    //translator.operator([1]),
+    rx.take(1),
     rx.map(p => headerPuma.arrToObj(p)),
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
     etl.log(),
 )
 
+let MySql_to_Magento$ = table.select(true).pipe(
+    //etl.log(),
+    rx.take(3),
+    rx.map(db2Magento),
+    translator.operator([], ['name']),
+    etl.log(),
+    etl.pushAndLog(magentoProducts)
+)
+
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
 
-await etl.run(PumaCsv_to_MySql$);
+await etl.run(MySql_to_Magento$);
 
 mysql.releaseEndpoint();
-if (etl.GuiManager.isGuiStarted()) etl. GuiManager.stopGui();
+if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();
 console.log("END");
+etl.GuiManager.quitApp();
+
 
 //mysql.releaseEndpoint();
 
