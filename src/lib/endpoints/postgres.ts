@@ -23,9 +23,9 @@ export class Endpoint extends BaseEndpoint {
         else this._connectionPool = connection;
     }
 
-    getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection {
+    getTable<T = Record<string, any>>(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection<T> {
         guiOptions.displayName ??= `${table}`;
-        return this._addCollection(table, new TableCollection(this, table, guiOptions));
+        return this._addCollection(table, new TableCollection(this, table, guiOptions)) as unknown as TableCollection<T>;
     }
 
     releaseTable(table: string) {
