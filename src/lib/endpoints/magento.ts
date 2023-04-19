@@ -106,7 +106,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCollection {
-        guiOptions.displayName ??= `Products`;
+        guiOptions.displayName ??= `products`;
         const collection = new ProductsCollection(this, guiOptions);
         this._addCollection(COLLECTIONS_NAMES.products, collection);
         return collection;
