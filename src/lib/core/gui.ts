@@ -305,10 +305,10 @@ export class GuiManager {
         process.stdout.cursorTo(0, 14 + colCount + GuiManager._instance.consoleManager.getLogPageSize());
     }
 
-    protected dumpObject(obj: any, deep: number = 1): SimplifiedStyledElement[] {
+    protected dumpObject(obj: any): SimplifiedStyledElement[] {
         switch (typeof obj) {
             case 'number': return [{text: '' + obj, color: "blueBright"}];
-            case 'string': return [{text: `"${obj}"`, color: "yellowBright"}];
+            case 'string': return [{text: `"${this.getShort(obj)}"`, color: "yellowBright"}];
             case 'boolean': return [{text: '' + obj, color: "greenBright"}];
             case 'function': return [{text: '()', color: "white"}];
         }
@@ -321,7 +321,7 @@ export class GuiManager {
 
                 switch (typeof obj[key]) {
                     case 'number': res.push({text: '' + obj[key], color: "blueBright"}); break;
-                    case 'string': res.push({text: `"${obj[key]}"`, color: "yellowBright"}); break; 
+                    case 'string': res.push({text: `"${this.getShort(obj[key])}"`, color: "yellowBright"}); break; 
                     case 'boolean': res.push({text: '' + obj[key], color: "greenBright"}); break; 
                     case 'function': res.push({text: '()', color: "white"}); break; 
                     case 'object': {
@@ -335,5 +335,23 @@ export class GuiManager {
         }
         if (obj.length) return [{ text: `[`, color: "cyanBright" }, ...res, { text: `]`, color: "cyanBright" }];
         return [{ text: `{`, color: "cyanBright" }, ...res, { text: `}`, color: "cyanBright" }];
+    }
+
+    protected getShort(value: string, maxLength: number = 30, endLength: number = 5): string {
+        if (! value || value.length <= maxLength) return value;
+        const end = value.substring(value.length - endLength);
+        const start = value.substring(0, maxLength - endLength - 3);
+        return start + '...' + end;
+    }
+
+    protected getShortLog(obj: any): any {
+        const isArray = Array.isArray(obj);
+        const res: any = isArray ? [] : {};
+        for (let key in obj) {
+            if (!obj.hasOwnProperty(key)) continue;
+            if (isArray) res.push(this.getShort(obj[key]));
+            else res[key] = this.getShort(obj[key]);
+        }
+        return res;
     }
 }
