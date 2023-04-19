@@ -142,7 +142,7 @@ export class GuiManager {
             text: ` ${this.processStatus} `, 
             color: this.processStatus == 'paused' ? 'black' : 'white', 
             bold: true, 
-            bg: this.processStatus == 'paused' ? 'bgYellowBright' : this.processStatus == 'started' ? 'bgGreen' : 'bgRedBright' 
+            bg: this.processStatus == 'paused' ? 'bgYellowBright' : this.processStatus == 'started' ? 'bgBlue' : 'bgGreen' 
         });
 
         p.addSpacer();
@@ -166,7 +166,7 @@ export class GuiManager {
                         color = 'blueBright';
                         break;
                     case 'recived':
-                        color = 'magentaBright';
+                        color = 'blueBright';
                         break;
                     case 'finished':
                         color = 'green';
