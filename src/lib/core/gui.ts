@@ -201,7 +201,7 @@ export class GuiManager {
                     { text: `${this.getCollectionDisplayName(desc)}`, color: 'white' }, 
                     { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
                     ...(
-                        desc.status == 'error' ? [{ text: `${desc.value}`, color: 'red' } as SimplifiedStyledElement] :  
+                        desc.status == 'error' ? this.dumpObject(desc.value) :  
                         !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
                         this.dumpObject(desc.guiOptions.watch ? desc.guiOptions.watch(desc.value) : desc.value)
                     )
@@ -277,7 +277,7 @@ export class GuiManager {
         collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
         collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; this.updateConsole(); });
 
-        collection.on('select.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
+        collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); this.updateConsole(); });
         collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; this.updateConsole(); });
         collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; this.updateConsole(); });
         collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; this.updateConsole(); }); // ???
@@ -311,11 +311,13 @@ export class GuiManager {
     }
 
     protected dumpObject(obj: any): SimplifiedStyledElement[] {
+        if (obj === null) return [{text: 'null', color: "redBright"}];
         switch (typeof obj) {
             case 'number': return [{text: '' + obj, color: "blueBright"}];
             case 'string': return [{text: `"${this.getShort(obj)}"`, color: "yellowBright"}];
             case 'boolean': return [{text: '' + obj, color: "greenBright"}];
             case 'function': return [{text: '()', color: "white"}];
+            case 'undefined': return [{text: 'undefined', color: "redBright"}];
         }
 
         let res: SimplifiedStyledElement[] = [];
@@ -324,7 +326,13 @@ export class GuiManager {
                 if (res.length) res.push({ text: `, `, color: "cyanBright" });
                 if (!obj.length) res.push({ text: `${key}: `, color: "cyanBright" });
 
+                if (obj[key] === null) {
+                    res.push({text: 'null', color: "redBright"}); 
+                    continue;
+                }
+
                 switch (typeof obj[key]) {
+                    case 'undefined': res.push({text: 'undefined', color: "redBright"}); break;
                     case 'number': res.push({text: '' + obj[key], color: "blueBright"}); break;
                     case 'string': res.push({text: `"${this.getShort(obj[key])}"`, color: "yellowBright"}); break; 
                     case 'boolean': res.push({text: '' + obj[key], color: "greenBright"}); break; 
