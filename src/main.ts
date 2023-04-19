@@ -169,6 +169,23 @@ const headerPuma = new etl.Header([
     'beden'
 ])
 
+type DbProduct = {
+    id?: number, 
+    sku: string, 
+    name: string, 
+    price?: number, 
+    visibility?: number, 
+    type_id?: string, 
+    status?: number, 
+    attribute_set_id?: number,
+    options_container?: string,
+    url_key?: string,
+    tax_class_id?: string,
+    availability?: number,
+    category?: string,
+    desctiption?: string
+}
+
 const csv = new etl.Csv.Endpoint("./data");
 const csvMagento = csv.getFile("magento.csv", headerMagento);
 const csvPuma = csv.getFile("puma.csv", headerPuma, ';',);
@@ -176,7 +193,7 @@ const csvPuma = csv.getFile("puma.csv", headerPuma, ';',);
 const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
 const table = mysql.getTable('test1');
 
-const translate = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
 
 function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
@@ -192,6 +209,18 @@ function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
         options_container: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'options_container')?.value,
         url_key: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'url_key')?.value,
         tax_class_id: etl.getChildByPropVal(p.custom_attributes, 'attribute_code', 'tax_class_id')?.value,
+    }
+}
+
+function pumaProduct2Db(p: any): DbProduct {
+    return {
+        sku: p.vendor_code, 
+        name: p.name, 
+        price: p.price, 
+        availability: p.availability ? 1 : 0, 
+        category: p.category, 
+        status: p.status, 
+        desctiption: p.desctiption
     }
 }
 
@@ -217,7 +246,10 @@ let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
 
 let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     //etl.log(),
+    translator.operator([1]),
     rx.map(p => headerPuma.arrToObj(p)),
+    rx.map(pumaProduct2Db),
+    //translator.operator([], ['name']),
     etl.log(),
 )
 
