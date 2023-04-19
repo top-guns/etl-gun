@@ -2,7 +2,6 @@ import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from '../core/observable.js';
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 export type InputMessage = {
@@ -44,8 +43,8 @@ export class Collection extends BaseCollection<InputMessage> {
         this.keyboard = keyboard;
     }
 
-    public select(): EtlObservable<InputMessage> {
-        const observable = new EtlObservable<InputMessage>((subscriber) => {
+    public select(): Observable<InputMessage> {
+        const observable = new Observable<InputMessage>((subscriber) => {
             try {
                 this.sendStartEvent();
 

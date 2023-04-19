@@ -1,8 +1,7 @@
-import { Subscriber } from "rxjs";
+import { Observable, Subscriber } from "rxjs";
 import { GuiManager } from "../core/gui.js";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from "../core/observable.js";
 
 export class Endpoint extends BaseEndpoint {
     getSequence(collectionName: string, interval: number, guiOptions: CollectionGuiOptions<number> = {}): Collection {
@@ -33,8 +32,8 @@ export class Collection extends BaseCollection<number> {
         this.interval = interval;
     }
 
-    public select(): EtlObservable<number> {
-        const observable = new EtlObservable<number>((subscriber) => {
+    public select(): Observable<number> {
+        const observable = new Observable<number>((subscriber) => {
             try {
                 this.subscriber = subscriber;
                 this.sendStartEvent();

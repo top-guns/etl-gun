@@ -1,5 +1,5 @@
+import { Observable } from "rxjs";
 import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
-import { EtlObservable } from '../../core/observable.js';
 import { Endpoint } from './endpoint.js';
 
 
@@ -24,8 +24,8 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
         this.boardId = boardId;
     }
 
-    public select(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>> {
-        const observable = new EtlObservable<Partial<List>>((subscriber) => {
+    public select(where: Partial<List> = {}, fields: (keyof List)[] = null): Observable<Partial<List>> {
+        const observable = new Observable<Partial<List>>((subscriber) => {
             (async () => {
                 try {
                     if (!where) where = {};

@@ -1,7 +1,6 @@
 import { from, Observable } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from "../core/observable.js";
 
 export class Endpoint extends BaseEndpoint {
     getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): Collection {
@@ -31,8 +30,8 @@ export class Collection<T = any> extends BaseCollection<T> {
         this._buffer = [...values];
     }
 
-    public select(): EtlObservable<T> {
-        const observable = new EtlObservable<T>((subscriber) => {
+    public select(): Observable<T> {
+        const observable = new Observable<T>((subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

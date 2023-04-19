@@ -3,8 +3,8 @@ import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from '../core/observable.js';
 import { pathJoin } from '../utils/index.js';
+import { Observable } from 'rxjs';
 
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
 
@@ -129,8 +129,8 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         super(endpoint, guiOptions);
     }
 
-    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): EtlObservable<Partial<Product>> {
-        const observable = new EtlObservable<Partial<Product>>((subscriber) => {
+    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): Observable<Partial<Product>> {
+        const observable = new Observable<Partial<Product>>((subscriber) => {
             (async () => {
                 try {
                     await this.endpoint.updateToken();

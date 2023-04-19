@@ -1,5 +1,5 @@
+import { Observable } from "rxjs";
 import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
-import { EtlObservable } from '../../core/observable.js';
 import { Endpoint } from './endpoint.js';
 
 
@@ -63,8 +63,8 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
         this.cardId = cardId;
     }
 
-    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>> {
-        const observable = new EtlObservable<Partial<Comment>>((subscriber) => {
+    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): Observable<Partial<Comment>> {
+        const observable = new Observable<Partial<Comment>>((subscriber) => {
             (async () => {
                 try {
                     if (!where) where = {};

@@ -2,7 +2,7 @@ import Db, { DbConfig } from 'mysql2-async';
 import parseDbUrl from "parse-database-url";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { CollectionGuiOptions, BaseCollection } from "../core/collection.js";
-import { EtlObservable } from '../core/observable.js';
+import { Observable } from 'rxjs';
 
 class DbExt extends Db {
     async close() {
@@ -106,8 +106,8 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         this.table = table;
     }
 
-    public select(where: string | {} = ''): EtlObservable<T> {
-        const observable = new EtlObservable<T>((subscriber) => {
+    public select(where: string | {} = ''): Observable<T> {
+        const observable = new Observable<T>((subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

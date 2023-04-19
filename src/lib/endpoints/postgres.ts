@@ -3,7 +3,6 @@ import { Observable } from "rxjs";
 import { GuiManager } from '../core/gui.js';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from '../core/observable.js';
 
 export class Endpoint extends BaseEndpoint {
     protected connectionString: string = null;
@@ -53,8 +52,8 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         this.table = table;
     }
 
-    public select(where: string | {} = ''): EtlObservable<T> {
-        const observable = new EtlObservable<T>((subscriber) => {
+    public select(where: string | {} = ''): Observable<T> {
+        const observable = new Observable<T>((subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

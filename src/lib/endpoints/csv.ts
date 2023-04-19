@@ -2,8 +2,8 @@ import * as fs from "fs";
 import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from "../core/observable.js";
 import { Header, pathJoin } from "../utils/index.js";
+import { Observable } from "rxjs";
 
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
@@ -51,9 +51,9 @@ export class Collection extends BaseCollection<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): EtlObservable<string[]> {
+    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): Observable<string[]> {
         const rows = [];
-        const observable = new EtlObservable<string[]>((subscriber) => {
+        const observable = new Observable<string[]>((subscriber) => {
             try {
                 this.sendStartEvent();
                 fs.createReadStream(this.filename)

@@ -1,4 +1,5 @@
 import { lastValueFrom, Observable, forkJoin, first } from "rxjs";
+import { GuiManager } from "../index.js";
 
 export async function run(...observables: Observable<any>[]) {
     //const observable = forkJoin([...observables]);
@@ -11,5 +12,6 @@ export async function run(...observables: Observable<any>[]) {
     const promises: Promise<any>[] = [];
     for (const observable of observables) promises.push(lastValueFrom<any>(observable));
     // for (const observable of observables) promises.push(observable.toPromise());
-    await Promise.all(promises);  
+    const result = await Promise.all(promises);  
+    GuiManager.log(result[0])
 }

@@ -5,7 +5,6 @@ import * as XPath from 'xpath';
 import 'xmldom-ts';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from "../core/observable.js";
 import { pathJoin } from "../utils/index.js";
 
 export type ReadOptions = {
@@ -64,8 +63,8 @@ export class Collection extends BaseCollection<any> {
         this.load();
     }
 
-    public select(xpath: string = '', options: ReadOptions = {}): EtlObservable<Node> {
-        const observable = new EtlObservable<any>((subscriber) => {
+    public select(xpath: string = '', options: ReadOptions = {}): Observable<Node> {
+        const observable = new Observable<any>((subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
@@ -90,7 +89,7 @@ export class Collection extends BaseCollection<any> {
         return observable;
     }
 
-    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: EtlObservable<any>) {
+    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: Observable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
@@ -122,7 +121,7 @@ export class Collection extends BaseCollection<any> {
         }
     }
 
-    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: EtlObservable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: Observable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         await this.waitWhilePaused();

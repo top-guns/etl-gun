@@ -5,7 +5,6 @@ import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
-import { EtlObservable } from "../core/observable.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
 
 
@@ -72,8 +71,8 @@ export class Collection extends BaseCollection<PathDetails> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(mask: string = '*', options: ReadOptions = {}): EtlObservable<PathDetails> {
-        const observable = new EtlObservable<any>((subscriber) => {
+    public select(mask: string = '*', options: ReadOptions = {}): Observable<PathDetails> {
+        const observable = new Observable<any>((subscriber) => {
             try {
                 this.sendStartEvent();
 
