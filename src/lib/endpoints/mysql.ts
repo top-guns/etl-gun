@@ -121,6 +121,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
                     const stream = this.endpoint.db.stream(query, params);
 
                     for await (const row of stream) {
+                        if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(row);
                         subscriber.next(row);

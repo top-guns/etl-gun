@@ -36,6 +36,7 @@ export class Collection<T = any> extends BaseCollection<T> {
                 try {
                     this.sendStartEvent();
                     for(const value of this._buffer) {
+                        if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(value);
                         subscriber.next(value);

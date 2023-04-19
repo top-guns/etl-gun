@@ -72,6 +72,7 @@ export class BoardsCollection extends BaseCollection<Partial<Board>> {
 
                     this.sendStartEvent();
                     for (const obj of boards) {
+                        if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(obj);
                         subscriber.next(obj);

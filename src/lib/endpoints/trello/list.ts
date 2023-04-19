@@ -41,6 +41,7 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
 
                     this.sendStartEvent();
                     for (const obj of lists) {
+                        if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(obj);
                         subscriber.next(obj);

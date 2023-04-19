@@ -66,6 +66,7 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
                     const query = `select * from ${this.table} ${where ? 'where ' + where : ''}`;
                     const results = await this.endpoint.connectionPool.query(query, params);
                     for (const row of results.rows) {
+                        if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(row);
                         subscriber.next(row);

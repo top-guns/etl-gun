@@ -71,7 +71,10 @@ export class Collection extends BaseCollection<any> {
                     let selectedValue: XPath.SelectedValue = this.get(xpath);
                     if (selectedValue) {
                         if (Array.isArray(selectedValue)) {
-                            for (const value of selectedValue) await this.processOneSelectedValue(value, options, '', subscriber, observable);
+                            for (const value of selectedValue) {
+                                if (subscriber.closed) break;
+                                await this.processOneSelectedValue(value, options, '', subscriber, observable);
+                            }
                         }
                         else {
                             await this.processOneSelectedValue(selectedValue, options, '', subscriber, observable);
@@ -94,6 +97,7 @@ export class Collection extends BaseCollection<any> {
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
             if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+            if (subscriber.closed) return;
             await this.waitWhilePaused();
             this.sendReciveEvent(selectedValue);
             subscriber.next(selectedValue);
@@ -114,6 +118,7 @@ export class Collection extends BaseCollection<any> {
                     childPath = relativePath ? relativePath + `/${element.tagName}[${i}]` : `${element.tagName}[${i}]`;
                 } 
                 if (options.addRelativePathAsAttribute && childElement) childElement.setAttribute(options.addRelativePathAsAttribute, childPath);
+                if (subscriber.closed) break;
                 await this.waitWhilePaused();
                 this.sendReciveEvent(value);
                 subscriber.next(value);
@@ -124,6 +129,7 @@ export class Collection extends BaseCollection<any> {
     protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: Observable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
+        if (subscriber.closed) return;
         await this.waitWhilePaused();
         this.sendReciveEvent(selectedValue);
         subscriber.next(selectedValue);
@@ -144,6 +150,7 @@ export class Collection extends BaseCollection<any> {
                     let childPath = `${childElement.tagName}[${tagIndexes[childElement.tagName]}]`;
                     if (relativePath) childPath = relativePath + '/' + childPath;
 
+                    if (subscriber.closed) break;
                     await this.sendElementWithChildren(childElement, subscriber, observable, options, childPath);
 
                     tagIndexes[childElement.tagName]++;

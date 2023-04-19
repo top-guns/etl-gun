@@ -95,6 +95,7 @@ export class Collection extends BaseCollection<PathDetails> {
                             if ( (res.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
                                 || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
+                                if (subscriber.closed) break;
                                 await this.waitWhilePaused();
                                 this.sendReciveEvent(res);
                                 subscriber.next(res);

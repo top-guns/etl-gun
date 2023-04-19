@@ -82,6 +82,7 @@ export class Collection extends BaseCollection<any> {
                                 for (let i = 0; i < result.length; i++) {
                                     const value = result[i];
                                     if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
+                                    if (subscriber.closed) break;
                                     await this.waitWhilePaused();
                                     this.sendReciveEvent(value);
                                     subscriber.next(value);
@@ -91,6 +92,7 @@ export class Collection extends BaseCollection<any> {
                                 for (let key in result) {
                                     if (result.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
+                                        if (subscriber.closed) break;
                                         await this.waitWhilePaused();
                                         this.sendReciveEvent(result[key]);
                                         subscriber.next(result[key]);
@@ -142,6 +144,7 @@ export class Collection extends BaseCollection<any> {
                                 for (let i = 0; i < value.length; i++) {
                                     const child = value[i];
                                     if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
+                                    if (subscriber.closed) break;
                                     await this.waitWhilePaused();
                                     this.sendReciveEvent(child);
                                     subscriber.next(child);
@@ -151,6 +154,7 @@ export class Collection extends BaseCollection<any> {
                                 for (let key in value) {
                                     if (value.hasOwnProperty(key)) {
                                         if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
+                                        if (subscriber.closed) break;
                                         await this.waitWhilePaused();
                                         this.sendReciveEvent(value[key]);
                                         subscriber.next(value[key]);
@@ -173,6 +177,7 @@ export class Collection extends BaseCollection<any> {
 
     protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: Observable<any>, options: ReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
+        if (subscriber.closed) return;
         await this.waitWhilePaused();
         this.sendReciveEvent(element);
         subscriber.next(element);

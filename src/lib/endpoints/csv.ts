@@ -56,9 +56,14 @@ export class Collection extends BaseCollection<string[]> {
         const observable = new Observable<string[]>((subscriber) => {
             try {
                 this.sendStartEvent();
-                fs.createReadStream(this.filename)
+                const readStream = fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1, ...options}))
                 .on("data", (row: string[]) => {
+                    // if (subscriber.closed) {
+                    //     readStream.destroy();
+                    //     return;
+                    // }
+                    // TODO process data in this listener instead of pushing it to the buffer
                     const r = this.cropRowToHeader(row);
                     for (let i = 0; i < r.length; i++) r[i] = this.readedFieldValueToObj(i, r[i]);
                     rows.push(r);
@@ -66,6 +71,7 @@ export class Collection extends BaseCollection<string[]> {
                 .on("end", () => {
                     (async () => {
                         for (const row of rows) {
+                            if (subscriber.closed) break;
                             await this.waitWhilePaused();
                             if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
                                 this.sendSkipEvent(row);

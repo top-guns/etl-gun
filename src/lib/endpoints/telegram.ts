@@ -59,6 +59,10 @@ export class Collection extends BaseCollection<InputMessage> {
                             message: match[1]
                         }
 
+                        if (subscriber.closed) {
+                            await this.stop();
+                            return;
+                        }
                         await this.waitWhilePaused();
                         this.sendReciveEvent(message);
                         subscriber.next(message);
