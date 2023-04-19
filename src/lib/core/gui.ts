@@ -36,15 +36,20 @@ export class GuiManager {
     public static stopGui() {
         if (GuiManager._instance) {
             //GuiManager._instance.consoleManager.removeListener("keypressed", GuiManager._instance.keypressListener);
-            //GuiManager._instance.consoleManager.removeAllListeners();
+            GuiManager._instance.consoleManager.removeAllListeners();
             //console.clear();
             if (GuiManager._instance.popup) GuiManager._instance.popup.hide();
             GuiManager._instance.processStatus = 'finished';
             GuiManager._instance.updateConsole();
-            GuiManager._instance.setCursorAfterWindow();
+            
+            //GuiManager._instance.setCursorAfterWindow();
             //delete GuiManager._instance.consoleManager;
-            delete GuiManager._instance;
-            process.stdin.setRawMode(false);
+            //delete GuiManager._instance;
+            //process.stdin.setRawMode(false);
+            GuiManager._instance.consoleManager.Input.setRawMode(false);
+            GuiManager._instance.consoleManager.Input.resume();
+            GuiManager._instance.setCursorAfterWindow();
+            //GuiManager._instance.consoleManager.refresh();
         }
         GuiManager._instance = null;
     }
@@ -61,7 +66,7 @@ export class GuiManager {
     protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
             title: title || 'RxJs-ETL-Kit',
-            enableMouse: true,
+            enableMouse: false,
             overrideConsole: true,
             logPageSize,            // Number of lines to show in logs page
             //showLogKey: 'l',   // Change layout with ctrl+l to switch to the logs page
@@ -220,7 +225,7 @@ export class GuiManager {
         p.addRow({ text: `  'up/down'`, color: 'gray', bold: true },    { text: `  - Scroll log`, color: 'white', italic: true });
 
         this.consoleManager.setPage(p);
-        //this.setCursorAfterWindow();
+        this.setCursorAfterWindow();
     }
 
     public static log(message?: any, ...optionalParams: any[]) {
