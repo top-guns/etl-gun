@@ -14,6 +14,14 @@ type CollectionDesc = {
     displayName: string;
     status: 'waiting' | 'running' | 'finished' | 'error' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
     value: any;
+    counters: {
+        recived: number;
+        inserted: number;
+        updated: number;
+        upserted: number;
+        deleted: number;
+        errors: number;
+    };
     guiOptions: CollectionGuiOptions<any>;
 }
 
@@ -163,43 +171,56 @@ export class GuiManager {
                 p.addRow({ text: `  ` }, { text: `${epDesc.endpoint.displayName}`, color: 'white', underline: true } );
             }
             
-
             epDesc.collections.forEach(desc => {
                 let color: ForegroundColor;
+                let counter = null;
                 switch (desc.status) {
                     case 'running':
                         color = 'blueBright';
+                        counter = this.getCollectionCounter(desc);
                         break;
                     case 'recived':
                         color = 'blueBright';
+                        counter = desc.counters.recived;
                         break;
                     case 'finished':
                         color = 'green';
+                        counter = this.getCollectionCounter(desc);
                         break;
                     case 'error':
                         color = 'red';
+                        counter = desc.counters.errors;
                         break;
                     case 'inserted':
                         color = 'greenBright';
+                        counter = desc.counters.inserted;
                         break;
                     case 'updated':
                         color = 'cyanBright';
+                        counter = desc.counters.updated;
                         break;
                     case 'upserted':
                         color = 'yellowBright';
+                        counter = desc.counters.upserted;
                         break;
                     case 'deleted':
                         color = 'redBright';
+                        counter = desc.counters.deleted;
                         break;
                     case 'waiting':
                         color = 'white';
+                        counter = this.getCollectionCounter(desc);
                         break;
                     default:
                         color = 'white';
+                        counter = this.getCollectionCounter(desc);
                 }
+
+                const status = desc.status + (counter ? ` (${counter})` : '');
+
                 p.addRow({ text: `    ` }, 
                     { text: `${this.getCollectionDisplayName(desc)}`, color: 'white' }, 
-                    { text: `  ${desc.status.padEnd(8, ' ')}    `, color }, 
+                    { text: `  ${status.padEnd(8, ' ')}    `, color }, 
                     ...(
                         desc.status == 'error' ? this.dumpObject(desc.value) :  
                         !desc.value ? [{ text: ``, color: 'white' } as SimplifiedStyledElement] : 
@@ -270,18 +291,25 @@ export class GuiManager {
         if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);
 
         const displayName = guiOptions.displayName ? guiOptions.displayName : `Collection ${endpointdesc.collections.length}`;
-        const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions};
+        const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions, counters: {
+            recived: 0,
+            inserted: 0,
+            updated: 0,
+            upserted: 0,
+            deleted: 0,
+            errors: 0
+        }};
         endpointdesc.collections.push(desc);
 
         collection.on('select.start', () => { desc.status = 'running'; this.updateConsole(); });
         collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; this.updateConsole(); });
+        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
 
-        collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); this.updateConsole(); });
-        collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; this.updateConsole(); });
-        collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; this.updateConsole(); });
-        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; this.updateConsole(); }); // ???
-        collection.on('delete', v => { desc.status = 'deleted'; desc.value = v.where; this.updateConsole(); });
+        collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); desc.counters.errors++; this.updateConsole(); });
+        collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; desc.counters.inserted++; this.updateConsole(); });
+        collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; desc.counters.updated++; this.updateConsole(); });
+        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; desc.counters.upserted++; this.updateConsole(); }); // ???
+        collection.on('delete', v => { desc.status = 'deleted'; desc.value = v.where; desc.counters.deleted++; this.updateConsole(); });
 
         this.updateConsole();
     }
@@ -366,5 +394,16 @@ export class GuiManager {
             else res[key] = this.getShort(obj[key]);
         }
         return res;
+    }
+
+    protected getCollectionCounter(desc: CollectionDesc): string {
+        let n = 0;
+        for (let key in desc.counters) {
+            if (!desc.counters.hasOwnProperty(key)) continue;
+            if (key === 'errors') continue;
+            n += desc.counters[key];
+        }
+        const res = {processed: n, errors: desc.counters.errors};
+        return (!res.errors && !res.processed) ? null : `${res.processed}/${res.errors}`;
     }
 }
