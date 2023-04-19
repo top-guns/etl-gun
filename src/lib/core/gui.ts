@@ -20,7 +20,7 @@ type CollectionDesc = {
 export class GuiManager {
     protected static _instance: GuiManager = null;
 
-    protected title = 'RxJs-ETL-Kit'; // Title of the console
+    protected title: string; // Title of the console
     public processStatus: 'paused' | 'started' | 'finished' = 'started';
     public stepByStepMode: boolean = false;
     public makeStepForward: boolean = false;
@@ -60,10 +60,20 @@ export class GuiManager {
 
     protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
-            title: this.title,
-            //enableMouse: true,
+            title: title || 'RxJs-ETL-Kit',
+            enableMouse: true,
+            overrideConsole: true,
             logPageSize,            // Number of lines to show in logs page
-            showLogKey: 'ctrl+l',   // Change layout with ctrl+l to switch to the logs page
+            //showLogKey: 'l',   // Change layout with ctrl+l to switch to the logs page
+            layoutOptions: {
+                boxed: true, // Set to true to enable boxed layout mode
+                showTitle: true, // Set to false to hide titles
+                changeFocusKey: 'tab', // The key or the combination that will change the focus between the two layouts
+                type: "double", // Can be "single", "double" or "quad" to choose the layout type
+                //direction: 'vertical', // Set to 'horizontal' to enable horizontal layout (only for "double" layout)
+                boxColor: 'cyan', // The color of the box
+                boxStyle: 'bold', // The style of the box (bold)
+            }
         })
         
         this.title = title;
@@ -117,7 +127,7 @@ export class GuiManager {
                 this.updateConsole();
                 break;
             case 'escape':
-                this.popup = new ConfirmPopup("popupQuit", "Exit application", "Are you sure want to exit?").show().on("confirm", () => GuiManager.quitApp())
+                this.popup = new ConfirmPopup({ id: "popupQuit", title: "Are you sure want to exit?"}).show().on("confirm", () => GuiManager.quitApp())
                 break
             default:
                 break
@@ -210,7 +220,7 @@ export class GuiManager {
         p.addRow({ text: `  'up/down'`, color: 'gray', bold: true },    { text: `  - Scroll log`, color: 'white', italic: true });
 
         this.consoleManager.setPage(p);
-        this.setCursorAfterWindow();
+        //this.setCursorAfterWindow();
     }
 
     public static log(message?: any, ...optionalParams: any[]) {
@@ -260,13 +270,13 @@ export class GuiManager {
 
         collection.on('select.start', () => { desc.status = 'running'; this.updateConsole(); });
         collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v; this.updateConsole(); });
+        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; this.updateConsole(); });
 
         collection.on('select.error', v => { desc.status = 'error'; desc.value = v; this.updateConsole(); });
-        collection.on('insert', v => { desc.status = 'inserted'; desc.value = v; this.updateConsole(); });
-        collection.on('update', v => { desc.status = 'updated'; desc.value = v; this.updateConsole(); });
-        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v; this.updateConsole(); }); // ???
-        collection.on('delete', v => { desc.status = 'deleted'; desc.value = v; this.updateConsole(); });
+        collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; this.updateConsole(); });
+        collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; this.updateConsole(); });
+        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; this.updateConsole(); }); // ???
+        collection.on('delete', v => { desc.status = 'deleted'; desc.value = v.where; this.updateConsole(); });
 
         this.updateConsole();
     }

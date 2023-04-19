@@ -7,6 +7,7 @@ import * as rx from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 import * as etl from './lib/index.js';
+import { GuiManager } from "./lib/index.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
@@ -14,7 +15,7 @@ dotenv.config()
 console.log("START");
 
 
-//GuiManager.startGui("Test ETL process", true, 20);
+GuiManager.startGui("Test ETL process", true, 20);
 
 // const timer$ = interval(1000);
 // const buf = new etl.BufferEndpoint<string>();

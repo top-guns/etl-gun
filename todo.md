@@ -8,6 +8,7 @@
 1. Change push to insert & update
 1. Batch operations support
 1. Ignore mode - where all errors in data are logging and ignoring and all data without errors are processing
+1. Progress display in GUI
 
 ### Desirable protocols and integrations
 

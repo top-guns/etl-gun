@@ -100,7 +100,7 @@ yarn add rxjs-etl-kit
 
 Import the RxJs-ETL-Kit library in the desired file to make it accessible.
 
-**Warning:** From the version 2.0.4 this library is native [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and no longer provides a CommonJS export. If your project uses CommonJS, you will have to [convert to ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) or use the [dynamic `import()`](https://v8.dev/features/dynamic-import) function.
+**Warning:** Since the version 2.0.4 this library is native [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and no longer provides a CommonJS export. If your project uses CommonJS, you will have to [convert to ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) or use the [dynamic `import()`](https://v8.dev/features/dynamic-import) function.
 
 Introductory example of library using: postgresql -> .csv
 ```typescript
@@ -183,7 +183,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 * With 'esc' you can quit the program
 * GUI display full list of created endpoints, collections, their statuses and last values recived from (or pushed to) them
 * Logs are displayed in footer part of console window
-* You can select the log window with 'ctrl + l' and scroll it with up/down arrows
+* You can select the log window with 'tab' and scroll it with up/down arrows
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
