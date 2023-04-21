@@ -6,3 +6,5 @@ export * from './numerate.js';
 export * from './addField.js';
 export * from './addColumn.js';
 export * from './join.js';
+export * from './expect.js';
+

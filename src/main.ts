@@ -12,8 +12,9 @@ import { GuiManager, Magento } from "./lib/index.js";
 
 dotenv.config()
 
-GuiManager.startGui("Test ETL process", true, 20);
-console.log("START");
+const START = new Date;
+//GuiManager.startGui("Test ETL process", true, 20);
+console.log("START", START);
 
 
 
@@ -258,31 +259,35 @@ let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
 let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     //etl.log(),
     //translator.operator([1]),
-    rx.take(1),
+    //rx.take(1),
     rx.map(p => headerPuma.arrToObj(p)),
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
+    //etl.push(table),
+    etl.expect<DbProduct>('price = 6800', {price: 6800, category: 'Мужчины'}),
     etl.log(),
 )
 
-let MySql_to_Magento$ = table.select(true).pipe(
+let MySql_to_Magento$ = table.select().pipe(
     //etl.log(),
-    rx.take(3),
+    rx.take(100),
     rx.map(db2Magento),
-    translator.operator([], ['name']),
-    etl.log(),
-    etl.pushAndLog(magentoProducts)
+//    translator.operator([], ['name']),
+//    etl.log(),
+    etl.push(magentoProducts)
 )
 
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
 
-await etl.run(MySql_to_Magento$);
+await etl.run(PumaCsv_to_MySql$);
 
-mysql.releaseEndpoint();
-if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();
+//mysql.releaseEndpoint();
+//if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();
 console.log("END");
-etl.GuiManager.quitApp();
+console.log('start', START);
+console.log('end', new Date());
+//etl.GuiManager.quitApp();
 
 
 //mysql.releaseEndpoint();

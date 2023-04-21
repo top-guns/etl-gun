@@ -9,6 +9,9 @@
 1. Batch operations support
 1. Ignore mode - where all errors in data are logging and ignoring and all data without errors are processing
 1. Progress display in GUI
+1. Converter from any observable to the etl collection
+1. Speed control in GUI
+1. Sync and get dif support for elements, collections and entire endpoints
 
 ### Desirable protocols and integrations
 
@@ -43,6 +46,12 @@
 1. General endpoint and collection for the REST resource
 1. Reports (pdf)
 1. Add stream, generator, 'for await' notations support 
+1. Watch operator - to put current value to the endpoint place in GUI
+1. Display start, end timestamps and workint time in GUI 
+1. CLI to auto create types for data, collections and endpoints
+1. Backward flow support for debug
+1. Hot reload implementations for development
+1. Get tables list and tables metadata from db endpoints 
 
 
 ### Known problems
@@ -55,3 +64,7 @@
 1. Encoding problem solver
 1. Make log functions interface as analog of console.log
 1. Add filesystem endpoint method to create a collection for unique temp folder
+
+### Decisions
+1. Add 'where' to upsert
+1. Make second stream - for errors - as result of select operation

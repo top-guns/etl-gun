@@ -36,9 +36,9 @@ export class GuiManager {
     protected endpoints: EndpointDesc[] = [];
     protected popup: ConfirmPopup = null;
 
-    public static startGui(title = '', startPaused = false, logPageSize = 8) {
+    public static startGui(startPaused = false, logPageSize = 8) {
         if (GuiManager._instance) throw new Error("GuiManager: gui manager allready started. You cannot use more then one gui manager.");
-        GuiManager._instance = new GuiManager(title, startPaused, logPageSize);
+        GuiManager._instance = new GuiManager('', startPaused, logPageSize);
     }
 
     public static stopGui() {
