@@ -124,10 +124,6 @@ export class Endpoint extends BaseEndpoint {
 export class ProductsCollection extends BaseCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
-    get type(): string {
-        return 'Magento.ProductsCollection';
-    }
-
     constructor(endpoint: Endpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
         ProductsCollection.instanceNo++;
         super(endpoint, guiOptions);

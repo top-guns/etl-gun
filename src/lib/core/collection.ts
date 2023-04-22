@@ -44,9 +44,7 @@ export class BaseCollection<T> {
     get endpoint(): BaseEndpoint {
         return this._endpoint;
     }
-    get type(): string {
-        throw new Error("Method not implemented.");
-    }
+
     protected _isPaused: boolean = false;
 
     constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {

@@ -48,10 +48,6 @@ export class Endpoint extends BaseEndpoint {
 export class Collection extends BaseCollection<any> {
     protected static instanceNo = 0;
 
-    get type(): string {
-        return 'Xml.Collection';
-    }
-
     protected filename: string;
     protected encoding: BufferEncoding;
     protected xmlDocument: Document;

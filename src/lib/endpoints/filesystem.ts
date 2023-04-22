@@ -60,10 +60,6 @@ export class Endpoint extends BaseEndpoint {
 export class Collection extends BaseCollection<PathDetails> {
     protected static instanceCount = 0;
 
-    get type(): string {
-        return 'Filesystem.Collection';
-    }
-
     protected folderPath: string;
 
     constructor(endpoint: Endpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {

@@ -35,10 +35,6 @@ export class Endpoint extends BaseEndpoint {
 export class Collection extends BaseCollection<string[]> {
     protected static instanceCount = 0;
 
-    get type(): string {
-        return 'Csv.Collection';
-    }
-
     protected filename: string;
     protected delimiter: string;
     protected header: Header;

@@ -49,10 +49,6 @@ export class BoardsCollection extends BaseCollection<Partial<Board>> {
     protected static instanceNo = 0;
     protected username: string;
 
-    get type(): string {
-        return 'Trello.BoardsCollection';
-    }
-
     constructor(endpoint: Endpoint, username: string = 'me', guiOptions: CollectionGuiOptions<Partial<Board>> = {}) {
         BoardsCollection.instanceNo++;
         super(endpoint, guiOptions);

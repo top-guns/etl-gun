@@ -55,11 +55,7 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
     protected static instanceNo = 0;
     //protected boardId: string;
     protected cardId: string;
-
-    get type(): string {
-        return 'Trello.CommentsCollection';
-    }
-
+    
     constructor(endpoint: Endpoint, cardId: string, guiOptions: CollectionGuiOptions<Partial<Comment>> = {}) {
         CommentsCollection.instanceNo++;
         super(endpoint, guiOptions);

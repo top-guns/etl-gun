@@ -21,6 +21,7 @@ export class Endpoint extends BaseEndpoint {
 
 export class Collection extends BaseCollection<number> {
     protected static instanceNo = 0;
+
     protected interval: number;
     protected intervalId: NodeJS.Timer;
     protected counter: number = 0;
