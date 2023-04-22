@@ -44,6 +44,11 @@ export class Endpoint extends BaseEndpoint {
 
 export class TableCollection<T = Record<string, any>> extends BaseCollection<T> {
     protected static instanceNo = 0;
+
+    get type(): string {
+        return 'Postgres.TableCollection';
+    }
+
     protected table: string;
 
     constructor(endpoint: Endpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {

@@ -10,6 +10,7 @@ export type CollectionGuiOptions<T> = {
 export type CollectionEvent = 
     "select.start" |
     "select.end" |
+    "select.sleep" |
     "select.recive" |
     "select.error" |
     "select.skip" |
@@ -31,6 +32,7 @@ export class BaseCollection<T> {
         "delete": [],
         "select.start": [],
         "select.end": [],
+        "select.sleep": [],
         "select.recive": [],
         "select.error": [],
         "select.skip": [],
@@ -42,10 +44,14 @@ export class BaseCollection<T> {
     get endpoint(): BaseEndpoint {
         return this._endpoint;
     }
+    get type(): string {
+        throw new Error("Method not implemented.");
+    }
     protected _isPaused: boolean = false;
 
     constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {
         this._endpoint = endpoint;
+        console.log('||||' + guiOptions.displayName)
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, guiOptions);
     }
 
@@ -130,6 +136,10 @@ export class BaseCollection<T> {
   
     public sendEndEvent() {
         this.sendEvent("select.end");
+    }
+
+    public sendSleepEvent() {
+        this.sendEvent("select.sleep");
     }
   
     public sendErrorEvent(error: any) {

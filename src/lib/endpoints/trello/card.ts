@@ -21,6 +21,10 @@ export class CardsCollection extends BaseCollection<Partial<Card>> {
     //protected boardId: string;
     protected listId: string;
 
+    get type(): string {
+        return 'Trello.CardsCollection';
+    }
+
     constructor(endpoint: Endpoint, listId: string, guiOptions: CollectionGuiOptions<Partial<Card>> = {}) {
         CardsCollection.instanceNo++;
         super(endpoint, guiOptions);

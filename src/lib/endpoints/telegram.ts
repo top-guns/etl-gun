@@ -31,6 +31,11 @@ export class Endpoint extends BaseEndpoint {
 
 export class Collection extends BaseCollection<InputMessage> {
     protected static instanceNo = 0;
+
+    get type(): string {
+        return 'Telegram.Collection';
+    }
+
     protected token: string;
     protected keyboard: any;
     protected subscriber: Subscriber<InputMessage>;

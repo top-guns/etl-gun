@@ -47,6 +47,11 @@ export class Endpoint extends BaseEndpoint {
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
 export class Collection extends BaseCollection<any> {
     protected static instanceNo = 0;
+
+    get type(): string {
+        return 'Xml.Collection';
+    }
+
     protected filename: string;
     protected encoding: BufferEncoding;
     protected xmlDocument: Document;

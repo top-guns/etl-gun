@@ -18,6 +18,10 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
     protected static instanceNo = 0;
     protected boardId: string;
 
+    get type(): string {
+        return 'Trello.ListsCollection';
+    }
+
     constructor(endpoint: Endpoint, boardId: string, guiOptions: CollectionGuiOptions<Partial<List>> = {}) {
         ListsCollection.instanceNo++;
         super(endpoint, guiOptions);
