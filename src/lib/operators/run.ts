@@ -9,7 +9,8 @@ export async function run(...observables: Observable<any>[]) {
     //await observable.toPromise();
 
     const promises: Promise<any>[] = [];
-    for (const observable of observables) promises.push(lastValueFrom<any>(observable));
-    // for (const observable of observables) promises.push(observable.toPromise());
+    //for (const observable of observables) promises.push(lastValueFrom<any>(observable));
+    // Should use depricated observable.toPromise() instead of lastValueFrom() to process streams without elements
+    for (const observable of observables) promises.push(observable.toPromise());
     await Promise.all(promises);  
 }
