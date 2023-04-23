@@ -12,6 +12,7 @@
 1. Converter from any observable to the etl collection
 1. Speed control in GUI
 1. Sync and get dif support for elements, collections and entire endpoints
+1. Order endpoints by categories
 
 ### Desirable protocols and integrations
 

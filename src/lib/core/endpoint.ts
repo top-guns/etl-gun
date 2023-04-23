@@ -3,6 +3,9 @@ import { BaseCollection, CollectionGuiOptions } from "./collection.js";
 import { GuiManager } from "./gui.js";
 
 export class BaseEndpoint {
+    protected static instanceCount = 0;
+    protected instanceNo: number;
+    
     constructor() {
         BaseEndpoint.instanceCount++;
         this.instanceNo = BaseEndpoint.instanceCount;
@@ -29,8 +32,5 @@ export class BaseEndpoint {
         if (!this.collections[collectionName]) throw new Error(`Collection with name ${collectionName} does not exists`);
         delete this.collections[collectionName];
     }
-
-    protected static instanceCount = 0;
-    protected instanceNo: number;
 }
   
