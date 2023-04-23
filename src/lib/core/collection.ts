@@ -1,6 +1,8 @@
-import { Observable } from "rxjs";
+import { Observable, tap } from "rxjs";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
+import { Memory } from "../index.js";
+import { push, run } from "../operators/index.js";
 
 export type CollectionGuiOptions<T> = {
     displayName?: string;
@@ -45,11 +47,13 @@ export class BaseCollection<T> {
         return this._endpoint;
     }
 
+    protected guiOptions: CollectionGuiOptions<T>;
+
     protected _isPaused: boolean = false;
 
     constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {
         this._endpoint = endpoint;
-        console.log('||||' + guiOptions.displayName)
+        this.guiOptions = guiOptions;
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, guiOptions);
     }
 
@@ -92,8 +96,21 @@ export class BaseCollection<T> {
         return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
-    public select(): Observable<T> {
+    public select(...params: any[]): Observable<T> {
         throw new Error("Method not implemented.");
+    }
+
+    public selectOneByOne(delay: number = 0, ...params: any[]): Observable<T> {
+        let timestamp = null;
+
+        const memory = new Memory.Endpoint();
+        const queue = memory.getQueue<T>(`${this.guiOptions.displayName}-queue`);
+
+        this.select(params).pipe(
+            push(queue)
+        ).subscribe();
+
+        return queue.select(false, delay);
     }
 
     public async insert(value: any, ...params: any[]): Promise<any> {
