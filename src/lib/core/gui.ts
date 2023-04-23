@@ -12,7 +12,7 @@ type EndpointDesc = {
 type CollectionDesc = {
     collection: BaseCollection<any>;
     displayName: string;
-    status: 'waiting' | 'running' | 'finished' | 'error' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
+    status: 'waiting' | 'running' | 'finished' | 'error' | 'sleep' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
     value: any;
     counters: {
         recived: number;
@@ -162,9 +162,9 @@ export class GuiManager {
 
         p.addRow({ text: " Collections:", color: 'white', bg: 'bgBlack', bold: true });
 
-        this.endpoints.forEach(epDesc => {
+        for (let epDesc of this.endpoints) {
             const parsedDisplayName = epDesc.endpoint.displayName.match(/^(.*[^\s])\s*\((.*)\)$/);
-            if (parsedDisplayName.length > 2) {
+            if (parsedDisplayName && parsedDisplayName.length > 2) {
                 p.addRow({ text: `  ` }, { text: `${parsedDisplayName[1]}`, color: 'white', underline: true }, { text: ` ${parsedDisplayName[2]}`, color: 'whiteBright' } );
             }
             else {
@@ -208,6 +208,7 @@ export class GuiManager {
                         counter = desc.counters.deleted;
                         break;
                     case 'waiting':
+                    case 'sleep':
                         color = 'white';
                         counter = this.getCollectionCounter(desc);
                         break;
@@ -228,7 +229,7 @@ export class GuiManager {
                     )
                 )
             })
-        })
+        }
 
         // Spacer
         p.addSpacer();
@@ -306,6 +307,8 @@ export class GuiManager {
         collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
 
         collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); desc.counters.errors++; this.updateConsole(); });
+        collection.on('select.sleep', v => { desc.status = 'sleep'; desc.value = v.where; desc.counters.deleted++; this.updateConsole(); });
+
         collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; desc.counters.inserted++; this.updateConsole(); });
         collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; desc.counters.updated++; this.updateConsole(); });
         collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; desc.counters.upserted++; this.updateConsole(); }); // ???
