@@ -13,7 +13,7 @@ import { GuiManager, Magento } from "./lib/index.js";
 dotenv.config()
 
 const START = new Date;
-//GuiManager.startGui("Test ETL process", true, 20);
+//GuiManager.startGui(true, 20);
 console.log("START", START);
 
 
@@ -189,10 +189,18 @@ type DbProduct = {
 
 const csv = new etl.Csv.Endpoint("./data");
 const csvMagento = csv.getFile("magento.csv", headerMagento);
-const csvPuma = csv.getFile("puma.csv", headerPuma, ';',);
+const csvPuma = csv.getFile("puma.csv", headerPuma, ';');
+
+const memory = new etl.Memory.Endpoint();
+const queue = memory.getQueue<DbProduct>('queue');
 
 const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
 const table = mysql.getTable<DbProduct>('test1');
+
+const errorsEndpoint = new etl.Errors.Endpoint();
+const errors = errorsEndpoint.getCollection('all');
+
+
 
 const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
@@ -238,6 +246,12 @@ function db2Magento(p: DbProduct): Partial<Magento.Product> {
 //console.log(translate)
 //console.log(await translate.function('hello world', 'en', 'ru'));
 
+let ErrorProcessing$ = errors.select(false).pipe(
+    etl.log('Error occurred: ')
+)
+
+
+
 let Magento_to_Csv$ = magentoProducts.select().pipe(
     rx.map(p => magentoProduct2ShortForm(p)),
     etl.log(),
@@ -259,13 +273,19 @@ let MagentoCsv_to_MySql$ = csvMagento.select().pipe(
 let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     //etl.log(),
     //translator.operator([1]),
-    //rx.take(1),
+    rx.take(3),
     rx.map(p => headerPuma.arrToObj(p)),
+
+    //etl.where({price: 6800, category: 'Мужчины'}),
+    etl.log(),
+
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
     //etl.push(table),
-    etl.expect<DbProduct>('price = 6800', {price: 6800, category: 'Мужчины'}),
-    etl.log(),
+    etl.expect<DbProduct>('price = 1800', { price: 1800 }, errors),
+    //etl.push(queue),
+    //rx.delay(5000),
+    //etl.log(),
 )
 
 let MySql_to_Magento$ = table.select().pipe(
@@ -279,6 +299,8 @@ let MySql_to_Magento$ = table.select().pipe(
 
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
+
+etl.run(ErrorProcessing$);
 
 await etl.run(PumaCsv_to_MySql$);
 

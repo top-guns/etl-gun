@@ -37,6 +37,7 @@
   "keywords": [
     "rxjs",
     "etl",
+    "stream",
     "typescript",
     "javascript",
     "node",
@@ -53,7 +54,9 @@
     "database",
     "postgresql",
     "mysql",
+    "queue",
     "extract",
+    "validate",
     "transform",
     "load",
     "lib"
@@ -76,6 +79,7 @@
     "parse-database-url": "^0.3.0",
     "pg": "^8.8.0",
     "rxjs": "^7.8.0",
+    "signal-promise": "^1.0.3",
     "ts-jest-resolver": "^2.0.1",
     "xmldom-ts": "^0.3.1",
     "xpath": "^0.0.32"
