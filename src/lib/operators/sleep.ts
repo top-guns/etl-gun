@@ -5,6 +5,6 @@ export function sleep<T>(ms: number): OperatorFunction<T, T> {
         await new Promise((r) => setTimeout(r, ms));
         return v;
     }
-    const observable = (v) => from(f(v));
+    const observable = (v: T) => from(f(v));
     return mergeMap((v: T)=> observable(v)); 
 }
