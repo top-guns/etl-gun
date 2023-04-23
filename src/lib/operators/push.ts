@@ -1,4 +1,4 @@
-import { tap, mergeMap, from } from "rxjs";
+import { mergeMap, from } from "rxjs";
 import { BaseCollection } from "../core/collection.js";
 import { GuiManager } from "../index.js";
 
