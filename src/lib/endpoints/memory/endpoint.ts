@@ -1,82 +1,36 @@
-import { from, Observable } from "rxjs";
-import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseEndpoint} from "../../core/endpoint.js";
+import { CollectionGuiOptions } from "../../core/collection.js";
+import { BufferCollection } from "./buffer.js";
+import { QueueCollection } from "./queue.js";
 
 export class Endpoint extends BaseEndpoint {
-    getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): Collection {
+    getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection<T> {
         guiOptions.displayName ??= collectionName;
-        return this._addCollection(collectionName, new Collection(this, values, guiOptions));
+        return this._addCollection(collectionName, new BufferCollection<T>(this, values, guiOptions));
     }
     releaseBuffer(collectionName: string) {
         this._removeCollection(collectionName);
     }
 
-    get displayName(): string {
-        return `Memory buffers`;
+    getQueue<T>(collectionName: string, guiOptions: CollectionGuiOptions<T> = {}): QueueCollection<T> {
+        guiOptions.displayName ??= collectionName;
+        return this._addCollection(collectionName, new QueueCollection<T>(this, guiOptions));
     }
-}
-
-export class Collection<T = any> extends BaseCollection<T> {
-    protected static instanceCount = 0;
-
-    protected _buffer: T[];
-    get buffer() {
-        return this._buffer;
+    releaseQueue(collectionName: string) {
+        const collection: QueueCollection<any> = this.collections[collectionName] as QueueCollection<any>;
+        collection.stop();
+        this._removeCollection(collectionName);
     }
 
-    constructor(endpoint: Endpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
-        Collection.instanceCount++;
-        super(endpoint, guiOptions);
-        this._buffer = [...values];
-    }
-
-    public select(): Observable<T> {
-        const observable = new Observable<T>((subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-                    for(const value of this._buffer) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(value);
-                        subscriber.next(value);
-                    };
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    public async insert(value: T) {
-        super.insert(value);
-        this._buffer.push(value); 
-    }
-
-    public async delete() {
-        super.delete();
-        this._buffer = [];
-    }
-
-    public sort(compareFn: ((v1: T, v2: T) => number | boolean) | undefined = undefined): void {
-        if (compareFn === undefined) {
-            this._buffer.sort();
-            return;
+    releaseEndpoint() {
+        for (let key in this.collections) {
+            if (!this.collections.hasOwnProperty(key)) continue;
+            if (this.collections[key].constructor.name == QueueCollection.name) this.collections[key].stop();
         }
-
-        this._buffer.sort((v1: T, v2: T) => {
-            let res = compareFn(v1, v2);
-            if (typeof res === "boolean") res = res? 1 : -1;
-            return res;
-        })
+        super.releaseEndpoint();
     }
 
-    public forEach(callbackfn: (value: T, index: number, array: T[]) => void) {
-        this._buffer.forEach(callbackfn);
-    }
+    get displayName(): string {
+        return `Memory`;
+    }    
 }
