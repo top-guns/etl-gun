@@ -13,7 +13,7 @@ import { GuiManager, Magento } from "./lib/index.js";
 dotenv.config()
 
 const START = new Date;
-//GuiManager.startGui(true, 20);
+GuiManager.startGui(true, 20);
 console.log("START", START);
 
 

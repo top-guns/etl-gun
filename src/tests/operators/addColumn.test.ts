@@ -1,6 +1,6 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory.js'
+import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
 
 describe('Operator addColumn()', () => {
     test('add column to arrays', async () => {

@@ -8,7 +8,7 @@ export class BufferCollection<T = any> extends BaseCollection<T> {
     protected static instanceCount = 0;
 
     protected _buffer: T[];
-    protected get buffer() {
+    get buffer() {
         return this._buffer;
     }
 

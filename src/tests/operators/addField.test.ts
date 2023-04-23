@@ -1,7 +1,7 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { getError } from '../../utils/getError.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory.js'
+import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
 
 describe('Operator addField()', () => {
     test('add field to objects', async () => {
