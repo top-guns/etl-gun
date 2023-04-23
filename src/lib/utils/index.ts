@@ -2,6 +2,10 @@ import { JSONPath } from 'jsonpath-plus';
 
 export { Header } from './header.js';
 
+export async function wait(delay: number): Promise<void> {
+  await new Promise((r) => setTimeout(r, delay));
+}
+
 export function pathJoin(parts: string[], sep: string = '/') {
   return parts.reduce((prev, cur, i) => {
     if (!cur || !prev) return cur + prev;
