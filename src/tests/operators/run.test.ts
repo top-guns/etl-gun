@@ -1,12 +1,12 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
+import { Memory } from '../../lib/endpoints/index.js'
 
 describe('Operator run()', () => {
     test('wait for two streams and check calls order', async () => {
         let res: number[] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);
         const src2 = mem.getBuffer<number>('bufer2', [10, 11]);
 

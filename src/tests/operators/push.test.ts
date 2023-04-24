@@ -1,12 +1,12 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
+import { Memory } from '../../lib/endpoints/index.js'
 
 describe('Operator push()', () => {
     test('push to buffer endpoint', async () => {
         let res: number[] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1');
 
         const src$ = rx.of(1, 2, 3).pipe(

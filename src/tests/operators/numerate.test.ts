@@ -1,13 +1,13 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { getError } from '../../utils/getError.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
+import { Memory } from '../../lib/endpoints/index.js'
 
 describe('Operator numerate()', () => {
     test('numerate arrays', async () => {
         let res: any[][] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.select().pipe(
@@ -23,7 +23,7 @@ describe('Operator numerate()', () => {
     test('numerate objects', async () => {
         let res: {}[] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
         let stream$ = src.select().pipe(
@@ -39,7 +39,7 @@ describe('Operator numerate()', () => {
     test('numerate scalars', async () => {
         let res: any[][] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
         let stream$ = src.select().pipe(
@@ -54,7 +54,7 @@ describe('Operator numerate()', () => {
 
 
     test('numerate objects without field name specification', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
         let stream$ = src.select().pipe(
@@ -67,7 +67,7 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate arrays with field name specification', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.select().pipe(
@@ -79,7 +79,7 @@ describe('Operator numerate()', () => {
     });
 
     test('numerate scalars with field name specification', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
         let stream$ = src.select().pipe(

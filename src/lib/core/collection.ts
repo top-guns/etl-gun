@@ -110,7 +110,7 @@ export class BaseCollection<T> {
     public selectOneByOne(delay: number = 0, ...params: any[]): Observable<T> {
         let timestamp = null;
 
-        const memory = new Memory.Endpoint();
+        const memory = Memory.getEndpoint();
         const queue = memory.getQueue<T>(`${this.guiOptions.displayName}-queue`);
 
         this.select(params).pipe(

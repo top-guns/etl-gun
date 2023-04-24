@@ -1,36 +1,36 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
+import { Memory } from '../../lib/endpoints/index.js'
 
 describe('BufferEndpoint', () => {
     test('Constructor with parameters and buffer property', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
         expect(buf.buffer).toEqual([1, 2, 3]);
     });
 
     test('Constructor without parameters', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1');
         expect(buf.buffer).toEqual([]);
     });
     
     test('sort method with parameter function which returns boolean', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 3, 2, 4]);
         buf.sort((v1, v2) => v1 > v2);
         expect(buf.buffer).toEqual([1, 2, 3, 4]);
     });
 
     test('sort method with parameter function which returns number', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 3, 2, 4]);
         buf.sort((v1, v2) => v1 - v2);
         expect(buf.buffer).toEqual([1, 2, 3, 4]);
     });
 
     test('push method', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1');
         buf.insert(1);
         buf.insert(2);
@@ -39,7 +39,7 @@ describe('BufferEndpoint', () => {
     });
 
     test('clear method', async () => {
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
         buf.delete();
         expect(buf.buffer).toEqual([]);
@@ -47,7 +47,7 @@ describe('BufferEndpoint', () => {
 
     test('forEach method', async () => {
         const res: number[][] = [];
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
         buf.forEach((v, i) => res.push([v, i]));
         expect(res).toEqual([[1, 0], [2, 1], [3, 2]]);
@@ -56,7 +56,7 @@ describe('BufferEndpoint', () => {
     test('read method', async () => {
         const res: number[] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
         let stream$ = src.select().pipe(
             rx.tap(v => res.push(v))

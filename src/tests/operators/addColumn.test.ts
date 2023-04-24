@@ -1,12 +1,12 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import { Endpoint as MemoryEndpoint } from '../../lib/endpoints/memory/index.js'
+import { Memory } from '../../lib/endpoints/index.js'
 
 describe('Operator addColumn()', () => {
     test('add column to arrays', async () => {
         let res: any[][] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.select().pipe(
@@ -22,7 +22,7 @@ describe('Operator addColumn()', () => {
     test('add column to scalars', async () => {
         let res: any[][] = [];
 
-        const mem = new MemoryEndpoint();
+        const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
         let stream$ = src.select().pipe(
