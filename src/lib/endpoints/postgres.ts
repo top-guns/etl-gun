@@ -2,7 +2,7 @@ import * as pg from 'pg'
 import { Observable } from "rxjs";
 import { GuiManager } from '../core/gui.js';
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected connectionString: string = null;
@@ -23,9 +23,9 @@ export class Endpoint extends BaseEndpoint {
         else this._connectionPool = connection;
     }
 
-    getTable<T = Record<string, any>>(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection<T> {
-        guiOptions.displayName ??= `${table}`;
-        return this._addCollection(table, new TableCollection(this, table, guiOptions)) as unknown as TableCollection<T>;
+    getTable<T = Record<string, any>>(table: string, options: CollectionOptions<string[]> = {}): TableCollection<T> {
+        options.displayName ??= `${table}`;
+        return this._addCollection(table, new TableCollection(this, table, table, options)) as unknown as TableCollection<T>;
     }
 
     releaseTable(table: string) {
@@ -47,9 +47,9 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
     
     protected table: string;
 
-    constructor(endpoint: Endpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, table: string, options: CollectionOptions<T> = {}) {
         TableCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.table = table;
     }
 

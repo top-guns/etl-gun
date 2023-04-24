@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { Header, pathJoin } from "../utils/index.js";
 import { Observable } from "rxjs";
 
@@ -12,11 +12,11 @@ export class Endpoint extends BaseEndpoint {
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, header: Header = null, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}): Collection {
-        guiOptions.displayName ??= this.getName(filename);
+    getFile(filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<string[]> = {}): Collection {
+        options.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new Collection(this, path, header, delimiter, guiOptions));
+        return this._addCollection(filename, new Collection(this, filename, path, header, delimiter, options));
     }
 
     releaseFile(filename: string) {
@@ -39,9 +39,9 @@ export class Collection extends BaseCollection<string[]> {
     protected delimiter: string;
     protected header: Header;
 
-    constructor(endpoint: Endpoint, filename: string, header: Header = null, delimiter: string = ",", guiOptions: CollectionGuiOptions<string[]> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<string[]> = {}) {
         Collection.instanceCount++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.filename = filename;
         this.delimiter = delimiter;
         this.header = header;

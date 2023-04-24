@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch';
 //let {fetch, RequestInit} = await import('node-fetch');
 import https from 'node:https';
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from '../utils/index.js';
 import { Observable } from 'rxjs';
 
@@ -105,9 +105,9 @@ export class Endpoint extends BaseEndpoint {
         return await (await fetch(this.getUrl(relativeUrl), init)).json();
     }
 
-    getProducts(guiOptions: CollectionGuiOptions<Partial<Product>> = {}): ProductsCollection {
-        guiOptions.displayName ??= `products`;
-        const collection = new ProductsCollection(this, guiOptions);
+    getProducts(options: CollectionOptions<Partial<Product>> = {}): ProductsCollection {
+        options.displayName ??= `products`;
+        const collection = new ProductsCollection(this, COLLECTIONS_NAMES.products, options);
         this._addCollection(COLLECTIONS_NAMES.products, collection);
         return collection;
     }
@@ -124,9 +124,9 @@ export class Endpoint extends BaseEndpoint {
 export class ProductsCollection extends BaseCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, guiOptions: CollectionGuiOptions<Partial<Product>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Product>> = {}) {
         ProductsCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
     }
 
     public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): Observable<Partial<Product>> {

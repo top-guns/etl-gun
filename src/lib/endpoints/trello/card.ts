@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -21,9 +21,9 @@ export class CardsCollection extends BaseCollection<Partial<Card>> {
     //protected boardId: string;
     protected listId: string;
 
-    constructor(endpoint: Endpoint, listId: string, guiOptions: CollectionGuiOptions<Partial<Card>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, listId: string, options: CollectionOptions<Partial<Card>> = {}) {
         CardsCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         //this.boardId = boardId;
         this.listId = listId;
     }

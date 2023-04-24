@@ -3,7 +3,7 @@ import { Observable, Subscriber } from 'rxjs';
 import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from "../utils/index.js";
 
 export type ReadOptions = {
@@ -19,11 +19,11 @@ export class Endpoint extends BaseEndpoint {
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<number> = {}): Collection {
-        guiOptions.displayName ??= this.getName(filename);
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, options: CollectionOptions<number> = {}): Collection {
+        options.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new Collection(this, path, autosave, autoload, encoding, guiOptions));
+        return this._addCollection(filename, new Collection(this, filename, path, autosave, autoload, encoding, options));
     }
 
     releaseFile(filename: string) {
@@ -48,9 +48,9 @@ export class Collection extends BaseCollection<any> {
     protected autosave: boolean;
     protected autoload: boolean;
 
-    constructor(endpoint: Endpoint, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, guiOptions: CollectionGuiOptions<any> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, options: CollectionOptions<any> = {}) {
         Collection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.filename = filename;
         this.encoding = encoding;
         this.autosave = autosave;

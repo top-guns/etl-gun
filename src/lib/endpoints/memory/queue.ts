@@ -1,7 +1,7 @@
 import { from, Observable } from "rxjs";
 import Signal from 'signal-promise';
 import { BaseEndpoint } from "src/lib/core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from "./endpoint.js";
 
 
@@ -18,9 +18,9 @@ export class QueueCollection<T = any> extends BaseCollection<T> {
     protected activateSignal: Signal;
     protected started: boolean;
 
-    constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
         QueueCollection.instanceCount++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this._queue = [];
         this.activateSignal = new Signal();
         this.started = false;

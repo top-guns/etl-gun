@@ -4,7 +4,7 @@ import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
 
 
@@ -36,12 +36,12 @@ export class Endpoint extends BaseEndpoint {
         if (this.rootFolder.endsWith('/')) this.rootFolder.substring(0, this.rootFolder.lastIndexOf('/'));
     }
 
-    getFolder(folderName: string = '.', guiOptions: CollectionGuiOptions<PathDetails> = {}): Collection {
-        guiOptions.displayName ??= this.getName(folderName);
+    getFolder(folderName: string = '.', options: CollectionOptions<PathDetails> = {}): Collection {
+        options.displayName ??= this.getName(folderName);
 
         let path = folderName == '.' ? '' : folderName;
         if (this.rootFolder) path = pathJoin([this.rootFolder, path], '/');
-        return this._addCollection(folderName, new Collection(this, path, guiOptions));
+        return this._addCollection(folderName, new Collection(this, folderName, path, options));
     }
 
     releaseFolder(folderName: string) {
@@ -62,9 +62,9 @@ export class Collection extends BaseCollection<PathDetails> {
 
     protected folderPath: string;
 
-    constructor(endpoint: Endpoint, folderPath: string, guiOptions: CollectionGuiOptions<PathDetails> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, folderPath: string, options: CollectionOptions<PathDetails> = {}) {
         Collection.instanceCount++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.folderPath = folderPath.trim();
         if (this.folderPath.endsWith('/')) this.folderPath.substring(0, this.folderPath.lastIndexOf('/'));
     }

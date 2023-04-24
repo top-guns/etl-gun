@@ -1,7 +1,7 @@
 import Db, { DbConfig } from 'mysql2-async';
 import parseDbUrl from "parse-database-url";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { CollectionGuiOptions, BaseCollection } from "../core/collection.js";
+import { CollectionOptions, BaseCollection } from "../core/collection.js";
 import { Observable } from 'rxjs';
 
 class DbExt extends Db {
@@ -73,9 +73,9 @@ export class Endpoint extends BaseEndpoint {
         else this._db = connection;
     }
 
-    getTable<T = Record<string, any>>(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection<T> {
-        guiOptions.displayName ??= `${table}`;
-        const c = this._addCollection(table, new TableCollection(this, table, guiOptions));
+    getTable<T = Record<string, any>>(table: string, options: CollectionOptions<string[]> = {}): TableCollection<T> {
+        options.displayName ??= `${table}`;
+        const c = this._addCollection(table, new TableCollection(this, table, table, options));
         return c as unknown as TableCollection<T>;
     }
 
@@ -102,9 +102,9 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
 
     protected table: string;
 
-    constructor(endpoint: Endpoint, table: string, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, table: string, options: CollectionOptions<T> = {}) {
         TableCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.table = table;
     }
 

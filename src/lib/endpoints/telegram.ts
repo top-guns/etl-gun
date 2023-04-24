@@ -1,7 +1,7 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 
 export type InputMessage = {
@@ -14,9 +14,9 @@ export class Endpoint extends BaseEndpoint {
         super();
     }
 
-    startBot(collectionName: string, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<InputMessage> = {}): Collection {
-        guiOptions.displayName ??= collectionName;
-        return this._addCollection(collectionName, new Collection(this, token, keyboard, guiOptions));
+    startBot(collectionName: string, token: string, keyboard?: any, options: CollectionOptions<InputMessage> = {}): Collection {
+        options.displayName ??= collectionName;
+        return this._addCollection(collectionName, new Collection(this, collectionName, token, keyboard, options));
     }
 
     releaseBot(collectionName: string) {
@@ -37,9 +37,9 @@ export class Collection extends BaseCollection<InputMessage> {
     protected subscriber: Subscriber<InputMessage>;
     protected bot: TelegramBot;
 
-    constructor(endpoint: Endpoint, token: string, keyboard?: any, guiOptions: CollectionGuiOptions<InputMessage> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, token: string, keyboard?: any, options: CollectionOptions<InputMessage> = {}) {
         Collection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.token = token;
         this.keyboard = keyboard;
     }

@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { BaseCollection, CollectionGuiOptions } from "./collection.js";
+import { BaseCollection, CollectionOptions } from "./collection.js";
 import { GuiManager } from "./gui.js";
 
 export class BaseEndpoint {

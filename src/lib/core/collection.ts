@@ -1,12 +1,14 @@
 import { Observable, tap } from "rxjs";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
-import { Memory } from "../index.js";
+import { Errors, Memory } from "../index.js";
 import { push, run } from "../operators/index.js";
+import { ErrorsQueue, EtlError } from "../endpoints/errors.js";
 
-export type CollectionGuiOptions<T> = {
+export type CollectionOptions<T> = {
     displayName?: string;
     watch?: (value: T) => string;
+    disableErrorsCollectionCreation?: boolean;
 }
 
 export type CollectionEvent = 
@@ -47,14 +49,19 @@ export class BaseCollection<T> {
         return this._endpoint;
     }
 
-    protected guiOptions: CollectionGuiOptions<T>;
+    public errors: BaseCollection<EtlError> = null;
+
+    protected guiOptions: CollectionOptions<T>;
 
     protected _isPaused: boolean = false;
 
-    constructor(endpoint: BaseEndpoint, guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
         this._endpoint = endpoint;
-        this.guiOptions = guiOptions;
-        if (GuiManager.instance) GuiManager.instance.registerCollection(this, guiOptions);
+        this.guiOptions = options;
+        if (GuiManager.instance) GuiManager.instance.registerCollection(this, options);
+        if (!options.disableErrorsCollectionCreation) {
+            this.errors = Errors.Endpoint.instance.getCollection(`${collectionName} errors`, {disableErrorsCollectionCreation: true});
+        }
     }
 
     public pause() {

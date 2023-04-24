@@ -1,7 +1,7 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionGuiOptions } from "../../core/collection.js";
+import { CollectionOptions } from "../../core/collection.js";
 import { pathJoin } from '../../utils/index.js';
 import { Board, BoardsCollection } from './board.js';
 import { List, ListsCollection } from './list.js';
@@ -110,23 +110,23 @@ export class Endpoint extends BaseEndpoint {
         return this.fetchJson(`1/members/${user}`);
     }
 
-    getUserBoards(username: string = 'me', collectionName: string = 'Boards', guiOptions: CollectionGuiOptions<Partial<Board>> = {}): BoardsCollection {
-        guiOptions.displayName ??= `Boards`;
-        const collection = new BoardsCollection(this, username, guiOptions);
+    getUserBoards(username: string = 'me', collectionName: string = 'Boards', options: CollectionOptions<Partial<Board>> = {}): BoardsCollection {
+        options.displayName ??= `Boards`;
+        const collection = new BoardsCollection(this, collectionName, username, options);
         this._addCollection(collectionName, collection);
         return collection;
     }
 
-    getBoardLists(boardId: string, collectionName: string = 'Lists', guiOptions: CollectionGuiOptions<Partial<List>> = {}): ListsCollection {
-        guiOptions.displayName ??= `Lists`;
-        const collection = new ListsCollection(this, boardId, guiOptions);
+    getBoardLists(boardId: string, collectionName: string = 'Lists', options: CollectionOptions<Partial<List>> = {}): ListsCollection {
+        options.displayName ??= `Lists`;
+        const collection = new ListsCollection(this, collectionName, boardId, options);
         this._addCollection(collectionName, collection);
         return collection;
     }
 
-    getListCards(listId: string, collectionName: string = 'Cards', guiOptions: CollectionGuiOptions<Partial<Card>> = {}): CardsCollection {
-        guiOptions.displayName ??= `Cards`;
-        const collection = new CardsCollection(this, listId, guiOptions);
+    getListCards(listId: string, collectionName: string = 'Cards', options: CollectionOptions<Partial<Card>> = {}): CardsCollection {
+        options.displayName ??= `Cards`;
+        const collection = new CardsCollection(this, collectionName, listId, options);
         this._addCollection(collectionName, collection);
         return collection;
     }
@@ -137,9 +137,9 @@ export class Endpoint extends BaseEndpoint {
     //     return collection;
     // }
 
-    getCardComments(cardId: string, collectionName: string = 'Comments', guiOptions: CollectionGuiOptions<Partial<Comment>> = {}): CommentsCollection {
-        guiOptions.displayName ??= `Cards`;
-        const collection = new CommentsCollection(this, cardId, guiOptions);
+    getCardComments(cardId: string, collectionName: string = 'Comments', options: CollectionOptions<Partial<Comment>> = {}): CommentsCollection {
+        options.displayName ??= `Cards`;
+        const collection = new CommentsCollection(this, collectionName, cardId, options);
         this._addCollection(collectionName, collection);
         return collection;
     }

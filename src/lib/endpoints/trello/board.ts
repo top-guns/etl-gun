@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -49,9 +49,9 @@ export class BoardsCollection extends BaseCollection<Partial<Board>> {
     protected static instanceNo = 0;
     protected username: string;
 
-    constructor(endpoint: Endpoint, username: string = 'me', guiOptions: CollectionGuiOptions<Partial<Board>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, username: string = 'me', options: CollectionOptions<Partial<Board>> = {}) {
         BoardsCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this.username = username;
     }
 

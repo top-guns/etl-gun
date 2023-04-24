@@ -1,6 +1,6 @@
 import { from, Observable } from "rxjs";
 import { BaseEndpoint } from "src/lib/core/endpoint.js";
-import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from "./endpoint.js";
 
 
@@ -12,9 +12,9 @@ export class BufferCollection<T = any> extends BaseCollection<T> {
         return this._buffer;
     }
 
-    constructor(endpoint: BaseEndpoint, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}) {
+    constructor(endpoint: BaseEndpoint, collectionName: string, values: T[] = [], options: CollectionOptions<T> = {}) {
         BufferCollection.instanceCount++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         this._buffer = [...values];
     }
 

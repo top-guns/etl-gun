@@ -1,7 +1,7 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
 import { SimplifiedStyledElement } from 'console-gui-tools';
-import { BaseCollection, CollectionGuiOptions } from './collection.js';
+import { BaseCollection, CollectionOptions } from './collection.js';
 import { BaseEndpoint } from './endpoint.js';
 
 type EndpointDesc = {
@@ -22,7 +22,7 @@ type CollectionDesc = {
         deleted: number;
         errors: number;
     };
-    guiOptions: CollectionGuiOptions<any>;
+    guiOptions: CollectionOptions<any>;
 }
 
 export class GuiManager {
@@ -286,7 +286,7 @@ export class GuiManager {
         return null;
     }
 
-    public registerCollection(collection: BaseCollection<any>, guiOptions: CollectionGuiOptions<any> = {}) {
+    public registerCollection(collection: BaseCollection<any>, guiOptions: CollectionOptions<any> = {}) {
         const endpoint = collection.endpoint;
         const endpointdesc = this.getEndpointDesc(endpoint);
         if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);

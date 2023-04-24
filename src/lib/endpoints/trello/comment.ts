@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { BaseCollection, CollectionGuiOptions } from "../../core/collection.js";
+import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -56,9 +56,9 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
     //protected boardId: string;
     protected cardId: string;
     
-    constructor(endpoint: Endpoint, cardId: string, guiOptions: CollectionGuiOptions<Partial<Comment>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, cardId: string, options: CollectionOptions<Partial<Comment>> = {}) {
         CommentsCollection.instanceNo++;
-        super(endpoint, guiOptions);
+        super(endpoint, collectionName, options);
         //this.boardId = boardId;
         this.cardId = cardId;
     }
