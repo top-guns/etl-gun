@@ -39,6 +39,10 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
+export function getEndpoint(rootFolder: string = null): Endpoint {
+    return new Endpoint(rootFolder);
+}
+
 export class Collection extends BaseCollection<any> {
     protected static instanceNo = 0;
 

@@ -187,17 +187,17 @@ type DbProduct = {
     desctiption?: string
 }
 
-const csv = new etl.Csv.Endpoint("./data");
+const csv = etl.Csv.getEndpoint("./data");
 const csvMagento = csv.getFile("magento.csv", headerMagento);
 const csvPuma = csv.getFile("puma.csv", headerPuma, ';');
 
-const memory = new etl.Memory.Endpoint();
+const memory = etl.Memory.getEndpoint();
 const queue = memory.getQueue<DbProduct>('queue');
 
-const mysql = new etl.Mysql.Endpoint('mysql://test:test@localhost:7306/test');
+const mysql = etl.Mysql.getEndpoint('mysql://test:test@localhost:7306/test');
 const table = mysql.getTable<DbProduct>('test1');
 
-const errorsEndpoint = new etl.Errors.Endpoint();
+const errorsEndpoint = etl.Errors.getEndpoint();
 const errors = errorsEndpoint.getCollection('all');
 
 

@@ -4,6 +4,15 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 
 export class Endpoint extends BaseEndpoint {
+    protected static _instance: Endpoint;
+    static get instance(): Endpoint {
+        return Endpoint._instance ||= new Endpoint();
+    }
+
+    protected constructor() {
+        super();
+    }
+
     getSequence(collectionName: string, interval: number, options: CollectionOptions<number> = {}): Collection {
         options.displayName ??= `${collectionName} (${interval}ms)`;
         return this._addCollection(collectionName, new Collection(this, collectionName, interval, options));
@@ -17,6 +26,10 @@ export class Endpoint extends BaseEndpoint {
     get displayName(): string {
         return `Intervals`;
     }
+}
+
+export function getEndpoint(): Endpoint {
+    return Endpoint.instance;
 }
 
 export class Collection extends BaseCollection<number> {

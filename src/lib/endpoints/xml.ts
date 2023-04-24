@@ -40,6 +40,10 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
+export function getEndpoint(rootFolder: string = null): Endpoint {
+    return new Endpoint(rootFolder);
+}
+
 // Every node contains:
 // .attributes, .parentNode and .childNodes, which forms nodes hierarchy
 // .hasChildNodes, .firstChild and .lastChild

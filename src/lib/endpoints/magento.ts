@@ -121,6 +121,10 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
+export function getEndpoint(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true): Endpoint {
+    return new Endpoint(magentoUrl, login, password, rejectUnauthorized);
+}
+
 export class ProductsCollection extends BaseCollection<Partial<Product>> {
     protected static instanceNo = 0;
 

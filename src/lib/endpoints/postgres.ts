@@ -42,6 +42,12 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
+export function getEndpoint(connectionString: string): Endpoint;
+export function getEndpoint(connectionPool: pg.Pool): Endpoint;
+export function getEndpoint(connection: any): Endpoint {
+    return new Endpoint(connection);
+}
+
 export class TableCollection<T = Record<string, any>> extends BaseCollection<T> {
     protected static instanceNo = 0;
     

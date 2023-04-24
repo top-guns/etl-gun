@@ -152,3 +152,7 @@ export class Endpoint extends BaseEndpoint {
         return `Trello (${this.url})`;
     }
 }
+
+export function getEndpoint(apiKey: string, authToken: string, url: string = "https://trello.com", rejectUnauthorized: boolean = true): Endpoint {
+    return new Endpoint(apiKey, authToken, url, rejectUnauthorized);
+}

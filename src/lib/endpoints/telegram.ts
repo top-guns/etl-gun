@@ -10,7 +10,12 @@ export type InputMessage = {
 }
 
 export class Endpoint extends BaseEndpoint {
-    constructor() {
+    protected static _instance: Endpoint;
+    static get instance(): Endpoint {
+        return Endpoint._instance ||= new Endpoint();
+    }
+
+    protected constructor() {
         super();
     }
 
@@ -27,6 +32,10 @@ export class Endpoint extends BaseEndpoint {
     get displayName(): string {
         return `Telegram (${this.instanceNo})`;
     }
+}
+
+export function getEndpoint(): Endpoint {
+    return Endpoint.instance;
 }
 
 export class Collection extends BaseCollection<InputMessage> {

@@ -4,6 +4,15 @@ import { BufferCollection } from "./buffer.js";
 import { QueueCollection } from "./queue.js";
 
 export class Endpoint extends BaseEndpoint {
+    protected static _instance: Endpoint;
+    static get instance(): Endpoint {
+        return Endpoint._instance ||= new Endpoint();
+    }
+
+    protected constructor() {
+        super();
+    }
+
     getBuffer<T>(collectionName: string, values: T[] = [], options: CollectionOptions<T> = {}): BufferCollection<T> {
         options.displayName ??= collectionName;
         return this._addCollection(collectionName, new BufferCollection<T>(this, collectionName, values, options));
@@ -33,4 +42,8 @@ export class Endpoint extends BaseEndpoint {
     get displayName(): string {
         return `Memory`;
     }    
+}
+
+export function getEndpoint(): Endpoint {
+    return Endpoint.instance;
 }

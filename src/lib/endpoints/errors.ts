@@ -14,9 +14,13 @@ export type EtlErrorData<T = any> = EtlError & {
 
 
 export class Endpoint extends BaseEndpoint {
-    static _instance: Endpoint;
+    protected static _instance: Endpoint;
     static get instance(): Endpoint {
         return Endpoint._instance ||= new Endpoint();
+    }
+
+    protected constructor() {
+        super();
     }
 
     getCollection(collectionName: string, options: CollectionOptions<EtlError> = {}): ErrorsQueue {
@@ -38,6 +42,10 @@ export class Endpoint extends BaseEndpoint {
     get displayName(): string {
         return `Errors`;
     }
+}
+
+export function getEndpoint(): Endpoint {
+    return Endpoint.instance;
 }
 
 export class ErrorsQueue extends QueueCollection<EtlError> {
