@@ -54,7 +54,7 @@ export class BaseCollection<T> {
         return this._endpoint;
     }
 
-    public errors: BaseCollection<EtlError> = null;
+    public errors: Errors.ErrorsQueue = null;
 
     protected options: CollectionOptions<T>;
 

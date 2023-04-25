@@ -300,7 +300,9 @@ let MySql_to_Magento$ = table.select().pipe(
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
 
-etl.run(ErrorProcessing$);
+//etl.run(ErrorProcessing$);
+
+etl.run(csvPuma.errors.select(false));
 
 await etl.run(PumaCsv_to_MySql$);
 

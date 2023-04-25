@@ -81,8 +81,10 @@ export class BaseObservable<T> extends Observable<T> {
   ): BaseObservable<unknown>;
 
   pipe(...operations: OperatorFunction<any, any>[]): BaseObservable<T> {
-    const oldObservable = pipeFromArray([startOperator(this._collection), ...operations, endOperator(this._collection)])(this);
-    return oldObservable as BaseObservable<T>;
+    let finalArray = [startOperator(this._collection), ...operations, endOperator(this._collection)];
+    finalArray = finalArray.map(op => op.bind(this));
+    const observable = pipeFromArray(finalArray)(this);
+    return observable as BaseObservable<T>;
   }
 }
 

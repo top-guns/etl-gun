@@ -1,6 +1,5 @@
-import { Observable } from "rxjs";
-import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
+import { BaseObservable } from "../../core/observable.js";
 import { Endpoint } from './endpoint.js';
 
 

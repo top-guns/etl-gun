@@ -1,8 +1,8 @@
 import { from, Observable } from "rxjs";
 import Signal from 'signal-promise';
-import { BaseEndpoint } from "src/lib/core/endpoint.js";
-import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
+import { BaseEndpoint } from "../../core/endpoint.js";
+import { BaseObservable } from "../../core/observable.js";
 import { Endpoint } from "./endpoint.js";
 
 
