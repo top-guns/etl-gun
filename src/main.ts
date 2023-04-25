@@ -13,7 +13,7 @@ import { GuiManager, Magento } from "./lib/index.js";
 dotenv.config()
 
 const START = new Date;
-//GuiManager.startGui(true, 20);
+GuiManager.startGui(true, 20);
 console.log("START", START);
 
 
@@ -302,7 +302,7 @@ let MySql_to_Magento$ = table.select().pipe(
 
 //etl.run(ErrorProcessing$);
 
-etl.run(csvPuma.errors.select(false).pipe(
+etl.run(csvPuma.selectErrors().pipe(
     etl.log()
 ));
 

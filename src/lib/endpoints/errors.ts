@@ -1,5 +1,6 @@
 import { CollectionOptions } from "../core/collection.js";
 import { BaseEndpoint } from "../core/endpoint.js";
+import { BaseObservable } from "../core/observable.js";
 import { QueueCollection } from "./memory/queue.js";
 
 
@@ -50,5 +51,7 @@ export function getEndpoint(): Endpoint {
 }
 
 export class ErrorsQueue extends QueueCollection<EtlError> {
-    
+    public select(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
+        return super.select(stopOnEmpty, 0);
+    }
 }

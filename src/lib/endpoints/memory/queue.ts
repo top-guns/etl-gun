@@ -27,7 +27,7 @@ export class QueueCollection<T = any> extends BaseCollection<T> {
         this.started = false;
     }
 
-    public select(stopOnEmpty: boolean = true, interval: number = 0): BaseObservable<T> {
+    public select(dontStopOnEmpty: boolean = false, interval: number = 0): BaseObservable<T> {
         this.timestamp = null;
         this.started = true;
 
@@ -35,7 +35,7 @@ export class QueueCollection<T = any> extends BaseCollection<T> {
             (async () => {
                 try {
                     this.sendStartEvent();
-                    while(this.started && !(stopOnEmpty && !this._queue.length)) {
+                    while(this.started && !(!dontStopOnEmpty && !this._queue.length)) {
                         if (!this._queue.length) await this.activateSignal.wait();
 
                         if (subscriber.closed) break;

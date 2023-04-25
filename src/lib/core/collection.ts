@@ -112,6 +112,11 @@ export class BaseCollection<T> {
         throw new Error("Method not implemented.");
     }
 
+    public selectErrors(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
+        if (!this.errors) throw new Error("Errors collection is not specified.");
+        return this.errors.select(stopOnEmpty);
+    }
+
     // public selectOneByOne(delay: number = 0, ...params: any[]): Observable<CollectionItem<T>> {
     //     let timestamp = null;
 
