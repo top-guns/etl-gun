@@ -76,8 +76,17 @@ export default {
   // maxWorkers: "50%",
 
   // An array of directory names to be searched recursively up from the requiring module's location
-  // moduleDirectories: [
-  //   "node_modules"
+  moduleDirectories: [
+    "node_modules",
+    //"src",
+    "<rootDir>",
+    //"<rootDir>/src"
+  ],
+
+  // modulePaths: [
+  //   "src",
+  //   "<rootDir>",
+  //   "<rootDir>/src"
   // ],
 
   // An array of file extensions your modules use
@@ -130,7 +139,10 @@ export default {
 
   // A list of paths to directories that Jest should use to search for files in
   // roots: [
-  //   "src/tests"
+  //   "src/tests",
+  //   "<rootDir>",
+  //   "src",
+  //   "<rootDir>/src"
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
@@ -186,6 +198,7 @@ export default {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^(src/.*)\\.js$': '$1'
   },
   transform: {
     '^.+\\.ts?$': [
