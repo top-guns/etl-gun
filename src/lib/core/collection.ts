@@ -1,9 +1,9 @@
-import { Observable, tap } from "rxjs";
+import { Observable, Subscriber, tap } from "rxjs";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
 import { Errors, Memory } from "../index.js";
 import { push, run } from "../operators/index.js";
-import { ErrorsQueue, EtlError } from "../endpoints/errors.js";
+import { ErrorsQueue, EtlError, EtlErrorData } from "../endpoints/errors.js";
 
 export type CollectionOptions<T> = {
     displayName?: string;
@@ -51,16 +51,16 @@ export class BaseCollection<T> {
 
     public errors: BaseCollection<EtlError> = null;
 
-    protected guiOptions: CollectionOptions<T>;
+    protected options: CollectionOptions<T>;
 
     protected _isPaused: boolean = false;
 
     constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
         this._endpoint = endpoint;
-        this.guiOptions = options;
+        this.options = options;
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, options);
-        if (!options.disableErrorsCollectionCreation) {
-            this.errors = Errors.Endpoint.instance.getCollection(`${collectionName} errors`, {disableErrorsCollectionCreation: true});
+        if (!options.disableErrorsCollectionCreation && this.constructor.name != 'ErrorsQueue') {
+            this.errors = Errors.Endpoint.instance.getCollection(`${collectionName}`, {disableErrorsCollectionCreation: true});
         }
     }
 
@@ -107,18 +107,18 @@ export class BaseCollection<T> {
         throw new Error("Method not implemented.");
     }
 
-    public selectOneByOne(delay: number = 0, ...params: any[]): Observable<T> {
-        let timestamp = null;
+    // public selectOneByOne(delay: number = 0, ...params: any[]): Observable<CollectionItem<T>> {
+    //     let timestamp = null;
 
-        const memory = Memory.getEndpoint();
-        const queue = memory.getQueue<T>(`${this.guiOptions.displayName}-queue`);
+    //     const memory = Memory.getEndpoint();
+    //     const queue = memory.getQueue<T>(`${this.options.displayName}-queue`);
 
-        this.select(params).pipe(
-            push(queue)
-        ).subscribe();
+    //     this.select(params).pipe(
+    //         push(queue)
+    //     ).subscribe();
 
-        return queue.select(false, delay);
-    }
+    //     return queue.select(false, delay);
+    // }
 
     public async insert(value: any, ...params: any[]): Promise<any> {
         this.sendEvent("insert", { value });

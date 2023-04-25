@@ -1,4 +1,4 @@
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
+import { BaseCollection, BaseCollectionItem, CollectionOptions } from "../core/collection.js";
 import { BaseEndpoint } from "../core/endpoint.js";
 import { QueueCollection } from "./memory/queue.js";
 
@@ -6,6 +6,7 @@ import { QueueCollection } from "./memory/queue.js";
 export type EtlError = {
     name: string;
     message: string;
+    //error: any
 }
 
 export type EtlErrorData<T = any> = EtlError & {
@@ -25,11 +26,11 @@ export class Endpoint extends BaseEndpoint {
 
     getCollection(collectionName: string, options: CollectionOptions<EtlError> = {}): ErrorsQueue {
         options.displayName ??= collectionName;
-        const collection = new QueueCollection<EtlError>(this, collectionName, options);
+        const collection = new ErrorsQueue(this, collectionName, options);
         return this._addCollection(collectionName, collection);
     }
     releaseCollection(collectionName: string) {
-        const collection: QueueCollection<any> = this.collections[collectionName] as QueueCollection<any>;
+        const collection: ErrorsQueue = this.collections[collectionName] as ErrorsQueue;
         collection.stop();
         this._removeCollection(collectionName);
     }
