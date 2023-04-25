@@ -6,6 +6,7 @@ import 'xmldom-ts';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from "../utils/index.js";
+import { BaseObservable } from "../core/observable.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -68,8 +69,8 @@ export class Collection extends BaseCollection<any> {
         this.load();
     }
 
-    public select(xpath: string = '', options: ReadOptions = {}): Observable<Node> {
-        const observable = new Observable<any>((subscriber) => {
+    public select(xpath: string = '', options: ReadOptions = {}): BaseObservable<Node> {
+        const observable = new BaseObservable<any>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
@@ -97,7 +98,7 @@ export class Collection extends BaseCollection<any> {
         return observable;
     }
 
-    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: Observable<any>) {
+    protected async processOneSelectedValue(selectedValue: XPath.SelectedValue, options: ReadOptions, relativePath: string, subscriber: Subscriber<any>, observable: BaseObservable<any>) {
         const element = (selectedValue as Element).tagName ? selectedValue as Element : undefined;
 
         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
@@ -131,7 +132,7 @@ export class Collection extends BaseCollection<any> {
         }
     }
 
-    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: Observable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(selectedValue: XPath.SelectedValue, subscriber: Subscriber<any>, observable: BaseObservable<any>, options: ReadOptions = {}, relativePath = '') {
         let element: Element = (selectedValue as any).tagName ? selectedValue as Element : undefined;
         if (options.addRelativePathAsAttribute && element) element.setAttribute(options.addRelativePathAsAttribute, relativePath);
         if (subscriber.closed) return;

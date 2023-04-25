@@ -3,6 +3,7 @@ import { Observable } from "rxjs";
 import { GuiManager } from '../core/gui.js';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
+import { BaseObservable } from '../core/observable.js';
 
 export class Endpoint extends BaseEndpoint {
     protected connectionString: string = null;
@@ -59,8 +60,8 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         this.table = table;
     }
 
-    public select(where: string | {} = ''): Observable<T> {
-        const observable = new Observable<T>((subscriber) => {
+    public select(where: string | {} = ''): BaseObservable<T> {
+        const observable = new BaseObservable<T>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

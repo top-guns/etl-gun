@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
@@ -28,15 +29,15 @@ export class CardsCollection extends BaseCollection<Partial<Card>> {
         this.listId = listId;
     }
 
-    public select(where: Partial<Card> = {}, fields: (keyof Card)[] = []): Observable<Partial<Card>> {
+    public select(where: Partial<Card> = {}, fields: (keyof Card)[] = []): BaseObservable<Partial<Card>> {
         if (this.listId) return this.listByUrl(`/1/lists/${this.listId}/cards`, {}, fields);
         //let filter = '';
         //if (this.boardId) return this.listByUrl(`1/boards/${this.boardId}/cards${filter ? '/' + filter : ''}`);
         throw new Error('Error: listId cannot be empty in CardsCollection');
     }
 
-    protected listByUrl(url: string, params: {} = {}, fields: (keyof Card)[] = []): Observable<Partial<Card>> {
-        const observable = new Observable<Partial<Card>>((subscriber) => {
+    protected listByUrl(url: string, params: {} = {}, fields: (keyof Card)[] = []): BaseObservable<Partial<Card>> {
+        const observable = new BaseObservable<Partial<Card>>(this, (subscriber) => {
             (async () => {
                 try {
                     const getParams = 

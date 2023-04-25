@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
@@ -24,8 +25,8 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
         this.boardId = boardId;
     }
 
-    public select(where: Partial<List> = {}, fields: (keyof List)[] = null): Observable<Partial<List>> {
-        const observable = new Observable<Partial<List>>((subscriber) => {
+    public select(where: Partial<List> = {}, fields: (keyof List)[] = null): BaseObservable<Partial<List>> {
+        const observable = new BaseObservable<Partial<List>>(this, (subscriber) => {
             (async () => {
                 try {
                     if (!where) where = {};

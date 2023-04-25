@@ -5,6 +5,7 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from '../utils/index.js';
 import { Observable } from 'rxjs';
+import { BaseObservable } from '../core/observable.js';
 
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
 
@@ -133,8 +134,8 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         super(endpoint, collectionName, options);
     }
 
-    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): Observable<Partial<Product>> {
-        const observable = new Observable<Partial<Product>>((subscriber) => {
+    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObservable<Partial<Product>> {
+        const observable = new BaseObservable<Partial<Product>>(this, (subscriber) => {
             (async () => {
                 try {
                     await this.endpoint.updateToken();

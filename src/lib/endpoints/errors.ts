@@ -1,4 +1,4 @@
-import { BaseCollection, BaseCollectionItem, CollectionOptions } from "../core/collection.js";
+import { CollectionOptions } from "../core/collection.js";
 import { BaseEndpoint } from "../core/endpoint.js";
 import { QueueCollection } from "./memory/queue.js";
 

@@ -3,6 +3,7 @@ import { Observable, Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
+import { BaseObservable } from '../core/observable.js';
 
 export type InputMessage = {
     chatId: string;
@@ -53,8 +54,8 @@ export class Collection extends BaseCollection<InputMessage> {
         this.keyboard = keyboard;
     }
 
-    public select(): Observable<InputMessage> {
-        const observable = new Observable<InputMessage>((subscriber) => {
+    public select(): BaseObservable<InputMessage> {
+        const observable = new BaseObservable<InputMessage>(this, (subscriber) => {
             try {
                 this.sendStartEvent();
 

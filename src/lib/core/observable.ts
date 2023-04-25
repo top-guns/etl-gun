@@ -128,7 +128,7 @@ function pipeFromArray<T, R>(fns: Array<UnaryFunction<T, R>>): UnaryFunction<T, 
 // }
 
 function startOperator<T>(collection: BaseCollection<T>): MonoTypeOperatorFunction<T> {
-  return tap<T>(v => collection.sendPipeStartEvent(v)); 
+  return tap<T>(value => collection.sendPipeStartEvent(value)); 
 }
 
 export interface EndOperatorFunction<T> extends UnaryFunction<Observable<T>, BaseObservable<T>> {}
@@ -141,6 +141,7 @@ function endOperator<T>(collection: BaseCollection<T>): EndOperatorFunction<T> {
       const subscription = observable.subscribe({
         next(value) {
           subscriber.next(value);
+          collection.sendPipeEndEvent(value);
         },
         error(err) {
           subscriber.error(err);

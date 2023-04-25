@@ -4,6 +4,7 @@ import { BaseEndpoint } from "./endpoint.js";
 import { Errors, Memory } from "../index.js";
 import { push, run } from "../operators/index.js";
 import { ErrorsQueue, EtlError, EtlErrorData } from "../endpoints/errors.js";
+import { BaseObservable } from "./observable.js";
 
 export type CollectionOptions<T> = {
     displayName?: string;
@@ -20,6 +21,8 @@ export type CollectionEvent =
     "select.skip" |
     "select.up" |
     "select.down" |
+    "pipe.start" |
+    "pipe.end" |
     "insert" |
     "update" |
     "upsert" |
@@ -34,6 +37,8 @@ export class BaseCollection<T> {
         "update": [],
         "upsert": [],
         "delete": [],
+        "pipe.start": [],
+        "pipe.end": [],
         "select.start": [],
         "select.end": [],
         "select.sleep": [],
@@ -103,7 +108,7 @@ export class BaseCollection<T> {
         return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
-    public select(...params: any[]): Observable<T> {
+    public select(...params: any[]): BaseObservable<T> {
         throw new Error("Method not implemented.");
     }
 
@@ -120,15 +125,15 @@ export class BaseCollection<T> {
     //     return queue.select(false, delay);
     // }
 
-    public async insert(value: any, ...params: any[]): Promise<any> {
+    public async insert(value: T | any, ...params: any[]): Promise<any> {
         this.sendEvent("insert", { value });
     }
 
-    public async update(where: any, value: any, ...params: any[]): Promise<any> {
+    public async update(where: any, value: T, ...params: any[]): Promise<any> {
         this.sendEvent("update", { where, value });
     }
 
-    public async upsert(value: any, ...params: any[]): Promise<any> {
+    public async upsert(value: T, ...params: any[]): Promise<any> {
         this.sendEvent("upsert", { value });
     }
 
@@ -168,11 +173,11 @@ export class BaseCollection<T> {
         this.sendEvent("select.error", {error});
     }
   
-    public sendReciveEvent(value: any) {
+    public sendReciveEvent(value: T) {
         this.sendEvent("select.recive", {value});
     }
   
-    public sendSkipEvent(value: any) {
+    public sendSkipEvent(value: T) {
         this.sendEvent("select.skip", {value});
     }
   
@@ -182,6 +187,14 @@ export class BaseCollection<T> {
   
     public sendDownEvent() {
         this.sendEvent("select.down");
+    }
+
+    public sendPipeStartEvent(value: T) {
+        this.sendEvent("pipe.start", {value});
+    }
+  
+    public sendPipeEndEvent(value: T) {
+        this.sendEvent("pipe.end", {value});
     }
 }
   

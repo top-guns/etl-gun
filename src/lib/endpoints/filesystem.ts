@@ -6,6 +6,7 @@ import internal from "stream";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
+import { BaseObservable } from "../core/observable.js";
 
 
 export type PathDetails = {
@@ -76,8 +77,8 @@ export class Collection extends BaseCollection<PathDetails> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(mask: string = '*', options: ReadOptions = {}): Observable<PathDetails> {
-        const observable = new Observable<any>((subscriber) => {
+    public select(mask: string = '*', options: ReadOptions = {}): BaseObservable<PathDetails> {
+        const observable = new BaseObservable<any>(this, (subscriber) => {
             try {
                 this.sendStartEvent();
 

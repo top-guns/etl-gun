@@ -1,6 +1,7 @@
 import { from, Observable } from "rxjs";
 import Signal from 'signal-promise';
 import { BaseEndpoint } from "src/lib/core/endpoint.js";
+import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from "./endpoint.js";
 
@@ -26,11 +27,11 @@ export class QueueCollection<T = any> extends BaseCollection<T> {
         this.started = false;
     }
 
-    public select(stopOnEmpty: boolean = true, interval: number = 0): Observable<T> {
+    public select(stopOnEmpty: boolean = true, interval: number = 0): BaseObservable<T> {
         this.timestamp = null;
         this.started = true;
 
-        const observable = new Observable<T>((subscriber) => {
+        const observable = new BaseObservable<T>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

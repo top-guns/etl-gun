@@ -1,5 +1,6 @@
 import { from, Observable } from "rxjs";
 import { BaseEndpoint } from "src/lib/core/endpoint.js";
+import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from "./endpoint.js";
 
@@ -18,10 +19,10 @@ export class BufferCollection<T = any> extends BaseCollection<T> {
         this._buffer = [...values];
     }
 
-    public select(deleteProcessedElements?: true): Observable<T>;
-    public select(deleteProcessedElements?: false, filter?: (value: T, index: number) => T): Observable<T>;
-    public select(deleteProcessedElements: boolean = false, filter?: (value: T, index: number) => T): Observable<T> {
-        const observable = new Observable<T>((subscriber) => {
+    public select(deleteProcessedElements?: true): BaseObservable<T>;
+    public select(deleteProcessedElements?: false, filter?: (value: T, index: number) => T): BaseObservable<T>;
+    public select(deleteProcessedElements: boolean = false, filter?: (value: T, index: number) => T): BaseObservable<T> {
+        const observable = new BaseObservable<T>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

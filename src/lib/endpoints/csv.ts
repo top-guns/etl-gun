@@ -4,6 +4,7 @@ import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { Header, pathJoin } from "../utils/index.js";
 import { Observable } from "rxjs";
+import { BaseObservable } from "../core/observable.js";
 
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
@@ -56,9 +57,9 @@ export class Collection extends BaseCollection<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): Observable<string[]> {
+    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): BaseObservable<string[]> {
         const rows = [];
-        const observable = new Observable<string[]>((subscriber) => {
+        const observable = new BaseObservable<string[]>(this, (subscriber) => {
             try {
                 this.sendStartEvent();
                 const readStream = fs.createReadStream(this.filename)

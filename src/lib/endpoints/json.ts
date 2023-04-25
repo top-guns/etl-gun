@@ -5,6 +5,7 @@ import { JSONPath } from 'jsonpath-plus';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from "../utils/index.js";
+import { BaseObservable } from "../core/observable.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -65,8 +66,8 @@ export class Collection extends BaseCollection<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(path: string = '', options: ReadOptions = {}): Observable<any> {
-        const observable = new Observable<any>((subscriber) => {
+    public select(path: string = '', options: ReadOptions = {}): BaseObservable<any> {
+        const observable = new BaseObservable<any>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
@@ -122,10 +123,10 @@ export class Collection extends BaseCollection<any> {
     // About path syntax read https://www.npmjs.com/package/jsonpath-plus
     // path example: '$.store.book[*].author'
     // use path '$' for the root object
-    public selectByJsonPath(jsonPath?: string, options?: ReadOptions): Observable<any>;
-    public selectByJsonPath(jsonPaths?: string[], options?: ReadOptions): Observable<any>;
-    public selectByJsonPath(jsonPath: any = '', options: ReadOptions = {}): Observable<any> {
-        const observable = new Observable<any>((subscriber) => {
+    public selectByJsonPath(jsonPath?: string, options?: ReadOptions): BaseObservable<any>;
+    public selectByJsonPath(jsonPaths?: string[], options?: ReadOptions): BaseObservable<any>;
+    public selectByJsonPath(jsonPath: any = '', options: ReadOptions = {}): BaseObservable<any> {
+        const observable = new BaseObservable<any>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
@@ -180,7 +181,7 @@ export class Collection extends BaseCollection<any> {
         return observable;
     }
 
-    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: Observable<any>, options: ReadOptions = {}, relativePath = '') {
+    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: BaseObservable<any>, options: ReadOptions = {}, relativePath = '') {
         if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
         if (subscriber.closed) return;
         await this.waitWhilePaused();

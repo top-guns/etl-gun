@@ -13,7 +13,7 @@ import { GuiManager, Magento } from "./lib/index.js";
 dotenv.config()
 
 const START = new Date;
-GuiManager.startGui(true, 20);
+//GuiManager.startGui(true, 20);
 console.log("START", START);
 
 
@@ -282,7 +282,7 @@ let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
     //etl.push(table),
-    etl.expect<DbProduct>('price = 1800', { price: 1800 }, errors),
+    etl.expect<DbProduct>('price = 1800', { price: 1800 }),
     //etl.push(queue),
     //rx.delay(5000),
     //etl.log(),

@@ -3,6 +3,7 @@ import parseDbUrl from "parse-database-url";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { CollectionOptions, BaseCollection } from "../core/collection.js";
 import { Observable } from 'rxjs';
+import { BaseObservable } from '../core/observable.js';
 
 class DbExt extends Db {
     async close() {
@@ -114,8 +115,8 @@ export class TableCollection<T = Record<string, any>> extends BaseCollection<T> 
         this.table = table;
     }
 
-    public select(where: string | {} = ''): Observable<T> {
-        const observable = new Observable<T>((subscriber) => {
+    public select(where: string | {} = ''): BaseObservable<T> {
+        const observable = new BaseObservable<T>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();

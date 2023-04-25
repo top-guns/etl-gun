@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { BaseObservable } from "src/lib/core/observable.js";
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { Endpoint } from './endpoint.js';
 
@@ -63,8 +64,8 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
         this.cardId = cardId;
     }
 
-    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): Observable<Partial<Comment>> {
-        const observable = new Observable<Partial<Comment>>((subscriber) => {
+    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): BaseObservable<Partial<Comment>> {
+        const observable = new BaseObservable<Partial<Comment>>(this, (subscriber) => {
             (async () => {
                 try {
                     if (!where) where = {};
