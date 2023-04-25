@@ -6,10 +6,10 @@ export class BaseEndpoint {
     protected static instanceCount = 0;
     protected instanceNo: number;
     
-    constructor() {
+    constructor(hidden: boolean = false, first: boolean = false) {
         BaseEndpoint.instanceCount++;
         this.instanceNo = BaseEndpoint.instanceCount;
-        if (GuiManager.instance) GuiManager.instance.registerEndpoint(this);
+        if (GuiManager.instance && !hidden) GuiManager.instance.registerEndpoint(this, first);
     }
 
     releaseEndpoint() {

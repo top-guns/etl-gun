@@ -277,7 +277,7 @@ let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     rx.map(p => headerPuma.arrToObj(p)),
 
     //etl.where({price: 6800, category: 'Мужчины'}),
-    etl.log(),
+    //etl.log(),
 
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
@@ -285,7 +285,7 @@ let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     etl.expect<DbProduct>('price = 1800', { price: 1800 }),
     //etl.push(queue),
     //rx.delay(5000),
-    //etl.log(),
+    etl.log(),
 )
 
 let MySql_to_Magento$ = table.select().pipe(
@@ -302,7 +302,9 @@ let MySql_to_Magento$ = table.select().pipe(
 
 //etl.run(ErrorProcessing$);
 
-etl.run(csvPuma.errors.select(false));
+etl.run(csvPuma.errors.select(false).pipe(
+    etl.log()
+));
 
 await etl.run(PumaCsv_to_MySql$);
 

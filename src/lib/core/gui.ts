@@ -1,6 +1,7 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
 import { SimplifiedStyledElement } from 'console-gui-tools';
+import { Errors } from '../index.js';
 import { BaseCollection, CollectionOptions } from './collection.js';
 import { BaseEndpoint } from './endpoint.js';
 
@@ -272,9 +273,10 @@ export class GuiManager {
         this.consoleManager.info(message);
     }
 
-    public registerEndpoint(endpoint: BaseEndpoint) {
+    public registerEndpoint(endpoint: BaseEndpoint, toTheBegin: boolean = false) {
         const desc: EndpointDesc = {endpoint, collections: []};
-        this.endpoints.push(desc);
+        if (toTheBegin) this.endpoints.unshift(desc);
+        else this.endpoints.push(desc);
 
         this.updateConsole();
     }

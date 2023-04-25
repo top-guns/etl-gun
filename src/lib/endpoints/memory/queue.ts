@@ -46,7 +46,6 @@ export class QueueCollection<T = any> extends BaseCollection<T> {
                         if (interval > 0 && delay > 0) await this.wait(delay);
 
                         if (!this.started) break;
-
                         const value = this._queue.shift();
                         this.sendReciveEvent(value);
                         subscriber.next(value);

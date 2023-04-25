@@ -21,7 +21,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     protected constructor() {
-        super();
+        super(false, true);
     }
 
     getCollection(collectionName: string, options: CollectionOptions<EtlError> = {}): ErrorsQueue {
