@@ -64,6 +64,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     async fetch(relativeUrl: string) {
+        await this.updateToken();
         let init: RequestInit = {
             agent: this.agent,
             headers: {
@@ -76,8 +77,23 @@ export class Endpoint extends BaseEndpoint {
     }
 
     async push(relativeUrl: string, value: any) {
+        await this.updateToken();
         let init: RequestInit = {
             method: "POST", 
+            agent: this.agent,
+            headers: {
+                "Authorization": 'Bearer ' + this.token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(value)
+        }
+        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+    }
+
+    async put(relativeUrl: string, value: any) {
+        await this.updateToken();
+        let init: RequestInit = {
+            method: "PUT", 
             agent: this.agent,
             headers: {
                 "Authorization": 'Bearer ' + this.token,
