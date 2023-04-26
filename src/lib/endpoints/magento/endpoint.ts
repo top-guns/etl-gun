@@ -12,11 +12,14 @@ enum COLLECTIONS_NAMES {
     categories = 'categories'
 }
 
+const TOKEN_LIFE_TIME = 1 * 60 * 60 * 1000;
+
 export class Endpoint extends BaseEndpoint {
     protected _magentoUrl: string;
     protected login: string;
     protected password: string;
     protected token: string;
+    protected tokenTS: Date = null;
     protected rejectUnauthorized: boolean;
     protected agent: https.Agent;
 
@@ -34,6 +37,8 @@ export class Endpoint extends BaseEndpoint {
     }
 
     async updateToken() {
+        if (this.tokenTS && new Date().getTime() - this.tokenTS.getTime() < TOKEN_LIFE_TIME) return;
+        
         let init: RequestInit = {
             method: "POST", 
             agent: this.agent,
@@ -47,6 +52,7 @@ export class Endpoint extends BaseEndpoint {
         }
         
         this.token = await (await fetch(this.getUrl('/rest/V1/integration/admin/token'), init)).json() as string;
+        this.tokenTS = new Date();
     }
 
     protected getUrl(...parts: string[]) {
