@@ -13,7 +13,7 @@ import { GuiManager, Magento } from "./lib/index.js";
 dotenv.config()
 
 const START = new Date;
-GuiManager.startGui(true, 20);
+//GuiManager.startGui(true, 20);
 console.log("START", START);
 
 
@@ -141,6 +141,7 @@ console.log("START", START);
 
 const magentoEndpoint = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
 const magentoProducts = magentoEndpoint.getProducts();
+const magentoStockItems = magentoEndpoint.getStockItems();
 
 const headerMagento = new etl.Header([
     'id', 
@@ -302,11 +303,26 @@ let MySql_to_Magento$ = table.select().pipe(
 
 //etl.run(ErrorProcessing$);
 
-etl.run(csvPuma.selectErrors().pipe(
-    etl.log()
-));
+// etl.run(csvPuma.selectErrors().pipe(
+//     etl.log()
+// ));
 
-await etl.run(PumaCsv_to_MySql$);
+// await etl.run(PumaCsv_to_MySql$);
+
+
+const PrintMagentoProducts$ = magentoProducts.select().pipe(
+    rx.take(10),
+    etl.log()
+)
+const PrintStockItems$ = magentoStockItems.select().pipe(
+    rx.take(10),
+    etl.log()
+)
+
+//await etl.run(PrintMagentoProducts$);
+await etl.run(PrintStockItems$);
+
+
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();

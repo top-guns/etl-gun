@@ -5,11 +5,13 @@ import { BaseEndpoint} from "../../core/endpoint.js";
 import { CollectionOptions } from "../../core/collection.js";
 import { pathJoin } from '../../utils/index.js';
 import { Product, ProductsCollection } from './products.js';
+import { StockItem, StockItemsCollection } from './stock_items.js';
 
 
 enum COLLECTIONS_NAMES {
     products = 'products',
-    categories = 'categories'
+    categories = 'categories',
+    stock_items = 'stock_items'
 }
 
 const TOKEN_LIFE_TIME = 1 * 60 * 60 * 1000;
@@ -63,7 +65,7 @@ export class Endpoint extends BaseEndpoint {
         return this._magentoUrl;
     }
 
-    async fetch(relativeUrl: string) {
+    async get(relativeUrl: string) {
         await this.updateToken();
         let init: RequestInit = {
             agent: this.agent,
@@ -113,6 +115,17 @@ export class Endpoint extends BaseEndpoint {
 
     releaseProducts() {
         this._removeCollection(COLLECTIONS_NAMES.products);
+    }
+
+    getStockItems(options: CollectionOptions<StockItem> = {}): StockItemsCollection {
+        options.displayName ??= `stock items`;
+        const collection = new StockItemsCollection(this, COLLECTIONS_NAMES.stock_items, options);
+        this._addCollection(COLLECTIONS_NAMES.stock_items, collection);
+        return collection;
+    }
+
+    releaseStockItems() {
+        this._removeCollection(COLLECTIONS_NAMES.stock_items);
     }
 
     get displayName(): string {

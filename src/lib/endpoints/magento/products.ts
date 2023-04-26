@@ -38,24 +38,10 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         const observable = new BaseObservable<Partial<Product>>(this, (subscriber) => {
             (async () => {
                 try {
-                    let getParams = '';
-
-                    let n = 0;
-                    for (let key in where) {
-                        if (!where.hasOwnProperty(key)) continue;
-                        if (getParams) getParams += '&';
-                        getParams += `searchCriteria[filterGroups][${n}][filters][0][field]=${key}&`;
-                        getParams += `searchCriteria[filterGroups][${n}][filters][0][value]=${where[key]}`;
-                        n++;
-                    }
-                    if (!getParams) getParams += 'searchCriteria';
-
-                    if (fields) getParams += `fields=items[${fields.join(',')}]`;
-
-                    const products = await this.endpoint.fetch('/rest/V1/products?' + getParams) as {items: Partial<Product>[]};
+                    const products = await ProductsCollection.getProducts(this.endpoint, where, fields);
 
                     this.sendStartEvent();
-                    for (const p of products.items) {
+                    for (const p of products) {
                         if (subscriber.closed) break;
                         await this.waitWhilePaused();
                         this.sendReciveEvent(p);
@@ -78,11 +64,31 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 
+    public static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null) {
+        let getParams = '';
+        if (!where) where = {};
+
+        let n = 0;
+        for (let key in where) {
+            if (!where.hasOwnProperty(key)) continue;
+            if (getParams) getParams += '&';
+            getParams += `searchCriteria[filterGroups][${n}][filters][0][field]=${key}&`;
+            getParams += `searchCriteria[filterGroups][${n}][filters][0][value]=${where[key]}`;
+            n++;
+        }
+        if (!getParams) getParams += 'searchCriteria';
+
+        if (fields) getParams += `&fields=items[${fields.join(',')}]`;
+
+        const products = await endpoint.get('/rest/V1/products?' + getParams) as {items: Partial<Product>[]};
+        return products.items;
+    }
+
     public async updateStockQuantity(product: Partial<Product>, quantity: number);
     public async updateStockQuantity(sku: string, quantity: number);
     public async updateStockQuantity(product: Partial<Product> | string, quantity: number) {
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: {"qty": quantity}}) as Partial<Product>;
+        return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: { qty: quantity, is_in_stock: quantity > 0 } }) as Partial<Product>;
     }
 
     get endpoint(): Endpoint {
