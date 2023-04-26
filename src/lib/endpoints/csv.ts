@@ -37,14 +37,16 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-export class Collection extends BaseCollection<string[]> {
+type CsvCellType = string | boolean | number | undefined | null;
+
+export class Collection extends BaseCollection<CsvCellType[]> {
     protected static instanceCount = 0;
 
     protected filename: string;
     protected delimiter: string;
     protected header: Header;
 
-    constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<string[]> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<CsvCellType[]> = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
         this.filename = filename;
@@ -57,9 +59,9 @@ export class Collection extends BaseCollection<string[]> {
    * @param skipEmptyLines skip empty lines in file
    * @return Observable<string[]> 
    */
-    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): BaseObservable<string[]> {
+    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): BaseObservable<CsvCellType[]> {
         const rows = [];
-        const observable = new BaseObservable<string[]>(this, (subscriber) => {
+        const observable = new BaseObservable<CsvCellType[]>(this, (subscriber) => {
             try {
                 this.sendStartEvent();
                 const readStream = fs.createReadStream(this.filename)
@@ -70,8 +72,8 @@ export class Collection extends BaseCollection<string[]> {
                     //     return;
                     // }
                     // TODO process data in this listener instead of pushing it to the buffer
-                    const r = this.cropRowToHeader(row);
-                    for (let i = 0; i < r.length; i++) r[i] = this.readedFieldValueToObj(i, r[i]);
+                    const r: CsvCellType[] = this.cropRowToHeader(row);
+                    for (let i = 0; i < r.length; i++) r[i] = this.readedFieldValueToObj(i, r[i] as string);
                     rows.push(r);
                 })
                 .on("end", () => {
@@ -103,7 +105,7 @@ export class Collection extends BaseCollection<string[]> {
         return observable;
     }
 
-    public async insert(value: any[], nullValue: string = '') {
+    public async insert(value: CsvCellType[], nullValue: string = '') {
         await super.insert(value);
         const strVal = this.getCsvStrFromArr(value) + "\n";
         // await fs.appendFile(this.filename, strVal, function (err) {
@@ -117,7 +119,7 @@ export class Collection extends BaseCollection<string[]> {
         await fs.promises.writeFile(this.filename, '');
     }
 
-    protected getCsvStrFromArr(vals: any[]) {
+    protected getCsvStrFromArr(vals: CsvCellType[]) {
         vals = this.cropRowToHeader(vals);
         let res = "";
         for (let i = 0; i < vals.length; i++) {
@@ -127,7 +129,7 @@ export class Collection extends BaseCollection<string[]> {
         return res;
     }
 
-    protected convertToCell(i: number, val: any): string {
+    protected convertToCell(i: number, val: CsvCellType): string {
         let strVal: string;
         if (!this.header) {
             if (val === null) return '"null"';
@@ -138,12 +140,12 @@ export class Collection extends BaseCollection<string[]> {
         return '"' + strVal.replace(/"/g, '""') + '"';
     }
 
-    protected readedFieldValueToObj(i: number, val: string): any {
+    protected readedFieldValueToObj(i: number, val: string): CsvCellType {
         if (!this.header) return val;
         return this.header.strToVal(i, val);
     }
 
-    protected cropRowToHeader(row: any[]): any[] {
+    protected cropRowToHeader(row: CsvCellType[]): CsvCellType[] {
         if (!this.header) return row;
         return row.slice(0, this.header.getFieldsCount());
     }
