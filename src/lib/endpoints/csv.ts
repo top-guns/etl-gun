@@ -44,7 +44,7 @@ export class Collection extends BaseCollection<CsvCellType[]> {
 
     protected filename: string;
     protected delimiter: string;
-    protected header: Header;
+    public header: Header;
 
     constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<CsvCellType[]> = {}) {
         Collection.instanceCount++;
