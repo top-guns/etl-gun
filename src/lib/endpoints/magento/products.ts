@@ -38,8 +38,6 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         const observable = new BaseObservable<Partial<Product>>(this, (subscriber) => {
             (async () => {
                 try {
-                    await this.endpoint.updateToken();
-
                     let getParams = '';
 
                     let n = 0;
@@ -77,8 +75,14 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
 
     public async insert(value: Omit<Partial<Product>, 'id'>) {
         super.insert(value as Partial<Product>);
-        await this.endpoint.updateToken();
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
+    }
+
+    public async updateStockQuantity(product: Partial<Product>, quantity: number);
+    public async updateStockQuantity(sku: string, quantity: number);
+    public async updateStockQuantity(product: Partial<Product> | string, quantity: number) {
+        if (typeof product !== 'string') product = product.sku;
+        return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: {"qty": quantity}}) as Partial<Product>;
     }
 
     get endpoint(): Endpoint {
