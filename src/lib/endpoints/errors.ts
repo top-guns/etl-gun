@@ -52,6 +52,6 @@ export function getEndpoint(): Endpoint {
 
 export class ErrorsQueue extends QueueCollection<EtlError> {
     public select(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
-        return super.select(stopOnEmpty, 0);
+        return super.select(!stopOnEmpty, 0);
     }
 }
