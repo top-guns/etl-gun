@@ -4,8 +4,8 @@ import { GuiManager } from "../index.js";
 
 
 export function push<T>(collection: BaseCollection<T>, value?: T);
-export function push<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => Promise<T>);
-export function push<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => Promise<T>)) {
+export function push<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => T | Promise<T>);
+export function push<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => T | Promise<T>)) {
     //return tap<T>(v => collection.insert(v, params));
     const f = async (v: S) => {
         // No wait
@@ -18,8 +18,8 @@ export function push<T, S = T>(collection: BaseCollection<T>, paramValue?: T | (
 }
 
 export function pushAndLog<T>(collection: BaseCollection<T>, value?: T);
-export function pushAndLog<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => Promise<T>);
-export function pushAndLog<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => Promise<T>)) {
+export function pushAndLog<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => T | Promise<T>);
+export function pushAndLog<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => T | Promise<T>)) {
     const f = async (v: S) => {
         let vv: T = await getValue<T, S>(v, paramValue);
         const res = await collection.insert(vv);
@@ -32,8 +32,8 @@ export function pushAndLog<T, S = T>(collection: BaseCollection<T>, paramValue?:
 
 
 export function pushAndGet<T>(collection: BaseCollection<T>, value?: T);
-export function pushAndGet<T, S = T, R = T>(collection: BaseCollection<T>, callback?: (value: S) => Promise<T>);
-export function pushAndGet<T, S = T, R = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => Promise<T>)) {
+export function pushAndGet<T, S = T, R = T>(collection: BaseCollection<T>, callback?: (value: S) => T | Promise<T>);
+export function pushAndGet<T, S = T, R = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => T | Promise<T>)) {
     const f = async (v: S): Promise<R> => {
         let vv: T = await getValue<T, S>(v, paramValue);
         const res: R = await collection.insert(vv);
@@ -44,8 +44,8 @@ export function pushAndGet<T, S = T, R = T>(collection: BaseCollection<T>, param
 }
 
 export function pushAndWait<T>(collection: BaseCollection<T>, value?: T);
-export function pushAndWait<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => Promise<T>);
-export function pushAndWait<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => Promise<T>)) {
+export function pushAndWait<T, S = T>(collection: BaseCollection<T>, callback?: (value: S) => T | Promise<T>);
+export function pushAndWait<T, S = T>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => T | Promise<T>)) {
     const f = async (v: S) => {
         let vv: T = await getValue<T, S>(v, paramValue);
         await collection.insert(vv);
@@ -56,8 +56,8 @@ export function pushAndWait<T, S = T>(collection: BaseCollection<T>, paramValue?
 }
 
 
-async function getValue<T, S = T>(streamValue: S, paramValue?: T | ((value: S) => Promise<T>)): Promise<T> {
+async function getValue<T, S = T>(streamValue: S, paramValue?: T | ((value: S) => T | Promise<T>)): Promise<T> {
     if (typeof paramValue == 'undefined') return streamValue as unknown as T;
-    if (typeof paramValue == 'function') return await (paramValue as (value: S) => Promise<T>)(streamValue);
+    if (typeof paramValue == 'function') return await (paramValue as ((value: S) => T | Promise<T>))(streamValue);
     return paramValue;
 }
