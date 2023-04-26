@@ -37,7 +37,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-type CsvCellType = string | boolean | number | undefined | null;
+export type CsvCellType = string | boolean | number | undefined | null;
 
 export class Collection extends BaseCollection<CsvCellType[]> {
     protected static instanceCount = 0;
