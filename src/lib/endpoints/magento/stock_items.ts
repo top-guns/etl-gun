@@ -42,7 +42,7 @@ export class StockItemsCollection extends BaseCollection<StockItem> {
 
     public select(): BaseObservable<StockItem>;
     public select(sku: string): BaseObservable<StockItem>;
-    public select(where: Partial<Product>): BaseObservable<StockItem>;
+    public select(product: Partial<Product>): BaseObservable<StockItem>;
     public select(param?: Partial<Product> | string | any): BaseObservable<StockItem> {
         const observable = new BaseObservable<StockItem>(this, (subscriber) => {
             (async () => {

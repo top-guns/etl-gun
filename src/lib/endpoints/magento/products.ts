@@ -64,7 +64,7 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 
-    public static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null) {
+    public static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]> {
         let getParams = '';
         if (!where) where = {};
 

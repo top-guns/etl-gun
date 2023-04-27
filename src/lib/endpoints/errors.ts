@@ -54,4 +54,8 @@ export class ErrorsQueue extends QueueCollection<EtlError> {
     public select(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
         return super.select(!stopOnEmpty, 0);
     }
+
+    public async insert(error: EtlError) {
+        super.insert(error);
+    }
 }
