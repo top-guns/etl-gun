@@ -118,8 +118,8 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
                 //file: filename,
                 types: [
                     "image",
-                    //"small_image",
-                    //"thumbnail"
+                    "small_image",
+                    "thumbnail"
                 ],
                 content: {
                     base64_encoded_data: imageBase64,
