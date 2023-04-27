@@ -1,7 +1,7 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
 import { pathJoin } from '../utils/index.js';
-import * as rxjs from 'rxjs';
+import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
 
 export class HttpClientHelper {
@@ -48,28 +48,28 @@ export class HttpClientHelper {
     getJsonOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getJson(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getJson(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getTextOperator<T>(): OperatorFunction<T, string>;
     getTextOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getTextOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getTextOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getText(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getText(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getBlobOperator<T>(): OperatorFunction<T, Blob>;
     getBlobOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getFileContentsOperator<T>(): OperatorFunction<T, Blob>;
     getFileContentsOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getFileContentsOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getFileContentsOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getFileContents(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getFileContents(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // POST
@@ -107,7 +107,7 @@ export class HttpClientHelper {
     postJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     postJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // PUT
@@ -145,7 +145,7 @@ export class HttpClientHelper {
     putJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     putJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // FETCH

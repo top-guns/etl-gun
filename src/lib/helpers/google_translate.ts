@@ -1,6 +1,6 @@
 // Imports the Google Cloud client library
 import Translate from '@google-cloud/translate';
-import * as rxjs from 'rxjs';
+import * as rx from 'rxjs';
 import { MonoTypeOperatorFunction, OperatorFunction } from 'rxjs';
 
 export class GoogleTranslateHelper {
@@ -24,14 +24,14 @@ export class GoogleTranslateHelper {
     operator<T = []>(translateColumns?: number[], from?: string, to?: string): MonoTypeOperatorFunction<T>;
     operator<T = {}, R = T>(translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): MonoTypeOperatorFunction<R>;
     operator(p1?: any, p2?: any, p3?: any, p4?: any) {
-        return rxjs.mergeMap(p => this.observable(p, p1, p2, p3, p4)); 
+        return rx.mergeMap(p => this.observable(p, p1, p2, p3, p4)); 
     }
 
-    observable(text: string, from?: string, to?: string): rxjs.Observable<string>;
-    observable<T = []>(arr: T, translateColumns?: number[], from?: string, to?: string): rxjs.Observable<T>;
-    observable<T = {}, R = T>(obj: T, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): rxjs.Observable<R>;
-    observable(value: any, p1?: any, p2?: any, p3?: any, p4?: any): rxjs.Observable<any> {
-        return rxjs.from(this.function(value, p1, p2, p3, p4));
+    observable(text: string, from?: string, to?: string): rx.Observable<string>;
+    observable<T = []>(arr: T, translateColumns?: number[], from?: string, to?: string): rx.Observable<T>;
+    observable<T = {}, R = T>(obj: T, translateKeyNames?: string[], translateKeyValues?: string[], from?: string, to?: string): rx.Observable<R>;
+    observable(value: any, p1?: any, p2?: any, p3?: any, p4?: any): rx.Observable<any> {
+        return rx.from(this.function(value, p1, p2, p3, p4));
     }
 
     async function(text: string, from?: string, to?: string): Promise<string>;
