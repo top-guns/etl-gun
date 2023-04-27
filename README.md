@@ -37,6 +37,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
     * [Core](#core)
         * [Collection](#collection)
     * [Endpoints and it's collections](#endpoints-and-its-collections)
+        * [Errors](#errors)
         * [Memory](#memory)
         * [Filesystem](#filesystem)
         * [Csv](#csv)
@@ -57,8 +58,10 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [addField](#addfield)
         * [addColumn](#addcolumn)
         * [join](#join)
+        * [mapAsync](#mapasync)
     * [Misc](#misc)
         * [GoogleTranslateHelper](#googletranslatehelper)
+        * [HttpClientHelper](#httpclienthelper)
         * [Header](#header)
         * [Utility functions](#utility-functions) 
 - [License](#license)
@@ -291,6 +294,12 @@ async delete(where?: any);
 // event: which event we want to listen, see below
 // listener: callback function to handle events
 on(event: CollectionEvent, listener: (...data: any[]) => void);
+
+// Readable/writable property wich contains errors collection instance for this collection
+errors: Errors.ErrorsQueue;
+
+// Calls select() method of errors collection
+selectErrors(stopOnEmpty: boolean = false): BaseObservable<EtlError>;
 ```
 
 Types:
@@ -304,12 +313,53 @@ export type CollectionEvent =
     "select.skip" |   // when the collection skip some data 
     "select.up" |     // when the collection go to the parent element while the tree data processing
     "select.down" |   // when the collection go to the child element while the tree data processing
+    "pipe.start" |    // when processing of any collection element was started
+    "pipe.end" |      // when processing of one collection element was ended
     "insert" |        // when data is inserted to the collection
     "update" |        // when data is updated in the collection
     "delete";        // when data is deleted from the collection
 ```
 
 ## Endpoints and it's collections
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+### Errors
+
+Store and process etl errors. Every collection by default has errors property wich contains collection of errors from collection etl process. You can cancel default errors collection creation for any collection, and specify your own manualy created error collection.
+
+#### Endpoint
+
+```typescript
+// Creates new errors collection
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getCollection(collectionName: string, options: CollectionOptions<EtlError> = {}): ErrorsQueue;
+
+// Release errors collection object
+// collectionName: identificator of the releasing collection object
+releaseCollection(collectionName: string);
+```
+
+#### ErrorsQueue
+
+Queue in memory to store etl errors and process thea. Should be created with **getCollection** method of **Errors.Endpoint**
+
+Methods:
+
+```typescript
+// Create the observable object and send errors data from the queue to it
+// stopOnEmpty: is errors processing will be stopped when the queue is empty
+select(stopOnEmpty: boolean = false): BaseObservable<EtlError>;
+
+// Pushes the error to the queue 
+// error: what will be added to the queue
+async insert(error: EtlError);
+
+// Clear queue
+async delete();
+```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -324,14 +374,17 @@ Create and manipulate with collections of objects in memory.
 // collectionName: identificator of the creating collection object
 // values: initial data
 // guiOptions: Some options how to display this endpoint
-getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): Collection;
+getBuffer<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): BufferCollection;
 
 // Release buffer data
 // collectionName: identificator of the releasing collection object
 releaseBuffer(collectionName: string);
+
+getQueue<T>(collectionName: string, values: T[] = [], guiOptions: CollectionGuiOptions<T> = {}): QueueCollection;
+releaseQueue(collectionName: string);
 ```
 
-#### Collection
+#### BufferCollection
 
 Buffer to store values in memory and perform complex operations on it. Should be created with **getBuffer** method of **MemoryEndpoint**
 
@@ -381,6 +434,26 @@ buffer.sort((row1, row2) => row1[0] > row2[0]);
 csv.delete();
 
 etl.run(bufferToCsv$)
+```
+
+#### QueueCollection
+
+Queue to store values in memory and perform ordered processing of it. Should be created with **getQueue** method of **MemoryEndpoint**
+
+Methods:
+
+```typescript
+// Create the observable object wich send process queue elements one by one and remove processed element from queue
+// dontStopOnEmpty - do we need stop queue processing (unsubscribe) when the queue will be empty
+// interval - pause between elements processing, in milliseconds
+select(dontStopOnEmpty: boolean = false, interval: number = 0): Observable<T>;
+
+// Pushes the value to the queue 
+// value: what will be added to the queue
+async insert(value: T);
+
+// Clear queue
+async delete();
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -902,11 +975,18 @@ Methods:
 // Create the observable object and send product data from the Magento to it
 // where: you can filter products by specifing object with fields as collumn names and it's values as fields values 
 // fields: you can select which products fields will be returned (null means 'all fields') 
-select(where: Partial<Product> = {}, fields: ProductFields[] = null): Observable<T>;
+select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObservable<Partial<Product>> ;
 
 // Add new product to the Magento
 // value: product fields values
 async insert(value: NewProductAttributes);
+
+// Utility static function to get products as array
+static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]>;
+
+// Update product stock quantity 
+public async updateStockQuantity(sku: string, quantity: number);
+public async updateStockQuantity(product: Partial<Product>, quantity: number);
 ```
 
 Example:
@@ -922,6 +1002,24 @@ const logProductsWithPrice100$ = products.select({price: 100}).pipe(
 );
 
 etl.run(logProductsWithPrice100$)
+```
+
+#### StockItemsCollection
+
+Presents Magento CMS stock items. Stock items - is products on stock.
+
+Methods:
+
+```typescript
+// Create the observable object and send stock items data from the Magento to it
+// sku, product: you can filter stock items by product attributes
+select(sku: string): BaseObservable<StockItem>;
+select(product: Partial<Product>): BaseObservable<StockItem>;
+
+// Get stock item for specified product
+// sku, product: product, wich stock items we need to get
+public async getStockItem(sku: string): Promise<StockItem>;
+public async getStockItem(product: Partial<Product>): Promise<StockItem>;
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1434,6 +1532,30 @@ let stream$ = src.select().pipe(
 etl.run(stream$);
 ```
 
+### mapAsync
+
+<a name="mapAsync" href="#mapAsync">#</a> etl.<b>mapAsync</b>([<i>options</i>])
+
+This operator is analog of rxjs map operator for async callback function. It call and wait for callback and then use it's result as new stream item.
+
+Example
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+let mem = new etl.Memory.Endpoint();
+let buffer = mem.getBuffer('urls', ['1.json', '2.json', '3.json']);
+
+const mySite = new HttpClientHelper('http://www.mysite.com/jsons');
+
+let stream$ = src.select().pipe(
+    mapAsync(async (url) => await mySite.getJson(url)),
+    etl.log()
+);
+
+etl.run(stream$);
+```
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Misc
@@ -1444,7 +1566,6 @@ This class help you to use Google translate service.
 
 ```typescript
 import { Csv, GoogleTranslateHelper, log, run } from "rxjs-etl-kit";
-import { mergeMap } from "rxjs";
 
 let csv = new Csv.Endpoint();
 let src = csv.getFile('products.csv');
@@ -1456,6 +1577,25 @@ let translateProducts$ = src.select().pipe(
     log()
 );
 await run(translateProducts$);
+```
+
+ ### HttpClientHelper
+
+This class help you to use Google translate service.
+
+```typescript
+import { Csv, HttpClientHelper, run } from "rxjs-etl-kit";
+import { map } from "rxjs";
+
+let csv = new Csv.Endpoint();
+let src = csv.getFile('products.csv');
+
+const mySite = new HttpClientHelper('http://www.mysite.com');
+
+let sendProductsToSite$ = src.select().pipe(
+    map(p => mySite.post(p)),
+);
+await run(sendProductsToSite$);
  ```
 
 ### Header
@@ -1485,14 +1625,23 @@ await run(sourceToDest$);
 This functions implements some useful things to manipulate data.
 
 ```typescript
+// Stop thread for the specified in milliseconds delay.
+async function wait(delay: number): Promise<void>;
 // Join url parts (or path parts) to full url (or path) with delimeter
 function pathJoin(parts: string[], sep: string = '/'): string;
+// Extract 'html' from '/var/www/html'
+function extractFileName(path: string): string;
+// Extract '/var/www' from '/var/www/html'
+function extractParentFolderPath(path: string): string
 // Get object part by json path
 function getByJsonPath(obj: {}, jsonPath?: string): any;
 // Get child element of array or object by element property value
 function getChildByPropVal(obj: {}, propName: string, propVal?: any): any;
 // Convert object to string
 function dumpObject(obj: any, deep: number = 1): string;
+// Get child by it's property value
+// For example getChildByPropVal([{prop1: 'val1'}, {prop1: 'val2'}], 'prop1', 'val1') -> returns {prop1: 'val1'}
+function getChildByPropVal(obj: {} | [], propName: string, propVal?: any): any;
  ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------

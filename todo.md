@@ -13,6 +13,7 @@
 1. Speed control in GUI
 1. Sync and get dif support for elements, collections and entire endpoints
 1. Order endpoints by categories
+1. Move all events from collections to observable (to support have multiple pipes for one collection)
 
 ### Desirable protocols and integrations
 
@@ -37,6 +38,7 @@
 1. Google tables
 1. Logs parsing
 1. System events
+1. Blockchain integration (https://github.com/dethcrypto/eth-sdk)
 
 ### Desirable features
 
