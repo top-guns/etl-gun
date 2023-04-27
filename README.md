@@ -44,7 +44,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [Json](#json)
         * [Xml](#xml)
         * [PostgreSQL](#postgres)
-        * [MqSQL](#mysql)
+        * [MySQL](#mysql)
         * [Magento](#magento)
         * [Trello](#trello)
         * [Telegram](#telegram)
