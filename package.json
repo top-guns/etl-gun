@@ -1,6 +1,6 @@
 {
   "name": "rxjs-etl-kit",
-  "version": "2.0.33",
+  "version": "2.0.34",
   "description": "ETL extension for RxJs library",
   "type": "module",
   "--main": "dist/index.js",
