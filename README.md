@@ -1425,6 +1425,30 @@ etl.run(stream$);
 
 This operator call the **Endpoint.push** method to push value from stream to the specified endpoint.
 
+Variants:
+
+```typescript
+// Push value to collection with no wait for result
+function push<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
+function push<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
+function push<S, T = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+
+// Push value to collection with waiting for result
+function pushAndWait<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
+function pushAndWait<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
+function pushAndWait<S, T = S>(collection: BaseCollection<T>, callback?: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+
+// Push value to collection, wait for result, send result to log
+function pushAndLog<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
+function pushAndLog<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
+function pushAndLog<S, T = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+
+// Push value to collection, get the result and put it as stream value or as property of stream value
+function pushAndGet<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
+function pushAndGet<S>(collection: BaseCollection<S>, value: S, toProperty?: string): OperatorFunction<S, S>;
+function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>), toProperty?: string): OperatorFunction<S, R>;
+```
+
 Example:
 
 ```typescript

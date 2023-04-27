@@ -34,13 +34,13 @@ export function pushAndLog<S, T = S>(collection: BaseCollection<T>, paramValue?:
 
 
 export function pushAndGet<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
-export function pushAndGet<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
-export function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>)): OperatorFunction<S, R>;
-export function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => (T | Promise<T>))): OperatorFunction<S, R> {
+export function pushAndGet<S>(collection: BaseCollection<S>, value: S, toProperty?: string): OperatorFunction<S, S>;
+export function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>), toProperty?: string): OperatorFunction<S, R>;
+export function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, paramValue?: T | ((value: S) => (T | Promise<T>)), toProperty?: string): OperatorFunction<S, R> {
     const f = async (v: S): Promise<R> => {
         let vv: T = await getValue<S, T>(v, paramValue);
         const res: R = await collection.insert(vv);
-        return res;
+        return getOperatorResult(v, toProperty, res);
     }
 
     const observable: (value: S) => Observable<R> = (v: S) => from(f(v));
@@ -66,4 +66,11 @@ async function getValue<S, T = S>(streamValue: S, paramValue?: T | ((value: S) =
     if (typeof paramValue == 'undefined') return streamValue as unknown as T;
     if (typeof paramValue == 'function') return await (paramValue as ((value: S) => (T | Promise<T>)))(streamValue);
     return paramValue;
+}
+
+async function getOperatorResult<S, R>(val: S, toProperty: string, res: any): Promise<R> {
+    if (typeof toProperty === 'undefined') return res;
+    if (!toProperty) return val as unknown as R; 
+    val[toProperty] = res;
+    return val as unknown as R;
 }
