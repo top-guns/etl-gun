@@ -360,8 +360,45 @@ const PrintPuma$ = csvPuma.select(true).pipe(
     etl.log()
 )
 
+
+type PumaDataItem = {
+    product: PumaCsvItem;
+    imageContents?: Blob;
+}
+
+const PrintPuma1$ = csvPuma.select(true).pipe(
+    rx.take( 1 ),
+    rx.map( PumaArr_2_Obj ),
+    rx.map<PumaCsvItem, PumaDataItem>( p => ({product: p}) ),
+
+    http.getFileContentsOperator( v => v.product.images[0], 'imageContents' ),
+
+    magentoProducts.uploadImageOperator<PumaDataItem>(v => ({
+        product: v.product.vendor_code,
+        imageContents: v.imageContents!,
+        filename: v.product.vendor_code + '.' + etl.extractFileName(v.product.images[0]),
+        label: v.product.vendor_code + ' product image',
+        type: v.imageContents!.type
+    })),
+
+    etl.log()
+)
+
+const imageBlob = await http.getFileContents('https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa/global/024136/02/fnd/TUR/w/1000/h/1000/fmt/png');
+
+const res = await magentoProducts.uploadImage(
+    '024136_02',
+    imageBlob,
+    '1111.png',
+    '1111 product image',
+    imageBlob.type
+)
+
+console.log(res)
+
+
 //await etl.run(PrintMagentoProducts$);
-await etl.run(PrintPuma$);
+//await etl.run(PrintPuma$);
 
 
 

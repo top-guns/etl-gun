@@ -103,14 +103,17 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
     //     }
     // }
 
-    async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<any> {
-        const imageBase64 = URL.createObjectURL(imageContents);
+    async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<number> {
+        //const imageBase64 = URL.createObjectURL(imageContents);
+        //const imageBase64 = Buffer.from('username:password', 'utf8').toString('base64') 
+        const buf = await imageContents.arrayBuffer();
+        const imageBase64 = Buffer.from(buf).toString('base64');
 
         const body = {
             entry: {
                 media_type: "image",
                 label,                  // "I am an image!"
-                //position: 1,
+                position: 1,
                 //disabled: false,
                 //file: filename,
                 types: [
@@ -126,13 +129,14 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
             }
         }
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.post(`/rest/V1/products/${product}/media`, imageContents);
+        return await this.endpoint.post(`/rest/V1/products/${product}/media`, body);
     }
 
-    uploadImageOperator<T, R>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<any, any> {
+    uploadImageOperator<T>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<T, T> {
         const f = async (v: T) => {
             const params = await func(v);
-            return await this.uploadImage(params.product, params.imageContents, params.filename, params.label, params.type)
+            await this.uploadImage(params.product, params.imageContents, params.filename, params.label, params.type);
+            return v;
         }
         return mapAsync( p => f(p)); 
     }

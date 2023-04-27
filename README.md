@@ -981,15 +981,15 @@ select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObse
 // value: product fields values
 async insert(value: NewProductAttributes);
 
-// Upload image to the magento and set it as image of specified product
+// Upload image to the magento and set it as image of specified product and returns total count of images for this product
 // product: product sku
 // imageContents: binary form of the image file
 // filename: name of the file in with magento will store the image
 // label: label of the product image
 // type: mime type of the image
-async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<any>;
+async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<number>;
 // Operator to upload product image from the pipe
-uploadImageOperator<T, R>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<any, any>;
+uploadImageOperator<T>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<T, T>;
 
 // Utility static function to get products as array
 static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]>;
