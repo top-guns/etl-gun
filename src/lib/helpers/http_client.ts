@@ -1,4 +1,6 @@
 import { pathJoin } from '../utils/index.js';
+import * as rxjs from 'rxjs';
+import { OperatorFunction } from 'rxjs';
 
 export class HttpClientHelper {
     protected baseUrl: string;
@@ -25,6 +27,20 @@ export class HttpClientHelper {
         return res;
     }
 
+    getJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(callback: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(p1?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R> {
+        return rxjs.mergeMap(val => rxjs.from(this.getJson(this.getOperatorUrl(val, p1), headers))); 
+    }
+
+    getTextOperator<T>(): OperatorFunction<T, string>;
+    getTextOperator<T>(url: string, headers?: Record<string, string>): OperatorFunction<T, string>;
+    getTextOperator<T>(getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, string>;
+    getTextOperator<T>(p1?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, string> {
+        return rxjs.mergeMap(val => rxjs.from(this.getText(this.getOperatorUrl(val, p1), headers))); 
+    }
+
     // POST
 
     async post(body: string, url?: string, headers?: Record<string, string>): Promise<Response> {
@@ -49,6 +65,20 @@ export class HttpClientHelper {
         return res;
     }
 
+    postJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+
+    postJsonOperator<T, R = any>(body: any): OperatorFunction<T, R>;
+    postJsonOperator<T, R = any>(body: any, url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = any>(body: any, getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    postJsonOperator<T, R = any>(getBody: (value: T) => any): OperatorFunction<T, R>;
+    postJsonOperator<T, R = any>(getBody: (value: T) => any, url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = any>(getBody: (value: T) => any, getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    postJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R> {
+        return rxjs.mergeMap(val => rxjs.from(this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers))); 
+    }
+
     // PUT
 
     async put(body: string, url?: string, headers?: Record<string, string>): Promise<Response> {
@@ -71,6 +101,20 @@ export class HttpClientHelper {
         const resp = await this.put(body, url, headers);
         const res = await resp.text();
         return res;
+    }
+
+    putJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+
+    putJsonOperator<T, R = any>(body: any): OperatorFunction<T, R>;
+    putJsonOperator<T, R = any>(body: any, url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = any>(body: any, getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    putJsonOperator<T, R = any>(getBody: (value: T) => any): OperatorFunction<T, R>;
+    putJsonOperator<T, R = any>(getBody: (value: T) => any, url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = any>(getBody: (value: T) => any, getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    putJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R> {
+        return rxjs.mergeMap(val => rxjs.from(this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers))); 
     }
 
     // FETCH
@@ -100,5 +144,17 @@ export class HttpClientHelper {
     protected getUrl(relativeUrl: string) {
         if (this.baseUrl) relativeUrl = pathJoin([this.baseUrl, relativeUrl], '/');
         return relativeUrl;
+    }
+
+    protected getOperatorUrl<T>(v: T, urlParam?: string | ((value: T) => string)): string {
+        if (!urlParam) return '';
+        if (typeof urlParam === 'string') return urlParam;
+        return urlParam(v);
+    }
+
+    protected getOperatorBody<T>(v: T, bodyParam?: string | ((value: T) => string)): any {
+        if (!bodyParam) return v;
+        if (typeof bodyParam === 'function') return bodyParam(v);
+        return bodyParam;
     }
 }

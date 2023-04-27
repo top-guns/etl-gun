@@ -1387,7 +1387,7 @@ etl.run(stream$);
 
 Prints the value from the stream to the console.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1406,7 +1406,7 @@ etl.run(stream$);
 
 This operator is analog of **where** operation in SQL and is synonym of the **filter** operator from the **RxJS** library - but with improvements. It cat skip some values from the input stream by the specified condition. You can specify predicate function to determine filter conditions or you can specify map object as condition (like typeorm 'where' parameter in find() method).
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1425,7 +1425,7 @@ etl.run(stream$);
 
 This operator call the **Endpoint.push** method to push value from stream to the specified endpoint.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1447,7 +1447,7 @@ etl.run(stream$);
 
 This operator enumerate input values and add index field to value if it is object or index column if value is array. If the input stream values is objects, you should specify index field name as the second parameter of operator.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1469,7 +1469,7 @@ etl.run(stream$);
 
 This operator applicable to the stream of objects. It calculate callback function and add result as new field to the input stream value.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1491,7 +1491,7 @@ etl.run(logUsers$);
 
 This operator applicable to the stream of arrays. It calculate callback function and add result as a new column to the input stream value.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1513,7 +1513,7 @@ etl.run(stream$);
 
 This operator is analog of join operation in SQL. It takes the second input stream as the parameter, and gets all values from this second input stream for every value from the main input stream. Then it merges both values to one object (if values are objects) or to one array (if at least one of values are array), and put the result value to the main stream.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1538,7 +1538,7 @@ etl.run(stream$);
 
 This operator is analog of rxjs map operator for async callback function. It call and wait for callback and then use it's result as new stream item.
 
-Example
+Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
@@ -1582,6 +1582,53 @@ await run(translateProducts$);
  ### HttpClientHelper
 
 This class help you to use Google translate service.
+
+Methods:
+
+```typescript
+    // Create helper object
+    // baseUrl: this string will be used as start part of urls in any helper methods
+    // headers: will be added to headers in all requests maden with this helper instance
+    constructor(baseUrl?: string, headers?: Record<string, string>);
+
+    // GET request
+
+    async get(url?: string, headers?: Record<string, string>): Promise<Response>;
+    async getJson(url?: string, headers?: Record<string, string>): Promise<any>;
+    async getText(url?: string, headers?: Record<string, string>): Promise<string>;
+
+    getJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(callback: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    getTextOperator<T>(): OperatorFunction<T, string>;
+    getTextOperator<T>(url: string, headers?: Record<string, string>): OperatorFunction<T, string>;
+    getTextOperator<T>(getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, string>;
+
+    // POST request
+
+    async post(body: string, url?: string, headers?: Record<string, string>): Promise<Response>;
+    async postJson(body: any, url?: string, headers?: Record<string, string>): Promise<any>;
+    async postText(body: string, url?: string, headers?: Record<string, string>): Promise<string>;
+
+    postJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R> {
+
+    // PUT request
+
+    async put(body: string, url?: string, headers?: Record<string, string>): Promise<Response>;
+    async putJson(body: any, url?: string, headers?: Record<string, string>): Promise<any>;
+    async putText(body: string, url?: string, headers?: Record<string, string>): Promise<string>;
+
+    putJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    // Simple fetch method
+
+    async fetch(url: string): Promise<Response>;
+    async fetch(url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE', headers: Record<string, string>): Promise<Response>;
+    async fetch(url: string, init: RequestInit): Promise<Response>;
+```
+
+Example:
 
 ```typescript
 import { Csv, HttpClientHelper, run } from "rxjs-etl-kit";
