@@ -386,7 +386,10 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 const imageBlob = await http.getFileContents('https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa/global/024136/02/fnd/TUR/w/1000/h/1000/fmt/png');
 
-const res = await magentoProducts.uploadImage(
+const magentoStage = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
+const magentoStageProducts = magentoStage.getProducts();
+
+const res = await magentoStageProducts.uploadImage(
     '024136_02',
     imageBlob,
     '1111.png',

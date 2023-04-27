@@ -114,7 +114,7 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
                 media_type: "image",
                 label,                  // "I am an image!"
                 position: 1,
-                //disabled: false,
+                disabled: false,
                 //file: filename,
                 types: [
                     "image",
