@@ -1598,12 +1598,12 @@ Methods:
     async getText(url?: string, headers?: Record<string, string>): Promise<string>;
 
     getJsonOperator<T, R = any>(): OperatorFunction<T, R>;
-    getJsonOperator<T, R = any>(url: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    getJsonOperator<T, R = any>(callback: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = any>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     getTextOperator<T>(): OperatorFunction<T, string>;
-    getTextOperator<T>(url: string, headers?: Record<string, string>): OperatorFunction<T, string>;
-    getTextOperator<T>(getUrl: (value: T) => string, headers?: Record<string, string>): OperatorFunction<T, string>;
+    getTextOperator<T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, string>;
+    getTextOperator<T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, string>;
 
     // POST request
 
@@ -1611,7 +1611,7 @@ Methods:
     async postJson(body: any, url?: string, headers?: Record<string, string>): Promise<any>;
     async postText(body: string, url?: string, headers?: Record<string, string>): Promise<string>;
 
-    postJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R> {
+    postJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     // PUT request
 
@@ -1619,7 +1619,7 @@ Methods:
     async putJson(body: any, url?: string, headers?: Record<string, string>): Promise<any>;
     async putText(body: string, url?: string, headers?: Record<string, string>): Promise<string>;
 
-    putJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     // Simple fetch method
 
