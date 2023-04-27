@@ -78,7 +78,7 @@ export class Endpoint extends BaseEndpoint {
         return await (await fetch(this.getUrl(relativeUrl), init)).json();
     }
 
-    async push(relativeUrl: string, value: any) {
+    async post(relativeUrl: string, value: any) {
         await this.updateToken();
         let init: RequestInit = {
             method: "POST", 

@@ -1,5 +1,8 @@
+import * as rx from 'rxjs';
+import { OperatorFunction } from 'rxjs';
 import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseObservable } from '../../core/observable.js';
+import { mapAsync } from '../../index.js';
 import { Endpoint } from './endpoint.js';
 
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
@@ -61,7 +64,7 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
 
     public async insert(value: Omit<Partial<Product>, 'id'>) {
         super.insert(value as Partial<Product>);
-        return await this.endpoint.push('/rest/V1/products', {product: value}) as Partial<Product>;
+        return await this.endpoint.post('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 
     public static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]> {
@@ -84,11 +87,54 @@ export class ProductsCollection extends BaseCollection<Partial<Product>> {
         return products.items;
     }
 
-    public async updateStockQuantity(product: Partial<Product>, quantity: number);
-    public async updateStockQuantity(sku: string, quantity: number);
-    public async updateStockQuantity(product: Partial<Product> | string, quantity: number) {
+    // "product": {
+    //     "attribute_set_id": 4,
+    //     "type_id": "simple",
+    //     "sku": "B201-SKU",
+    //     "name": "B201",
+    //     "price": 25,
+    //     "status": 1,
+    //     "custom_attributes": {
+    //       "description": "Heavy Duty Brake Cables",
+    //       "meta_description": "Some describing text",
+    //       "image" : "/w/i/sample_1.jpg",
+    //       "small_image": "/w/i/sample_2.jpg",
+    //       "thumbnail": "/w/i/sample_3.jpg"
+    //     }
+    // }
+
+    async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<any> {
+        const imageBase64 = URL.createObjectURL(imageContents);
+
+        const body = {
+            entry: {
+                media_type: "image",
+                label,                  // "I am an image!"
+                //position: 1,
+                //disabled: false,
+                //file: filename,
+                types: [
+                    "image",
+                    //"small_image",
+                    //"thumbnail"
+                ],
+                content: {
+                    base64_encoded_data: imageBase64,
+                    type,
+                    name: filename      // "choose_any_name.png"
+                }
+            }
+        }
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: { qty: quantity, is_in_stock: quantity > 0 } }) as Partial<Product>;
+        return await this.endpoint.post(`/rest/V1/products/${product}/media`, imageContents);
+    }
+
+    uploadImageOperator<T, R>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<any, any> {
+        const f = async (v: T) => {
+            const params = await func(v);
+            return await this.uploadImage(params.product, params.imageContents, params.filename, params.label, params.type)
+        }
+        return mapAsync( p => f(p)); 
     }
 
     get endpoint(): Endpoint {

@@ -981,12 +981,18 @@ select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObse
 // value: product fields values
 async insert(value: NewProductAttributes);
 
+// Upload image to the magento and set it as image of specified product
+// product: product sku
+// imageContents: binary form of the image file
+// filename: name of the file in with magento will store the image
+// label: label of the product image
+// type: mime type of the image
+async uploadImage(product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string): Promise<any>;
+// Operator to upload product image from the pipe
+uploadImageOperator<T, R>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<any, any>;
+
 // Utility static function to get products as array
 static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]>;
-
-// Update product stock quantity 
-public async updateStockQuantity(sku: string, quantity: number);
-public async updateStockQuantity(product: Partial<Product>, quantity: number);
 ```
 
 Example:
@@ -1018,8 +1024,12 @@ select(product: Partial<Product>): BaseObservable<StockItem>;
 
 // Get stock item for specified product
 // sku, product: product, wich stock items we need to get
-public async getStockItem(sku: string): Promise<StockItem>;
-public async getStockItem(product: Partial<Product>): Promise<StockItem>;
+public async getProductStockItem(sku: string): Promise<StockItem>;
+public async getProductStockItem(product: {sku: string}): Promise<StockItem>;
+
+// Update product stock quantity 
+public async updateProductStockQuantity(sku: string, quantity: number);
+public async updateProductStockQuantity(product: {sku: string}, quantity: number);
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
