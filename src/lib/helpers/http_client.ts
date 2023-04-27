@@ -1,3 +1,5 @@
+import fetch, { RequestInit } from 'node-fetch';
+import https from 'node:https';
 import { pathJoin } from '../utils/index.js';
 import * as rxjs from 'rxjs';
 import { OperatorFunction } from 'rxjs';
@@ -5,10 +7,18 @@ import { OperatorFunction } from 'rxjs';
 export class HttpClientHelper {
     protected baseUrl: string;
     protected headers: Record<string, string>;
+    protected rejectUnauthorized: boolean;
+    protected agent: https.Agent;
 
-    constructor(baseUrl?: string, headers?: Record<string, string>) {
+    constructor(baseUrl?: string, headers?: Record<string, string>, rejectUnauthorized: boolean = true) {
+        if (baseUrl && baseUrl.startsWith('http:') && !rejectUnauthorized) throw new Error('HttpClientHelper error: you can use rejectUnauthorized = false only for https urls')
+
         this.baseUrl = baseUrl;
         this.headers = headers;
+        this.rejectUnauthorized = rejectUnauthorized;
+        this.agent = rejectUnauthorized ? null : new https.Agent({
+            rejectUnauthorized
+        });
     }
 
     // GET
@@ -26,19 +36,30 @@ export class HttpClientHelper {
         const res = await (await this.get(url, headers)).text();
         return res;
     }
+    async getBlob(url?: string, headers?: Record<string, string>): Promise<Blob> {
+        const res = await (await this.get(url, headers)).blob();
+        return res;
+    }
 
-    getJsonOperator<T, R = any>(): OperatorFunction<T, R>;
-    getJsonOperator<T, R = any>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    getJsonOperator<T, R = any>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    getJsonOperator<T, R = any>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+    getJsonOperator<T, R = T>(): OperatorFunction<T, R>;
+    getJsonOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getJsonOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
         return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getJson(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getTextOperator<T>(): OperatorFunction<T, string>;
-    getTextOperator<T, R>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    getTextOperator<T, R>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    getTextOperator<T, R>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+    getTextOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getTextOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getTextOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
         return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getText(this.getOperatorUrl(val, urlParam), headers)))); 
+    }
+
+    getBlobOperator<T>(): OperatorFunction<T, Blob>;
+    getBlobOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getBlobOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getBlobOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // POST
@@ -65,17 +86,17 @@ export class HttpClientHelper {
         return res;
     }
 
-    postJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(): OperatorFunction<T, R>;
 
-    postJsonOperator<T, R = any>(body: any): OperatorFunction<T, R>;
-    postJsonOperator<T, R = any>(body: any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    postJsonOperator<T, R = any>(body: any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(body: any): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(body: any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(body: any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
-    postJsonOperator<T, R = any>(getBody: (value: T) => any): OperatorFunction<T, R>;
-    postJsonOperator<T, R = any>(getBody: (value: T) => any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    postJsonOperator<T, R = any>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(getBody: (value: T) => any): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(getBody: (value: T) => any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    postJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
-    postJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+    postJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
         return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
@@ -103,17 +124,17 @@ export class HttpClientHelper {
         return res;
     }
 
-    putJsonOperator<T, R = any>(): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(): OperatorFunction<T, R>;
 
-    putJsonOperator<T, R = any>(body: any): OperatorFunction<T, R>;
-    putJsonOperator<T, R = any>(body: any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    putJsonOperator<T, R = any>(body: any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(body: any): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(body: any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(body: any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
-    putJsonOperator<T, R = any>(getBody: (value: T) => any): OperatorFunction<T, R>;
-    putJsonOperator<T, R = any>(getBody: (value: T) => any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
-    putJsonOperator<T, R = any>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(getBody: (value: T) => any): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(getBody: (value: T) => any, url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    putJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
-    putJsonOperator<T, R = any>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+    putJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
         return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
@@ -124,7 +145,8 @@ export class HttpClientHelper {
     async fetch(url: string, init: RequestInit): Promise<Response>;
     async fetch(url: string, p1?: any, p2?: Record<string, string>): Promise<Response> {
         let init: RequestInit = {
-            headers: {...this.headers}
+            headers: {...this.headers},
+            agent: this.agent,
         };
 
         if (!p1) init.method = 'GET';

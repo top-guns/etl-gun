@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 import * as etl from './lib/index.js';
 import { GuiManager, Magento } from "./lib/index.js";
+import { CsvCellType } from "./lib/endpoints/csv.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
@@ -204,6 +205,7 @@ const errors = errorsEndpoint.getCollection('all');
 
 
 const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
+const http = new etl.HttpClientHelper();
 
 
 function magentoProduct2ShortForm(p: Partial<etl.Magento.Product>) {
@@ -319,8 +321,47 @@ const PrintStockItems$ = magentoStockItems.select().pipe(
     etl.log()
 )
 
+
+
+type PumaCsvItem = {
+    images: string[];
+    name: string; 
+    vendor_code: string; 
+    price: number;
+    currency: string;
+    availability: boolean;
+    category: string; 
+    url: string;
+    desctiption: string;
+    renk: string;
+    beden: string;
+}
+
+type PumaItem = {
+    product: PumaCsvItem;
+    image?: Blob;
+}
+
+function PumaArr_2_Obj(arr: CsvCellType[]): PumaCsvItem {
+    const res = csvPuma.header.arrToObj(arr);
+    const images: string[] = (res.image as string).split(';')
+    const item: any = {...res, images};
+    delete item.image;
+    return item as PumaCsvItem;
+}
+
+const getImage = http.getBlobOperator<PumaItem>(v => v.product.images[0], 'image');
+
+const PrintPuma$ = csvPuma.select(true).pipe(
+    rx.take( 1 ),
+    rx.map( PumaArr_2_Obj ),
+    rx.map( p => ({product: p} as PumaItem) ),
+    getImage,
+    etl.log()
+)
+
 //await etl.run(PrintMagentoProducts$);
-await etl.run(PrintStockItems$);
+await etl.run(PrintPuma$);
 
 
 
