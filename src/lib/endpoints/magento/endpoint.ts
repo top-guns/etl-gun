@@ -5,7 +5,7 @@ import { BaseEndpoint} from "../../core/endpoint.js";
 import { CollectionOptions } from "../../core/collection.js";
 import { pathJoin } from '../../utils/index.js';
 import { Product, ProductsCollection } from './products.js';
-import { StockItem, StockItemsCollection } from './stock_items.js';
+import { StockItem, StockCollection } from './stock.js';
 
 
 enum COLLECTIONS_NAMES {
@@ -117,9 +117,9 @@ export class Endpoint extends BaseEndpoint {
         this._removeCollection(COLLECTIONS_NAMES.products);
     }
 
-    getStockItems(options: CollectionOptions<StockItem> = {}): StockItemsCollection {
+    getStockItems(options: CollectionOptions<StockItem> = {}): StockCollection {
         options.displayName ??= `stock items`;
-        const collection = new StockItemsCollection(this, COLLECTIONS_NAMES.stock_items, options);
+        const collection = new StockCollection(this, COLLECTIONS_NAMES.stock_items, options);
         this._addCollection(COLLECTIONS_NAMES.stock_items, collection);
         return collection;
     }

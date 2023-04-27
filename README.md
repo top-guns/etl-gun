@@ -1010,7 +1010,7 @@ const logProductsWithPrice100$ = products.select({price: 100}).pipe(
 etl.run(logProductsWithPrice100$)
 ```
 
-#### StockItemsCollection
+#### StockCollection
 
 Presents Magento CMS stock items. Stock items - is products on stock.
 
@@ -1024,12 +1024,12 @@ select(product: Partial<Product>): BaseObservable<StockItem>;
 
 // Get stock item for specified product
 // sku, product: product, wich stock items we need to get
-public async getProductStockItem(sku: string): Promise<StockItem>;
-public async getProductStockItem(product: {sku: string}): Promise<StockItem>;
+public async getStockItem(sku: string): Promise<StockItem>;
+public async getStockItem(product: {sku: string}): Promise<StockItem>;
 
 // Update product stock quantity 
-public async updateProductStockQuantity(sku: string, quantity: number);
-public async updateProductStockQuantity(product: {sku: string}, quantity: number);
+public async updateStockQuantity(sku: string, quantity: number);
+public async updateStockQuantity(product: {sku: string}, quantity: number);
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------

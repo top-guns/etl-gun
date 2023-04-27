@@ -32,11 +32,11 @@ export type StockItem = {
     "stock_status_changed_auto": number;
 }
 
-export class StockItemsCollection extends BaseCollection<StockItem> {
+export class StockCollection extends BaseCollection<StockItem> {
     protected static instanceNo = 0;
 
     constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<StockItem> = {}) {
-        StockItemsCollection.instanceNo++;
+        StockCollection.instanceNo++;
         super(endpoint, collectionName, options);
     }
 
@@ -71,16 +71,16 @@ export class StockItemsCollection extends BaseCollection<StockItem> {
         return observable;
     }
 
-    public async getProductStockItem(product: {sku: string}): Promise<StockItem>;
-    public async getProductStockItem(sku: string): Promise<StockItem>;
-    public async getProductStockItem(product: {sku: string} | string): Promise<StockItem> {
+    public async getStockItem(product: {sku: string}): Promise<StockItem>;
+    public async getStockItem(sku: string): Promise<StockItem>;
+    public async getStockItem(product: {sku: string} | string): Promise<StockItem> {
         if (typeof product !== 'string') product = product.sku;
         return await this.endpoint.get(`/rest/V1/stockItems/${product}`) as StockItem;
     }
 
-    public async updateProductStockQuantity(product: {sku: string}, quantity: number);
-    public async updateProductStockQuantity(sku: string, quantity: number);
-    public async updateProductStockQuantity(product: {sku: string} | string, quantity: number) {
+    public async updateStockQuantity(product: {sku: string}, quantity: number);
+    public async updateStockQuantity(sku: string, quantity: number);
+    public async updateStockQuantity(product: {sku: string} | string, quantity: number) {
         if (typeof product !== 'string') product = product.sku;
         return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: { qty: quantity, is_in_stock: quantity > 0 } }) as Partial<Product>;
     }
