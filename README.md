@@ -1621,6 +1621,7 @@ Methods:
     async getJson(url?: string, headers?: Record<string, string>): Promise<any>;
     async getText(url?: string, headers?: Record<string, string>): Promise<string>;
     async getBlob(url?: string, headers?: Record<string, string>): Promise<Blob>;
+    async getFileContents(url?: string, headers?: Record<string, string>): Promise<Blob>;
 
     getJsonOperator<T, R = T>(): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
@@ -1633,6 +1634,10 @@ Methods:
     getBlobOperator<T>(): OperatorFunction<T, Blob>;
     getBlobOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+
+    getFileContentsOperator<T>(): OperatorFunction<T, Blob>;
+    getFileContentsOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getFileContentsOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     // POST request
 

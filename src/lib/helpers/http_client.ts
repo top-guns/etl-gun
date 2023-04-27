@@ -40,6 +40,9 @@ export class HttpClientHelper {
         const res = await (await this.get(url, headers)).blob();
         return res;
     }
+    async getFileContents(url?: string, headers?: Record<string, string>): Promise<Blob> {
+        return this.getBlob(url, headers);
+    }
 
     getJsonOperator<T, R = T>(): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
@@ -60,6 +63,13 @@ export class HttpClientHelper {
     getBlobOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
         return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
+    }
+
+    getFileContentsOperator<T>(): OperatorFunction<T, Blob>;
+    getFileContentsOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getFileContentsOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
+    getFileContentsOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
+        return rxjs.mergeMap(val => rxjs.from(this.getOperatorResult<T, R>(val, toProperty, this.getFileContents(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // POST
