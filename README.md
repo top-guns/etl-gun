@@ -52,6 +52,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
+        * [expect](#expect)
         * [where](#where)
         * [push](#push)
         * [numerate](#numerate)
@@ -1404,6 +1405,24 @@ import * as etl from "rxjs-etl-kit";
 import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
+    etl.log()
+);
+
+etl.run(stream$);
+```
+
+### expect
+
+This function checks condition end if false - throws an error to the error collection.
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+let memory = new etl.Memory.Endpoint();
+let buffer = memory.getBuffer('test buffer', [{count: 1}, {count: 2}]);
+
+let stream$ = buffer.select().pipe(
+    expect('count = 1', { count: 1 }),
     etl.log()
 );
 
