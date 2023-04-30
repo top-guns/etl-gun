@@ -9,3 +9,4 @@ export * from './join.js';
 export * from './expect.js';
 export * from './mapAsync.js';
 export * from './sleep.js';
+export * from './toProperty.js';
