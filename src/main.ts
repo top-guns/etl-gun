@@ -384,25 +384,35 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
     etl.log()
 )
 
-const imageBlob = await http.getFileContents('https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa/global/024136/02/fnd/TUR/w/1000/h/1000/fmt/png');
+// const imageBlob = await http.getFileContents('https://images.puma.com/image/upload/f_auto,q_auto,b_rgb:fafafa/global/024136/02/fnd/TUR/w/1000/h/1000/fmt/png');
 
-const magentoStage = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
-const magentoStageProducts = magentoStage.getProducts();
+// const magentoStage = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
+// const magentoStageProducts = magentoStage.getProducts();
 
-const res = await magentoStageProducts.uploadImage(
-    '024136_02',
-    imageBlob,
-    '1111.png',
-    '1111 product image',
-    imageBlob.type
-)
+// const res = await magentoStageProducts.uploadImage(
+//     '024136_02',
+//     imageBlob,
+//     '1111.png',
+//     '1111 product image',
+//     imageBlob.type
+// )
 
-console.log(res)
+// console.log(res)
 
 
 //await etl.run(PrintMagentoProducts$);
 //await etl.run(PrintPuma$);
 
+
+const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
+const p = buf.select().pipe(
+    etl.toProperty<number, { n: number }>('n'),
+    //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
+    //etl.where({ n: etl.VALUE.of([1,2,3]) }),
+    etl.where(etl.VALUE.hasProperty('nv') ),
+    etl.log()
+)
+etl.run(p)
 
 
 //mysql.releaseEndpoint();

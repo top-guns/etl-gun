@@ -1,18 +1,7 @@
-import { filter } from "rxjs";
+import * as rx from "rxjs";
+import { Condition, isMatch } from "../core/condition.js";
 
-// Synonym for operator "filter" 
-export function where<T>(criteria: {});
-export function where<T>(predicate: (value: T, index: number) => boolean);
-export function where<T>(predicate: {} | ((value: T, index: number) => boolean)) {
-    if (typeof predicate === 'function') return filter<T>(predicate as (value: T, index: number) => boolean);
-    else {
-        return filter<T>((value: T) => {
-            for (const key in predicate) {
-                if (predicate.hasOwnProperty(key)) {
-                    if (predicate[key] != value[key]) return false;
-                }
-            }
-            return true;
-        });
-    }
+// Analog of the operator "filter" 
+export function where<T>(condition: Condition<T>, rootProperty?: string) {
+    return rx.mergeMap<T, rx.ObservableInput<T>>(v => isMatch<T>(v, condition, rootProperty) ? rx.of(v) : rx.EMPTY);
 }
