@@ -285,7 +285,7 @@ let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     rx.map(pumaProduct2Db),
     //translator.operator([], ['name']),
     //etl.push(table),
-    etl.expect<DbProduct>('price = 1800', { price: 1800 }),
+    //etl.expect<DbProduct>('price = 1800', { price: 1800 }),
     //etl.push(queue),
     //rx.delay(5000),
     etl.log(),
@@ -408,11 +408,13 @@ const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 const p = buf.select().pipe(
     etl.toProperty<number, { n: number }>('n'),
     //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
-    //etl.where({ n: etl.VALUE.of([1,2,3]) }),
-    etl.where(etl.VALUE.hasProperty('nv') ),
+    etl.where({ n: etl.VALUE.of([1,2,3]) }),
+    //etl.where(etl.VALUE.hasProperty('n') ),
+    //etl.expect('check', {n: etl.VALUE.of([1,2])}),
     etl.log()
 )
-etl.run(p)
+
+etl.run(p, buf.selectErrors().pipe(etl.log()))
 
 
 //mysql.releaseEndpoint();
