@@ -17,9 +17,20 @@ type ConditionOperations = {
     match: (regexp: RegExp) => (v: any) => boolean;
 
     isNull: () => (v: any) => boolean;
+    isNotNull: () => (v: any) => boolean;
     isUndefined: () => (v: any) => boolean;
+    isDefined: () => (v: any) => boolean;
     isArray: () => (v: any) => boolean;
+    isNotArray: () => (v: any) => boolean;
     isEmpty: () => (v: any) => boolean;
+    isNotEmpty: () => (v: any) => boolean;
+    isNumber: () => (v: any) => boolean;
+    isNotNumber: () => (v: any) => boolean;
+    isInteger: () => (v: any) => boolean;
+    isNotInteger: () => (v: any) => boolean;
+
+    or: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => boolean;
+    and: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => boolean;
 }
 
 const operations: ConditionOperations & { not: ConditionOperations } = {
@@ -39,9 +50,35 @@ const operations: ConditionOperations & { not: ConditionOperations } = {
     match: (regexp: RegExp) => (v: any) => regexp.test(v),
 
     isNull: () => (v: any) => v === null,
+    isNotNull: () => (v: any) => v !== null,
     isUndefined: () => (v: any) => typeof v === 'undefined',
+    isDefined: () => (v: any) => typeof v !== 'undefined',
     isArray: () => (v: any) => Array.isArray(v),
+    isNotArray: () => (v: any) => !Array.isArray(v),
     isEmpty: () => (v: any) => !!v,
+    isNotEmpty: () => (v: any) => !v,
+    isNumber: () => (v: any) => isNumber(v),
+    isNotNumber: () => (v: any) => !isNumber(v),
+    isInteger: () => (v: any) => isInteger(v),
+    isNotInteger: () => (v: any) => !isInteger(v),
+
+    or: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => {
+        conditions = [condition1, condition2, ...conditions];
+        for (let condition of conditions) {
+            let res = isMatch<any>(v, condition);
+            if (res) return true;
+        }
+        return false;
+    },
+
+    and: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => {
+        conditions = [condition1, condition2, ...conditions];
+        for (let condition of conditions) {
+            let res = isMatch<any>(v, condition);
+            if (!res) return false;
+        }
+        return true;
+    },
 
     not: null
 }
@@ -58,6 +95,23 @@ if (!operations.not) {
             }
         }
     }
+}
+
+function isNumber(value) {
+    if ((undefined === value) || (null === value)) {
+        return false;
+    }
+    if (typeof value == 'number') {
+        return true;
+    }
+    return !isNaN(value - 0);
+}
+
+function isInteger(value) {
+    if ((undefined === value) || (null === value)) {
+        return false;
+    }
+    return value % 1 == 0;
 }
 
 

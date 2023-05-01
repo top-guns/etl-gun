@@ -404,7 +404,7 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 //await etl.run(PrintPuma$);
 
 
-const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
+const buf = memory.getBuffer<number>('buf', [0,1,2,3,4,5]);
 const p = buf.select().pipe(
     etl.move<{ n: number }>('n'),
     etl.copy<{ n: number, p: {k: number} }, any>('n', 'p.k'),
@@ -412,12 +412,12 @@ const p = buf.select().pipe(
     //etl.move('nn', 'kk'),
     //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
     //etl.where({ n: etl.VALUE.of([1,2,3]) }),
-    etl.where({ p: {k: etl.Value.of([1,2,3])} }),
+    etl.where({ n: etl.Value.of([0,1,2]) }),
     //etl.expect('check', {n: etl.VALUE.of([1,2])}),
-    etl.log('')
+    etl.log()
 )
 
-etl.run(p, buf.selectErrors().pipe(etl.log()))
+etl.run(p, buf.selectErrors().pipe(etl.log()));
 
 
 //mysql.releaseEndpoint();
