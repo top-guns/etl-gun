@@ -24,13 +24,12 @@ type ConditionOperations = {
     isNotArray: () => (v: any) => boolean;
     isEmpty: () => (v: any) => boolean;
     isNotEmpty: () => (v: any) => boolean;
-    isNumber: () => (v: any) => boolean;
-    isNotNumber: () => (v: any) => boolean;
-    isInteger: () => (v: any) => boolean;
-    isNotInteger: () => (v: any) => boolean;
 
-    or: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => boolean;
-    and: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => boolean;
+    containsNumber: () => (v: any) => boolean;
+    containsInteger: () => (v: any) => boolean;
+
+    or: (...conditions: Condition<any>[]) => (v: any) => boolean;
+    and: (...conditions: Condition<any>[]) => (v: any) => boolean;
 }
 
 const operations: ConditionOperations & { not: ConditionOperations } = {
@@ -57,13 +56,10 @@ const operations: ConditionOperations & { not: ConditionOperations } = {
     isNotArray: () => (v: any) => !Array.isArray(v),
     isEmpty: () => (v: any) => !!v,
     isNotEmpty: () => (v: any) => !v,
-    isNumber: () => (v: any) => isNumber(v),
-    isNotNumber: () => (v: any) => !isNumber(v),
-    isInteger: () => (v: any) => isInteger(v),
-    isNotInteger: () => (v: any) => !isInteger(v),
+    containsNumber: () => (v: any) => isNumber(v),
+    containsInteger: () => (v: any) => isInteger(v),
 
-    or: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => {
-        conditions = [condition1, condition2, ...conditions];
+    or: (...conditions: Condition<any>[]) => (v: any) => {
         for (let condition of conditions) {
             let res = isMatch<any>(v, condition);
             if (res) return true;
@@ -71,13 +67,12 @@ const operations: ConditionOperations & { not: ConditionOperations } = {
         return false;
     },
 
-    and: (condition1: Condition<any>, condition2: Condition<any>, ...conditions: Condition<any>[]) => (v: any) => {
-        conditions = [condition1, condition2, ...conditions];
+    and: (...conditions: Condition<any>[]) => (v: any) => {
         for (let condition of conditions) {
             let res = isMatch<any>(v, condition);
             if (!res) return false;
         }
-        return true;
+        return conditions.length > 0;
     },
 
     not: null
@@ -115,7 +110,7 @@ function isInteger(value) {
 }
 
 
-export const Value: ConditionOperations & { not: ConditionOperations } = operations;
+export const value: ConditionOperations & { not: ConditionOperations } = operations;
 
 export type Condition<T> = 
     | Record<string, any | ((value: any) => (v: T) => string | boolean)> 

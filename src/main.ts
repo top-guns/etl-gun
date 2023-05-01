@@ -412,7 +412,7 @@ const p = buf.select().pipe(
     //etl.move('nn', 'kk'),
     //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
     //etl.where({ n: etl.VALUE.of([1,2,3]) }),
-    etl.where({ n: etl.Value.of([0,1,2]) }),
+    etl.where({ n: etl.value.or(etl.value.of([0,1]), etl.value["=="](5)) }),
     //etl.expect('check', {n: etl.VALUE.of([1,2])}),
     etl.log()
 )
