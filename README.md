@@ -55,6 +55,8 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [expect](#expect)
         * [where](#where)
         * [push](#push)
+        * [move](#move)
+        * [copy](#copy)
         * [numerate](#numerate)
         * [addField](#addfield)
         * [addColumn](#addcolumn)
@@ -1503,22 +1505,50 @@ let stream$ = rx.interval(1000).pipe(
 etl.run(stream$);
 ```
 
-### toProperty
+### move
 
 <a name="numerate" href="#numerate">#</a> etl.<b>toProperty</b>([<i>options</i>])
 
-This operator copy or move to specified property the whole stream value or it's property.
+This operator moves to specified property the whole stream value or it's property. Lodash paths is supported.
 
 Example:
 
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-let csv = new etl.Csv.Endpoint();
-let src = csv.getFile('test.csv');
+const memory = etl.Memory.getEndpoint();
+const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 
 let stream$ = src.select().pipe(
-    etl.toProperty<{ src: number }>('src'), // csvRow -> { src: csvRow }
+    etl.move<{ nn: number }>('nn'), // 1 -> { nn: 1 }
+    etl.move<{ num: number }>('nn', 'num'), // { nn: 1 } -> { num: 1 }
+    etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
+
+    etl.log()
+);
+
+etl.run(stream$);
+```
+
+### copy
+
+<a name="numerate" href="#numerate">#</a> etl.<b>toProperty</b>([<i>options</i>])
+
+This operator copy the specified property of the stream value to the another property. Lodash paths is supported.
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const memory = etl.Memory.getEndpoint();
+const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
+
+let stream$ = src.select().pipe(
+    etl.move<{ nn: number }>('nn'), // 1 -> { nn: 1 }
+    etl.move<{ num: number }>('nn', 'num'), // { nn: 1 } -> { num: 1 }
+    etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
+
     etl.log()
 );
 
