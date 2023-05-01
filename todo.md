@@ -16,6 +16,7 @@
 1. Order endpoints by categories
 1. Move all events from collections to observable (to support have multiple pipes for one collection)
 1. Integrate etl error handling approach with classic rxjs throwError/catchError approach
+1. Input/output application streams support
 
 ### Desirable protocols and integrations
 

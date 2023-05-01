@@ -406,9 +406,11 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 const p = buf.select().pipe(
-    etl.toProperty<{ n: number }>('n'),
+    etl.move<{ n: number }>('n'),
+    etl.copy('n', 'nn'),
+    etl.move('nn', 'kk'),
     //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
-    etl.where({ n: etl.VALUE.of([1,2,3]) }),
+    //etl.where({ n: etl.VALUE.of([1,2,3]) }),
     //etl.where(etl.VALUE.hasProperty('n') ),
     //etl.expect('check', {n: etl.VALUE.of([1,2])}),
     etl.log()
