@@ -1421,8 +1421,14 @@ import * as etl from "rxjs-etl-kit";
 let memory = new etl.Memory.Endpoint();
 let buffer = memory.getBuffer('test buffer', [{count: 1}, {count: 2}]);
 
+const errorsEndpoint = etl.Errors.getEndpoint();
+const errors = errorsEndpoint.getCollection('all');
+
 let stream$ = buffer.select().pipe(
-    expect('count = 1', { count: 1 }),
+    etl.expect('count = 1', { count: 1 }, errors),
+    etl.expect('count one of [1,2,3]', { count: etl.VALUE.of([1,2,3]) }),
+    etl.expect('count not > 3', { count: etl.VALUE.not['>'](3) }),
+    etl.expect('count check function', { count: v => v < 5 }),
     etl.log()
 );
 
@@ -1443,6 +1449,9 @@ import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
     etl.where(v => v % 2 === 0),
+    etl.where('count = 1', { count: 1 }),
+    etl.where('count one of [1,2,3]', { count: etl.VALUE.of([1,2,3]) }),
+    etl.where('count not > 3', { count: etl.VALUE.not['>'](3) }),
     etl.log()
 );
 etl.run(stream$);
@@ -1489,6 +1498,28 @@ let dest = csv.getFile('test.csv');
 
 let stream$ = rx.interval(1000).pipe(
     etl.push(dest)
+);
+
+etl.run(stream$);
+```
+
+### toProperty
+
+<a name="numerate" href="#numerate">#</a> etl.<b>toProperty</b>([<i>options</i>])
+
+This operator copy or move to specified property the whole stream value or it's property.
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+let csv = new etl.Csv.Endpoint();
+let src = csv.getFile('test.csv');
+
+let stream$ = src.select().pipe(
+    etl.toProperty<{ src: number }>('src'), // csvRow -> { src: csvRow }
+    etl.log()
 );
 
 etl.run(stream$);
