@@ -1439,7 +1439,11 @@ etl.run(stream$);
 
 ### where
 
-<a name="where" href="#where">#</a> etl.<b>where</b>([<i>options</i>])
+Variants:
+
+```typescript
+function where<T>(condition: Condition<T>): OperatorFunction<T, T>;
+```
 
 This operator is analog of **where** operation in SQL and is synonym of the **filter** operator from the **RxJS** library - but with improvements. It cat skip some values from the input stream by the specified condition. You can specify predicate function to determine filter conditions or you can specify map object as condition (like typeorm 'where' parameter in find() method).
 
@@ -1469,24 +1473,16 @@ Variants:
 
 ```typescript
 // Push value to collection with no wait for result
-function push<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
-function push<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
-function push<S, T = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+function push<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S>;
 
 // Push value to collection with waiting for result
-function pushAndWait<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
-function pushAndWait<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
-function pushAndWait<S, T = S>(collection: BaseCollection<T>, callback?: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+function pushAndWait<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S>;
 
 // Push value to collection, wait for result, send result to log
-function pushAndLog<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
-function pushAndLog<S>(collection: BaseCollection<S>, value: S): OperatorFunction<S, S>;
-function pushAndLog<S, T = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>)): OperatorFunction<S, S>;
+function pushAndLog<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S>;
 
 // Push value to collection, get the result and put it as stream value or as property of stream value
-function pushAndGet<S>(collection: BaseCollection<S>): OperatorFunction<S, S>;
-function pushAndGet<S>(collection: BaseCollection<S>, value: S, toProperty?: string): OperatorFunction<S, S>;
-function pushAndGet<S, T = S, R = S>(collection: BaseCollection<T>, callback: (value: S) => (T | Promise<T>), toProperty?: string): OperatorFunction<S, R>;
+function pushAndGet<S, T, R>(collection: BaseCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R>;
 ```
 
 Example:
