@@ -1665,7 +1665,7 @@ await run(translateProducts$);
 
  ### HttpClientHelper
 
-This class help you to use Google translate service.
+This class help you to make requests to http and https resources and get data from it.
 
 Methods:
 
