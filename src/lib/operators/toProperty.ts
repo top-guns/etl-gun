@@ -1,26 +1,26 @@
 import { map, OperatorFunction } from "rxjs";
 import _ from 'lodash';
 
-export function move<R, T = any>(options: {fromPropertyPath?: string, toPropertyPath?: string}): OperatorFunction<T, R> {
+export function move<R, T = any>(options: {from?: string, to?: string}): OperatorFunction<T, R> {
     return map<T, R>(value => {
-        if (!options.fromPropertyPath && !options.toPropertyPath) throw new Error('Error: fromPropertyPath and toPropertyPath in operator move() cannot be empty at the same time');
-        if (options.fromPropertyPath == options.toPropertyPath) return value as unknown as R;
+        if (!options.from && !options.to) throw new Error('Error: fromPropertyPath and toPropertyPath in operator move() cannot be empty at the same time');
+        if (options.from == options.to) return value as unknown as R;
 
         let val = value;
-        if (options.fromPropertyPath) val = _.get(value, options.fromPropertyPath);
+        if (options.from) val = _.get(value, options.from);
 
-        if (!options.toPropertyPath) return val as unknown as R;
+        if (!options.to) return val as unknown as R;
 
-        const parent = getPropParent(options.fromPropertyPath);
-        const name = getPropName(options.fromPropertyPath);
-        if (!parent) delete value[options.fromPropertyPath];
+        const parent = getPropParent(options.from);
+        const name = getPropName(options.from);
+        if (!parent) delete value[options.from];
         else {
             const parentVal = _.get(value, parent);
             delete parentVal[name];
             _.set(value, parent, parentVal);
         }
 
-        _.set(value, options.toPropertyPath, val);
+        _.set(value, options.to, val);
 
         return value as unknown as R;
     });
