@@ -47,6 +47,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [MySQL](#mysql)
         * [Magento](#magento)
         * [Trello](#trello)
+        * [Zendesk](#zendesk)
         * [Telegram](#telegram)
         * [Interval](#interval)
     * [Operators](#operators)
@@ -1251,6 +1252,110 @@ etl.run(addCommentToAllCards$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+### Zendesk
+
+Presents Zendesk task tracking system objects.
+For details how to get API key and authorization token please read [Zendesk documentation](https://developer.zendesk.com/api-reference/).
+
+#### Endpoint
+
+Methods:
+
+```typescript
+// zendeskUrl: Zendesk web url
+// username: user login
+// token: Zendesk authorization token
+// rejectUnauthorized: You can set it to true to ignore ssl servificate problems while development.
+constructor(zendeskUrl: string, username: string, token: string, rejectUnauthorized: boolean = true);
+
+// Create collection object for the Zendesk tickets
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getTickets(collectionName: string = 'Tickets', options: CollectionOptions<Partial<Ticket>> = {}): TicketsCollection;
+
+// Create collection object for the Zendesk tickets fields
+// collectionName: identificator of the creating collection object
+// guiOptions: Some options how to display this endpoint
+getTicketFields(collectionName: string = 'TicketFields', options: CollectionOptions<Partial<Field>> = {}): TicketFieldsCollection;
+
+// Release collection data
+// collectionName: identificator of the releasing collection object
+releaseCollection(collectionName: string);
+```
+
+#### TicketsCollection
+
+Presents all Zendesk tickets. 
+
+Methods:
+
+```typescript
+// Create the observable object and send tickets data from the Zendesk to it
+select(): BaseObservable<Partial<Ticket>>;
+
+// Add new ticket to the Zendesk
+// value: ticket fields values
+async insert(value: Omit<Partial<Ticket>, 'id'>);
+
+// Update ticket fields values by ticket id
+// ticketId: ticket id
+// value: new ticket fields values as hash object
+async update(ticketId: string, value: Omit<Partial<Ticket>, 'id'>);
+
+// Get all tickets
+async get(): Promise<Ticket[]>;
+
+// Get ticket by id
+// ticketId: ticket id
+async get(ticketId?: string): Promise<Ticket>;
+```
+
+#### TicketFieldsCollection
+
+Presents all Zendesk tickets fields. 
+
+Methods:
+
+```typescript
+// Create the observable object and send fields description data from the Zendesk to it
+select(): BaseObservable<Partial<Field>>;
+
+// Add new field to the Zendesk
+// value: field attributes values
+async insert(value: Omit<Partial<Field>, 'id'>);
+
+// Update field attributes by field id
+// fieldId: field id
+// value: new field attributes values as hash object
+async update(fieldId: string, value: Omit<Partial<Field>, 'id'>);
+
+// Get all fields
+async get(): Promise<Field[]>;
+
+// Get field by id
+// fieldId: field id
+async get(fieldId?: string): Promise<Field>;
+```
+
+Example:
+
+```typescript
+import * as rx from 'rxjs';
+import * as etl from 'rxjs-etl-kit';
+
+const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, process.env.ZENDESK_TOKEN!);
+const tickets = zendesk.getTickets();
+
+const PrintAllClosedTickets$ = tickets.select().pipe(
+    etl.where({status: 'closed'}),
+    etl.log()
+)
+
+etl.run(PrintAllClosedTickets$);
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 ### Telegram
 
 With this endpoint you can create telegram bots and chats with users. It can listen for user messages and send the response massages. 
@@ -1516,8 +1621,8 @@ const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 
 let stream$ = src.select().pipe(
-    etl.move<{ nn: number }>('nn'), // 1 -> { nn: 1 }
-    etl.move<{ num: number }>('nn', 'num'), // { nn: 1 } -> { num: 1 }
+    etl.move<{ nn: number }>({to: 'nn'}), // 1 -> { nn: 1 }
+    etl.move<{ num: number }>({from: 'nn', to: 'num'}), // { nn: 1 } -> { num: 1 }
     etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
 
     etl.log()
@@ -1541,8 +1646,8 @@ const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 
 let stream$ = src.select().pipe(
-    etl.move<{ nn: number }>('nn'), // 1 -> { nn: 1 }
-    etl.move<{ num: number }>('nn', 'num'), // { nn: 1 } -> { num: 1 }
+    etl.move<{ nn: number }>({to: 'nn'}), // 1 -> { nn: 1 }
+    etl.move<{ num: number }>({from: 'nn', to: 'num'}), // { nn: 1 } -> { num: 1 }
     etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
 
     etl.log()

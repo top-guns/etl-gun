@@ -406,7 +406,7 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 const buf = memory.getBuffer<number>('buf', [0,1,2,3,4,5]);
 const p = buf.select().pipe(
-    etl.move<{ n: number }>('n'),
+    etl.move<{ n: number }>({to: 'n'}),
     etl.copy<{ n: number, p: {k: number} }, any>('n', 'p.k'),
     //etl.copy('n', 'nn'),
     //etl.move('nn', 'kk'),
@@ -417,7 +417,21 @@ const p = buf.select().pipe(
     etl.log()
 )
 
-etl.run(p, buf.selectErrors().pipe(etl.log()));
+//etl.run(p, buf.selectErrors().pipe(etl.log()));
+
+
+const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, 
+    process.env.ZENDESK_TOKEN!);
+const tickets = zendesk.getTickets();
+const ticketFields = zendesk.getTicketFields();
+
+const PrintTickets$ = tickets.select().pipe(
+    etl.move({from: 'status'}),
+    rx.distinct(),
+    etl.log()
+)
+
+etl.run(PrintTickets$)
 
 
 //mysql.releaseEndpoint();

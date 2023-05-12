@@ -1,3 +1,4 @@
+import * as Zendesk from './zendesk/index.js'
 import * as Trello from './trello/index.js'
 import * as Csv from './csv.js'
 import * as Filesystem from './filesystem.js'
@@ -14,6 +15,7 @@ import * as Errors from './errors.js'
 export {
     Errors,
     Trello,
+    Zendesk,
     Csv,
     Filesystem,
     Interval,
