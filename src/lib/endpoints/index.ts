@@ -17,13 +17,13 @@ export {
     Trello,
     Zendesk,
     Csv,
+    Xml,
+    Json,
     Filesystem,
     Interval,
-    Json,
     Magento,
     Memory,
     Mysql,
     Postgres,
-    Telegram,
-    Xml
+    Telegram
 }
