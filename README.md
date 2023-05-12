@@ -1291,7 +1291,8 @@ Methods:
 
 ```typescript
 // Create the observable object and send tickets data from the Zendesk to it
-select(): BaseObservable<Partial<Ticket>>;
+// where: you can filter tickets by specifing object with fields as collumn names and it's values as fields values 
+select(where: Partial<Ticket> = {}): BaseObservable<Partial<Ticket>>;
 
 // Add new ticket to the Zendesk
 // value: ticket fields values

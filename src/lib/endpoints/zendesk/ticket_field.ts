@@ -46,20 +46,11 @@ export class TicketFieldsCollection extends BaseCollection<Partial<Field>> {
         super(endpoint, collectionName, options);
     }
 
-    public select(where: Partial<Field> = {}, fields: (keyof Field)[] = null): BaseObservable<Partial<Field>> {
+    public select(): BaseObservable<Partial<Field>> {
         const observable = new BaseObservable<Partial<Field>>(this, (subscriber) => {
             (async () => {
                 try {
-                    if (!where) where = {};
-                    const params = 
-                    fields && fields.length ? {
-                        fields,
-                        ...where
-                    }
-                    : {
-                        ...where
-                    }
-                    const tickets = (await this.endpoint.fetchJson(`/ticket_fields`, params)).ticket_fields as Partial<Field>[];
+                    const tickets = (await this.endpoint.fetchJson(`/ticket_fields`)).ticket_fields as Partial<Field>[];
 
                     this.sendStartEvent();
                     for (const obj of tickets) {
@@ -81,9 +72,9 @@ export class TicketFieldsCollection extends BaseCollection<Partial<Field>> {
     }
 
     async get(): Promise<Field[]>;
-    async get(ticketId?: string): Promise<Field>;
-    async get(ticketId?: string) {
-        if (ticketId) return this.endpoint.fetchJson(`/ticket_fields/${ticketId}`);
+    async get(fieldId?: string): Promise<Field>;
+    async get(fieldId?: string) {
+        if (fieldId) return this.endpoint.fetchJson(`/ticket_fields/${fieldId}`);
         return await this.endpoint.fetchJson(`/ticket_fields`);
     }
 
@@ -92,9 +83,9 @@ export class TicketFieldsCollection extends BaseCollection<Partial<Field>> {
         return await this.endpoint.fetchJson('/ticket_fields', {}, 'POST', value);
     }
 
-    public async update(ticketId: string, value: Omit<Partial<Field>, 'id'>) {
+    public async update(fieldId: string, value: Omit<Partial<Field>, 'id'>) {
         super.insert(value as Partial<Field>);
-        return await this.endpoint.fetchJson(`/ticket_fields/${ticketId}`, {}, 'PUT', value);
+        return await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`, {}, 'PUT', value);
     }
 
     get endpoint(): Endpoint {

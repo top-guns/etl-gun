@@ -425,9 +425,13 @@ const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.Z
 const tickets = zendesk.getTickets();
 const ticketFields = zendesk.getTicketFields();
 
-const PrintTickets$ = tickets.select().pipe(
-    etl.move({from: 'status'}),
-    rx.distinct(),
+const PrintTickets$ = tickets.select({status: 'solved'}).pipe(
+    rx.take(1),
+    etl.move({to: 'ticket'}),
+    etl.copy('ticket.status', 'status'),
+    etl.copy('ticket.id', 'id'),
+    etl.remove('ticket'),
+   //rx.distinct(),
     etl.log()
 )
 

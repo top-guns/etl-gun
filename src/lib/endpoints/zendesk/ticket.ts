@@ -23,7 +23,7 @@ export type Ticket = {
     raw_subject: string;
     description: string;
     priority: null | any;
-    status: 'closed' | string;
+    status: 'open' | 'closed' | 'solved' | string;
     recipient: string;
     requester_id: number;
     submitter_id: number;
@@ -59,20 +59,20 @@ export class TicketsCollection extends BaseCollection<Partial<Ticket>> {
         super(endpoint, collectionName, options);
     }
 
-    public select(where: Partial<Ticket> = {}, fields: (keyof Ticket)[] = null): BaseObservable<Partial<Ticket>> {
+    public select(where: Partial<Ticket> = {}): BaseObservable<Partial<Ticket>> {
         const observable = new BaseObservable<Partial<Ticket>>(this, (subscriber) => {
             (async () => {
                 try {
-                    if (!where) where = {};
-                    const params = 
-                    fields && fields.length ? {
-                        fields,
-                        ...where
+                    let tickets: Partial<Ticket>[];
+                    if (!where) tickets = (await this.endpoint.fetchJson(`/tickets`, where)).tickets as Partial<Ticket>[];
+                    else {
+                        let query = "type%3Aticket";
+                        for (let key in where) {
+                            if (!where.hasOwnProperty(key)) continue;
+                            query += '+' + key + '%3A' + where[key];
+                        }
+                        tickets = (await this.endpoint.fetchJson(`/search.json?query=${query}`)).results as Partial<Ticket>[];
                     }
-                    : {
-                        ...where
-                    }
-                    const tickets = (await this.endpoint.fetchJson(`/tickets`, params)).tickets as Partial<Ticket>[];
 
                     this.sendStartEvent();
                     for (const obj of tickets) {

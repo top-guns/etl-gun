@@ -1,7 +1,7 @@
 import { map, OperatorFunction } from "rxjs";
 import _ from 'lodash';
 
-export function move<R, T = any>(options: {from?: string, to?: string}): OperatorFunction<T, R> {
+export function move<R, T = any>(options: {from?: (keyof T) | string, to?: (keyof R) | string}): OperatorFunction<T, R> {
     return map<T, R>(value => {
         if (!options.from && !options.to) throw new Error('Error: fromPropertyPath and toPropertyPath in operator move() cannot be empty at the same time');
         if (options.from == options.to) return value as unknown as R;
@@ -11,14 +11,8 @@ export function move<R, T = any>(options: {from?: string, to?: string}): Operato
 
         if (!options.to) return val as unknown as R;
 
-        const parent = getPropParent(options.from);
-        const name = getPropName(options.from);
-        if (!parent) delete value[options.from];
-        else {
-            const parentVal = _.get(value, parent);
-            delete parentVal[name];
-            _.set(value, parent, parentVal);
-        }
+        if (options.from) _.unset(value, options.from);
+        else value = {} as unknown as T;
 
         _.set(value, options.to, val);
 
@@ -26,7 +20,7 @@ export function move<R, T = any>(options: {from?: string, to?: string}): Operato
     });
 }
 
-export function copy<R, T = any>(fromPropertyPath: string, toPropertyPath: string): OperatorFunction<T, R> {
+export function copy<R, T = any>(fromPropertyPath: (keyof T) | string, toPropertyPath: (keyof R) | string): OperatorFunction<T, R> {
     return map<T, R>(value => {
         if (!fromPropertyPath || !toPropertyPath) throw new Error('Error: fromPropertyPath and toPropertyPath in operator copy() cannot be empty');
         if (fromPropertyPath == toPropertyPath) return value as unknown as R;
@@ -37,6 +31,23 @@ export function copy<R, T = any>(fromPropertyPath: string, toPropertyPath: strin
 
         _.set(value, toPropertyPath, val);
         return value as unknown as R;
+    });
+}
+
+export function update<T>(value: Partial<T> | Record<(keyof T) | string, any>): OperatorFunction<T, T> {
+    return map<T, T>(value => {
+        for (let key in value) {
+            if (!value.hasOwnProperty(key)) continue;
+            _.set(value, key, value[key]);
+        }
+        return value;
+    });
+}
+
+export function remove<T>(...propertyPaths: ((keyof T) | string)[]): OperatorFunction<T, T> {
+    return map<T, T>(value => {
+        for (let path of propertyPaths) _.unset(value, path);
+        return value;
     });
 }
 
