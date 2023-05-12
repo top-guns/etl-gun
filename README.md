@@ -1354,12 +1354,12 @@ import * as etl from 'rxjs-etl-kit';
 const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, process.env.ZENDESK_TOKEN!);
 const tickets = zendesk.getTickets();
 
-const PrintAllClosedTickets$ = tickets.select().pipe(
-    etl.where({status: 'closed'}),
+const PrintAllOpenedTickets$ = tickets.select().pipe(
+    etl.where({status: 'open'}),
     etl.log()
 )
 
-etl.run(PrintAllClosedTickets$);
+etl.run(PrintAllOpenedTickets$);
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
