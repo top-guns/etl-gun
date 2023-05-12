@@ -425,17 +425,40 @@ const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.Z
 const tickets = zendesk.getTickets();
 const ticketFields = zendesk.getTicketFields();
 
-const PrintTickets$ = tickets.select({status: 'solved'}).pipe(
+const PrintTickets$ = tickets.select().pipe(
     rx.take(1),
-    etl.move({to: 'ticket'}),
-    etl.copy('ticket.status', 'status'),
-    etl.copy('ticket.id', 'id'),
-    etl.remove('ticket'),
+    //etl.move({to: 'ticket'}),
+    //etl.copy('ticket.status', 'status'),
+    //etl.copy('ticket.id', 'id'),
+    //etl.remove('ticket'),
    //rx.distinct(),
     etl.log()
 )
 
-etl.run(PrintTickets$)
+//etl.run(PrintTickets$)
+
+const res = await ticketFields.get(360015269411)
+console.log(res);
+
+// const res = await tickets.insert({
+//     subject: "Callback to test1 (111-111-111)",
+//     comment: "Callback request",
+//     submitter_id: parseInt(process.env.ZENDESK_USER_ID!),
+//     assignee_id: parseInt(process.env.ZENDESK_USER_ID!),
+//     ticket_form_id: 11981095371156,
+//     fields: [
+//         {
+//           id: 360027213031,
+//           value: '11'
+//         },
+//         {
+//           id: 14189942624660,
+//           value: '22'
+//         }
+//     ]
+// })
+
+// console.log(res);
 
 
 //mysql.releaseEndpoint();

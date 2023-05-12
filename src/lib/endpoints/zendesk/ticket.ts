@@ -21,6 +21,7 @@ export type Ticket = {
     type: null | any;
     subject: string;
     raw_subject: string;
+    comment: string;
     description: string;
     priority: null | any;
     status: 'open' | 'closed' | 'solved' | string;
@@ -94,20 +95,20 @@ export class TicketsCollection extends BaseCollection<Partial<Ticket>> {
     }
 
     async get(): Promise<Ticket[]>;
-    async get(ticketId?: string): Promise<Ticket>;
-    async get(ticketId?: string) {
-        if (ticketId) return this.endpoint.fetchJson(`/tickets/${ticketId}`);
-        return await this.endpoint.fetchJson(`/tickets`);
+    async get(ticketId: number): Promise<Ticket>;
+    async get(ticketId?: number) {
+        if (ticketId) return (await this.endpoint.fetchJson(`/tickets/${ticketId}`)).ticket;
+        return (await this.endpoint.fetchJson(`/tickets`)).tickets;
     }
 
     public async insert(value: Omit<Partial<Ticket>, 'id'>) {
         super.insert(value as Partial<Ticket>);
-        return await this.endpoint.fetchJson('/tickets', {}, 'POST', value);
+        return await this.endpoint.fetchJson('/tickets', {}, 'POST', { ticket: value });
     }
 
-    public async update(ticketId: string, value: Omit<Partial<Ticket>, 'id'>) {
+    public async update(ticketId: number, value: Omit<Partial<Ticket>, 'id'>) {
         super.insert(value as Partial<Ticket>);
-        return await this.endpoint.fetchJson(`/tickets/${ticketId}`, {}, 'PUT', value);
+        return await this.endpoint.fetchJson(`/tickets/${ticketId}`, {}, 'PUT', { ticket: value });
     }
 
     get endpoint(): Endpoint {

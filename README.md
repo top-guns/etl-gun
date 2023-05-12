@@ -1301,14 +1301,14 @@ async insert(value: Omit<Partial<Ticket>, 'id'>);
 // Update ticket fields values by ticket id
 // ticketId: ticket id
 // value: new ticket fields values as hash object
-async update(ticketId: string, value: Omit<Partial<Ticket>, 'id'>);
+async update(ticketId: number, value: Omit<Partial<Ticket>, 'id'>);
 
 // Get all tickets
 async get(): Promise<Ticket[]>;
 
 // Get ticket by id
 // ticketId: ticket id
-async get(ticketId?: string): Promise<Ticket>;
+async get(ticketId: number): Promise<Ticket>;
 ```
 
 #### TicketFieldsCollection
@@ -1328,14 +1328,14 @@ async insert(value: Omit<Partial<Field>, 'id'>);
 // Update field attributes by field id
 // fieldId: field id
 // value: new field attributes values as hash object
-async update(fieldId: string, value: Omit<Partial<Field>, 'id'>);
+async update(fieldId: number, value: Omit<Partial<Field>, 'id'>);
 
 // Get all fields
 async get(): Promise<Field[]>;
 
 // Get field by id
 // fieldId: field id
-async get(fieldId?: string): Promise<Field>;
+async get(fieldId: number): Promise<Field>;
 ```
 
 Example:

@@ -72,20 +72,20 @@ export class TicketFieldsCollection extends BaseCollection<Partial<Field>> {
     }
 
     async get(): Promise<Field[]>;
-    async get(fieldId?: string): Promise<Field>;
-    async get(fieldId?: string) {
-        if (fieldId) return this.endpoint.fetchJson(`/ticket_fields/${fieldId}`);
-        return await this.endpoint.fetchJson(`/ticket_fields`);
+    async get(fieldId: number): Promise<Field>;
+    async get(fieldId?: number) {
+        if (fieldId) return (await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`)).ticket_field;
+        return (await this.endpoint.fetchJson(`/ticket_fields`)).ticket_fields;
     }
 
     public async insert(value: Omit<Partial<Field>, 'id'>) {
         super.insert(value as Partial<Field>);
-        return await this.endpoint.fetchJson('/ticket_fields', {}, 'POST', value);
+        return await this.endpoint.fetchJson('/ticket_fields', {}, 'POST', { ticket_field: value });
     }
 
-    public async update(fieldId: string, value: Omit<Partial<Field>, 'id'>) {
+    public async update(fieldId: number, value: Omit<Partial<Field>, 'id'>) {
         super.insert(value as Partial<Field>);
-        return await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`, {}, 'PUT', value);
+        return await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`, {}, 'PUT', { ticket_field: value });
     }
 
     get endpoint(): Endpoint {
