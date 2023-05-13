@@ -1,4 +1,4 @@
-import fetch, { RequestInit } from 'node-fetch';
+import fetch, { RequestInit, Response } from 'node-fetch';
 import https from 'node:https';
 import { pathJoin } from '../utils/index.js';
 import * as rx from 'rxjs';

@@ -30,7 +30,7 @@ export class Endpoint extends BaseEndpoint {
         });
     }
 
-    async fetchJson(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any) {
+    async fetchJson<T = any>(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any): Promise<T> {
         const init: RequestInit = {
             method,
             agent: this.agent,
@@ -51,7 +51,7 @@ export class Endpoint extends BaseEndpoint {
         const jsonRes = await res.json();
         //console.log(jsonRes);
         //for (let key in jsonRes) console.log(key)
-        return jsonRes;
+        return jsonRes as T;
     }
 
     getTickets(collectionName: string = 'Tickets', options: CollectionOptions<Partial<Ticket>> = {}): TicketsCollection {

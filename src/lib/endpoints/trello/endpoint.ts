@@ -84,7 +84,7 @@ export class Endpoint extends BaseEndpoint {
         });
     }
 
-    async fetchJson(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any) {
+    async fetchJson<T = any>(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any): Promise<T> {
         const init: RequestInit = {
             method,
             agent: this.agent,
@@ -101,7 +101,7 @@ export class Endpoint extends BaseEndpoint {
         //console.log(fullUrl);
         const res = await fetch(fullUrl, init);
         //console.log(res)
-        return await res.json();
+        return (await res.json()) as T;
     }
 
     async getUser(username: string): Promise<User>;

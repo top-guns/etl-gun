@@ -65,7 +65,7 @@ export class Endpoint extends BaseEndpoint {
         return this._magentoUrl;
     }
 
-    async get(relativeUrl: string) {
+    async get<T = any>(relativeUrl: string): Promise<T> {
         await this.updateToken();
         let init: RequestInit = {
             agent: this.agent,
@@ -75,10 +75,10 @@ export class Endpoint extends BaseEndpoint {
             }
         }
 
-        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+        return (await (await fetch(this.getUrl(relativeUrl), init)).json()) as T;
     }
 
-    async post(relativeUrl: string, value: any) {
+    async post<T = any>(relativeUrl: string, value: any): Promise<T> {
         await this.updateToken();
         let init: RequestInit = {
             method: "POST", 
@@ -89,10 +89,10 @@ export class Endpoint extends BaseEndpoint {
             },
             body: JSON.stringify(value)
         }
-        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+        return (await (await fetch(this.getUrl(relativeUrl), init)).json() as T);
     }
 
-    async put(relativeUrl: string, value: any) {
+    async put<T = any>(relativeUrl: string, value: any): Promise<T> {
         await this.updateToken();
         let init: RequestInit = {
             method: "PUT", 
@@ -103,7 +103,7 @@ export class Endpoint extends BaseEndpoint {
             },
             body: JSON.stringify(value)
         }
-        return await (await fetch(this.getUrl(relativeUrl), init)).json();
+        return (await (await fetch(this.getUrl(relativeUrl), init)).json()) as T;
     }
 
     getProducts(options: CollectionOptions<Partial<Product>> = {}): ProductsCollection {
