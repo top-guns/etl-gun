@@ -29,7 +29,7 @@ const operations: SqlConditionOperations & { not: SqlConditionOperations } = {
 
     of: (arr: any[]) => ({
         expression: `#{{field}} in (${arr.reduce(p => p ? p + ', ?' : '?', '')})`,
-        arr
+        params: arr
     }),
 
     isNull: () => ({ expression: '#{{field}} is null '}),
