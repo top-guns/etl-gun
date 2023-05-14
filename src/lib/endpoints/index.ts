@@ -6,8 +6,6 @@ import * as Interval from './interval.js'
 import * as Json from './json.js'
 import * as Magento from './magento/index.js'
 import * as Memory from './memory/index.js'
-import * as Mysql from './mysql.js'
-import * as Postgres from './postgres.js'
 import * as Telegram from './telegram.js'
 import * as Xml from './xml.js'
 import * as Errors from './errors.js'
@@ -23,7 +21,5 @@ export {
     Interval,
     Magento,
     Memory,
-    Mysql,
-    Postgres,
     Telegram
 }

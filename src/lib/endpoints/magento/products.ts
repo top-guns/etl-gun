@@ -1,7 +1,8 @@
 import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
-import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseObservable } from '../../core/observable.js';
+import { CollectionOptions } from '../../core/readonly_collection.js';
+import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { mapAsync } from '../../index.js';
 import { Endpoint } from './endpoint.js';
 
@@ -29,7 +30,7 @@ export type Product = {
     custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[];
 }
 
-export class ProductsCollection extends BaseCollection<Partial<Product>> {
+export class ProductsCollection extends UpdatableCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
     constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Product>> = {}) {

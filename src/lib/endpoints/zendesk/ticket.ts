@@ -1,5 +1,6 @@
-import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseObservable } from "../../core/observable.js";
+import { CollectionOptions } from "../../core/readonly_collection.js";
+import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -52,7 +53,7 @@ export type Ticket = {
     from_messaging_channel: boolean;
 }
 
-export class TicketsCollection extends BaseCollection<Partial<Ticket>> {
+export class TicketsCollection extends UpdatableCollection<Partial<Ticket>> {
     protected static instanceNo = 0;
 
     constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Ticket>> = {}) {
@@ -106,8 +107,8 @@ export class TicketsCollection extends BaseCollection<Partial<Ticket>> {
         return await this.endpoint.fetchJson('/tickets', {}, 'POST', { ticket: value });
     }
 
-    public async update(ticketId: number, value: Omit<Partial<Ticket>, 'id'>) {
-        super.insert(value as Partial<Ticket>);
+    public async update(value: Omit<Partial<Ticket>, 'id'>, ticketId: number) {
+        super.update(value as Partial<Ticket>, ticketId);
         return await this.endpoint.fetchJson(`/tickets/${ticketId}`, {}, 'PUT', { ticket: value });
     }
 

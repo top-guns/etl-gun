@@ -31,7 +31,7 @@ export type CollectionEvent =
 
 type EventListener = (...data: any[]) => void;
 
-export class BaseCollection<T> {
+export class ReadonlyCollection<T> {
     protected listeners: Record<CollectionEvent, EventListener[]> = {
         "insert": [],
         "update": [],
@@ -130,27 +130,12 @@ export class BaseCollection<T> {
     //     return queue.select(false, delay);
     // }
 
-    public async insert(value: T | any, ...params: any[]): Promise<any> {
-        this.sendEvent("insert", { value });
-    }
-
-    public async update(where: any, value: T, ...params: any[]): Promise<any> {
-        this.sendEvent("update", { where, value });
-    }
-
-    public async upsert(value: T, ...params: any[]): Promise<any> {
-        this.sendEvent("upsert", { value });
-    }
-
-    public async delete(where?: any): Promise<any> {
-        this.sendEvent("delete", { where });
-    }
  
     public stop() {
         throw new Error("Method not implemented.");
     }
   
-    public on(event: CollectionEvent, listener: EventListener): BaseCollection<T> {
+    public on(event: CollectionEvent, listener: EventListener): ReadonlyCollection<T> {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].push(listener); 
         return this;

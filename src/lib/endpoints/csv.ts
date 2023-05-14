@@ -1,10 +1,10 @@
 import * as fs from "fs";
 import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { Header, pathJoin } from "../utils/index.js";
-import { Observable } from "rxjs";
 import { BaseObservable } from "../core/observable.js";
+import { CollectionOptions } from "../core/readonly_collection.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
@@ -39,7 +39,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
 
 export type CsvCellType = string | boolean | number | undefined | null;
 
-export class Collection extends BaseCollection<CsvCellType[]> {
+export class Collection extends UpdatableCollection<CsvCellType[]> {
     protected static instanceCount = 0;
 
     protected filename: string;

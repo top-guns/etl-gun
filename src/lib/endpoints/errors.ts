@@ -1,6 +1,6 @@
-import { CollectionOptions } from "../core/collection.js";
 import { BaseEndpoint } from "../core/endpoint.js";
 import { BaseObservable } from "../core/observable.js";
+import { CollectionOptions } from "../core/readonly_collection.js";
 import { QueueCollection } from "./memory/queue.js";
 
 
@@ -36,9 +36,9 @@ export class Endpoint extends BaseEndpoint {
         this._removeCollection(collectionName);
     }
 
-    releaseEndpoint() {
+    async releaseEndpoint() {
         for (let key in this.collections) this.collections[key].stop();
-        super.releaseEndpoint();
+        await super.releaseEndpoint();
     }
 
     get displayName(): string {

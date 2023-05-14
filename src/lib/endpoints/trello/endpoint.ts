@@ -1,12 +1,12 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from "../../core/collection.js";
 import { pathJoin } from '../../utils/index.js';
 import { Board, BoardsCollection } from './board.js';
 import { List, ListsCollection } from './list.js';
 import { Card, CardsCollection } from './card.js';
 import { CommentsCollection, Comment } from './comment.js';
+import { CollectionOptions } from '../../core/readonly_collection.js';
 
 export type User = {
     id: string;

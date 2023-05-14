@@ -1,5 +1,6 @@
-import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseObservable } from "../../core/observable.js";
+import { CollectionOptions } from "../../core/readonly_collection.js";
+import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -14,7 +15,7 @@ export type List = {
 }
 
 
-export class ListsCollection extends BaseCollection<Partial<List>> {
+export class ListsCollection extends UpdatableCollection<Partial<List>> {
     protected static instanceNo = 0;
     protected boardId: string;
 
@@ -70,8 +71,8 @@ export class ListsCollection extends BaseCollection<Partial<List>> {
         return await this.endpoint.fetchJson('1/lists', {}, 'POST', value);
     }
 
-    public async update(listId: string, value: Omit<Partial<List>, 'id'>) {
-        super.insert(value as Partial<List>);
+    public async update(value: Omit<Partial<List>, 'id'>, listId: string) {
+        super.update(value as Partial<List>, listId);
         return await this.endpoint.fetchJson(`1/lists/${listId}`, {}, 'PUT', value);
     }
 

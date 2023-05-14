@@ -1,7 +1,7 @@
 import { mergeMap, from, OperatorFunction, Observable } from "rxjs";
 import _ from 'lodash';
-import { BaseCollection } from "../core/collection.js";
 import { GuiManager } from "../index.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
 
 
 type PushOptions<S, T> = {
@@ -11,7 +11,7 @@ type PushOptions<S, T> = {
 }
 
 
-export function push<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
+export function push<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     //return tap<T>(v => collection.insert(v, params));
     const f = async (v: S) => {
         // No wait
@@ -23,7 +23,7 @@ export function push<S, T=S>(collection: BaseCollection<T>, options?: PushOption
     return mergeMap((v: S)=> observable(v)); 
 }
 
-export function pushAndLog<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
+export function pushAndLog<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     const f = async (v: S) => {
         let vv: T = await getValue<S, T>(v, options);
         const res = await collection.insert(vv);
@@ -35,7 +35,7 @@ export function pushAndLog<S, T=S>(collection: BaseCollection<T>, options?: Push
 }
 
 
-export function pushAndGet<S, T, R>(collection: BaseCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R> {
+export function pushAndGet<S, T, R>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R> {
     const f = async (v: S): Promise<R> => {
         let vv: T = await getValue<S, T>(v, options);
         const res: R = await collection.insert(vv);
@@ -46,7 +46,7 @@ export function pushAndGet<S, T, R>(collection: BaseCollection<T>, options?: Pus
     return mergeMap<S, Observable<R>>((v: S)=> observable(v)); 
 }
 
-export function pushAndWait<S, T=S>(collection: BaseCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
+export function pushAndWait<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     const f = async (v: S) => {
         let vv: T = await getValue<S, T>(v, options);
         await collection.insert(vv);

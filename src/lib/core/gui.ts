@@ -1,9 +1,8 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
 import { SimplifiedStyledElement } from 'console-gui-tools';
-import { Errors } from '../index.js';
-import { BaseCollection, CollectionOptions } from './collection.js';
 import { BaseEndpoint } from './endpoint.js';
+import { CollectionOptions, ReadonlyCollection } from './readonly_collection.js';
 
 type EndpointDesc = {
     endpoint: BaseEndpoint;
@@ -11,7 +10,7 @@ type EndpointDesc = {
 }
 
 type CollectionDesc = {
-    collection: BaseCollection<any>;
+    collection: ReadonlyCollection<any>;
     displayName: string;
     status: 'waiting' | 'running' | 'finished' | 'error' | 'sleep' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
     value: any;
@@ -288,7 +287,7 @@ export class GuiManager {
         return null;
     }
 
-    public registerCollection(collection: BaseCollection<any>, guiOptions: CollectionOptions<any> = {}) {
+    public registerCollection(collection: ReadonlyCollection<any>, guiOptions: CollectionOptions<any> = {}) {
         const endpoint = collection.endpoint;
         const endpointdesc = this.getEndpointDesc(endpoint);
         if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);

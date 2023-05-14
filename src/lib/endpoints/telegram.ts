@@ -1,9 +1,10 @@
 import * as pg from 'pg'
 import { Observable, Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import { BaseObservable } from '../core/observable.js';
+import { CollectionOptions } from '../core/readonly_collection.js';
+import { UpdatableCollection } from '../core/updatable_collection.js';
 
 export type InputMessage = {
     chatId: string;
@@ -39,7 +40,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends BaseCollection<InputMessage> {
+export class Collection extends UpdatableCollection<InputMessage> {
     protected static instanceNo = 0;
 
     protected token: string;

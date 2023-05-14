@@ -1,5 +1,6 @@
-import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseObservable } from "../../core/observable.js";
+import { CollectionOptions } from "../../core/readonly_collection.js";
+import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from './endpoint.js';
 
 
@@ -51,7 +52,7 @@ export type Comment = {
 }
 
 
-export class CommentsCollection extends BaseCollection<Partial<Comment>> {
+export class CommentsCollection extends UpdatableCollection<Partial<Comment>> {
     protected static instanceNo = 0;
     //protected boardId: string;
     protected cardId: string;
@@ -104,8 +105,8 @@ export class CommentsCollection extends BaseCollection<Partial<Comment>> {
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
     }
 
-    public async update(commentId: string, value: Omit<Partial<Comment>, 'id'>) {
-        super.insert(value as Partial<Comment>);
+    public async update(value: Omit<Partial<Comment>, 'id'>, commentId: string) {
+        super.update(value as Partial<Comment>, commentId);
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments/${commentId}`, {filter: 'commentCard'}, 'PUT', value);
     }
 

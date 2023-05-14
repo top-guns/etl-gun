@@ -4,9 +4,10 @@ import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
+import { CollectionOptions } from "../core/readonly_collection.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
 
 
 export type PathDetails = {
@@ -62,7 +63,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-export class Collection extends BaseCollection<PathDetails> {
+export class Collection extends UpdatableCollection<PathDetails> {
     protected static instanceCount = 0;
 
     protected folderPath: string;

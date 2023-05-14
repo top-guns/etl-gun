@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
-import { BaseCollection, CollectionOptions } from "./collection.js";
 import { GuiManager } from "./gui.js";
+import { ReadonlyCollection } from "./readonly_collection.js";
 
 export class BaseEndpoint {
     protected static instanceCount = 0;
@@ -12,7 +12,7 @@ export class BaseEndpoint {
         if (GuiManager.instance && !hidden) GuiManager.instance.registerEndpoint(this, first);
     }
 
-    releaseEndpoint() {
+    async releaseEndpoint() {
         for (let name in this.collections) this._removeCollection(name);
     }
 
@@ -21,9 +21,9 @@ export class BaseEndpoint {
     }
 
 
-    protected collections: Record<string, BaseCollection<any>> = {};
+    protected collections: Record<string, ReadonlyCollection<any>> = {};
 
-    protected _addCollection<T extends BaseCollection<any>>(collectionName: string, collection: T): T {
+    protected _addCollection<T extends ReadonlyCollection<any>>(collectionName: string, collection: T): T {
         this.collections[collectionName] = collection;
         return collection;
     }

@@ -1,6 +1,7 @@
-import { tap, mergeMap, from, Observable, iif, of, EMPTY, OperatorFunction } from "rxjs";
-import { BaseCollection } from "../core/collection.js";
+import { Observable, OperatorFunction } from "rxjs";
 import { BaseObservable } from "../core/observable.js";
+import { ReadonlyCollection } from "../core/readonly_collection.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
 import { EtlError, EtlErrorData } from "../endpoints/errors.js";
 import { Condition, findDifference } from "../index.js";
 
@@ -9,7 +10,7 @@ type EtlErrorDataUnexpected<T> = EtlErrorData & {
 }
 
 // assertion
-export function expect<T>(name: string, condition: Condition<T>, errorsCollection?: BaseCollection<EtlError> | null): OperatorFunction<T, T> { 
+export function expect<T>(name: string, condition: Condition<T>, errorsCollection?: UpdatableCollection<EtlError> | null): OperatorFunction<T, T> { 
     const getError = (data: T): EtlErrorDataUnexpected<T> => {
         let diff = findDifference<T>(data, condition);
         if (diff) return { name, message: `Unexpected value: ${diff}`, data, condition } as EtlErrorDataUnexpected<T>;
@@ -19,7 +20,7 @@ export function expect<T>(name: string, condition: Condition<T>, errorsCollectio
 
     return (function doObserve(observable: Observable<T>): Observable<T> {
         const pipeObservable: BaseObservable<T> = this;
-        const collection = pipeObservable && (pipeObservable.collection as BaseCollection<T>);
+        const collection = pipeObservable && (pipeObservable.collection as ReadonlyCollection<T>);
 
         return new Observable<T>((subscriber) => {
             // this function will be called each time this Observable is subscribed to.

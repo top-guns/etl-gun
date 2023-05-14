@@ -4,9 +4,10 @@ import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
+import { CollectionOptions } from "../core/readonly_collection.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -50,7 +51,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class Collection extends BaseCollection<any> {
+export class Collection extends UpdatableCollection<any> {
     protected static instanceNo = 0;
 
     protected filename: string;

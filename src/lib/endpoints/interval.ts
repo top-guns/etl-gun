@@ -1,8 +1,8 @@
 import { Observable, Subscriber } from "rxjs";
 import { GuiManager } from "../core/gui.js";
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { BaseObservable } from "../core/observable.js";
+import { CollectionOptions, ReadonlyCollection } from "../core/readonly_collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected static _instance: Endpoint;
@@ -33,7 +33,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends BaseCollection<number> {
+export class Collection extends ReadonlyCollection<number> {
     protected static instanceNo = 0;
 
     protected interval: number;
@@ -60,16 +60,6 @@ export class Collection extends BaseCollection<number> {
             }
         });
         return observable;
-    }
-
-    public async insert(value: number) {
-        super.insert(value);
-        this.counter = value;
-    }
-
-    public async delete() {
-        super.delete();
-        this.counter = 0;
     }
 
     protected onTick() {

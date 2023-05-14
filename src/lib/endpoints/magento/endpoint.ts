@@ -2,7 +2,7 @@ import fetch, { RequestInit } from 'node-fetch';
 //let {fetch, RequestInit} = await import('node-fetch');
 import https from 'node:https';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from "../../core/collection.js";
+import { CollectionOptions } from '../../core/readonly_collection.js';
 import { pathJoin } from '../../utils/index.js';
 import { Product, ProductsCollection } from './products.js';
 import { StockItem, StockCollection } from './stock.js';

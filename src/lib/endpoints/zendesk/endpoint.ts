@@ -1,7 +1,7 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from "../../core/collection.js";
+import { CollectionOptions } from '../../core/readonly_collection.js';
 import { pathJoin } from '../../utils/index.js';
 import { Ticket, TicketsCollection } from './ticket.js';
 import { Field, TicketFieldsCollection } from './ticket_field.js';

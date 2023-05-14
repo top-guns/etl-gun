@@ -1,11 +1,12 @@
 import { from, Observable } from "rxjs";
-import { BaseCollection, CollectionOptions } from "../../core/collection.js";
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
+import { CollectionOptions } from "../../core/readonly_collection.js";
+import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from "./endpoint.js";
 
 
-export class BufferCollection<T = any> extends BaseCollection<T> {
+export class BufferCollection<T = any> extends UpdatableCollection<T> {
     protected static instanceCount = 0;
 
     protected _buffer: T[];

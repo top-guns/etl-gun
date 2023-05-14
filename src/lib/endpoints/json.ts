@@ -3,9 +3,10 @@ import { Observable, Subscriber } from 'rxjs';
 import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
 import { BaseEndpoint} from "../core/endpoint.js";
-import { BaseCollection, CollectionOptions } from "../core/collection.js";
 import { pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
+import { UpdatableCollection } from "../core/updatable_collection.js";
+import { CollectionOptions } from "../core/readonly_collection.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -44,7 +45,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-export class Collection extends BaseCollection<any> {
+export class Collection extends UpdatableCollection<any> {
     protected static instanceNo = 0;
 
     protected filename: string;
