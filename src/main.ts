@@ -9,6 +9,7 @@ import fetch, { RequestInit } from 'node-fetch';
 import * as etl from './lib/index.js';
 import { GuiManager, Magento } from "./lib/index.js";
 import { CsvCellType } from "./lib/endpoints/csv.js";
+import { sqlvalue } from "./lib/endpoints/databases/condition.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 dotenv.config()
@@ -196,8 +197,8 @@ const csvPuma = csv.getFile("puma.csv", headerPuma, ';');
 const memory = etl.Memory.getEndpoint();
 const queue = memory.getQueue<DbProduct>('queue');
 
-const mysql = etl.Mysql.getEndpoint('mysql://test:test@localhost:7306/test');
-const table = mysql.getTable<DbProduct>('test1');
+//const mysql = etl.Mysql.getEndpoint('mysql://test:test@localhost:7306/test');
+//const table = mysql.getTable<DbProduct>('test1');
 
 const errorsEndpoint = etl.Errors.getEndpoint();
 const errors = errorsEndpoint.getCollection('all');
@@ -291,14 +292,14 @@ let PumaCsv_to_MySql$ = csvPuma.select(true).pipe(
     etl.log(),
 )
 
-let MySql_to_Magento$ = table.select().pipe(
-    //etl.log(),
-    rx.take(100),
-    rx.map(db2Magento),
-//    translator.operator([], ['name']),
-//    etl.log(),
-    etl.push(magentoProducts)
-)
+// let MySql_to_Magento$ = table.select().pipe(
+//     //etl.log(),
+//     rx.take(100),
+//     rx.map(db2Magento),
+// //    translator.operator([], ['name']),
+// //    etl.log(),
+//     etl.push(magentoProducts)
+// )
 
 // await csv.delete();
 //await etl.run(magento_to_Csv$);
@@ -404,41 +405,41 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 //await etl.run(PrintPuma$);
 
 
-const buf = memory.getBuffer<number>('buf', [0,1,2,3,4,5]);
-const p = buf.select().pipe(
-    etl.move<{ n: number }>({to: 'n'}),
-    etl.copy<{ n: number, p: {k: number} }, any>('n', 'p.k'),
-    //etl.copy('n', 'nn'),
-    //etl.move('nn', 'kk'),
-    //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
-    //etl.where({ n: etl.VALUE.of([1,2,3]) }),
-    etl.where({ n: etl.value.or(etl.value.of([0,1]), etl.value["=="](5)) }),
-    //etl.expect('check', {n: etl.VALUE.of([1,2])}),
-    etl.log()
-)
+// const buf = memory.getBuffer<number>('buf', [0,1,2,3,4,5]);
+// const p = buf.select().pipe(
+//     etl.move<{ n: number }>({to: 'n'}),
+//     etl.copy<{ n: number, p: {k: number} }, any>('n', 'p.k'),
+//     //etl.copy('n', 'nn'),
+//     //etl.move('nn', 'kk'),
+//     //etl.where({ n: etl.VALUE.in({'1': 1, '2': 2, '3': 3}) }),
+//     //etl.where({ n: etl.VALUE.of([1,2,3]) }),
+//     etl.where({ n: etl.value.or(etl.value.of([0,1]), etl.value["=="](5)) }),
+//     //etl.expect('check', {n: etl.VALUE.of([1,2])}),
+//     etl.log()
+// )
 
-//etl.run(p, buf.selectErrors().pipe(etl.log()));
+// //etl.run(p, buf.selectErrors().pipe(etl.log()));
 
 
-const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, 
-    process.env.ZENDESK_TOKEN!);
-const tickets = zendesk.getTickets();
-const ticketFields = zendesk.getTicketFields();
+// const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, 
+//     process.env.ZENDESK_TOKEN!);
+// const tickets = zendesk.getTickets();
+// const ticketFields = zendesk.getTicketFields();
 
-const PrintTickets$ = tickets.select().pipe(
-    rx.take(1),
-    //etl.move({to: 'ticket'}),
-    //etl.copy('ticket.status', 'status'),
-    //etl.copy('ticket.id', 'id'),
-    //etl.remove('ticket'),
-   //rx.distinct(),
-    etl.log()
-)
+// const PrintTickets$ = tickets.select().pipe(
+//     rx.take(1),
+//     //etl.move({to: 'ticket'}),
+//     //etl.copy('ticket.status', 'status'),
+//     //etl.copy('ticket.id', 'id'),
+//     //etl.remove('ticket'),
+//    //rx.distinct(),
+//     etl.log()
+// )
 
-//etl.run(PrintTickets$)
+// //etl.run(PrintTickets$)
 
-const res = await ticketFields.get(360015269411)
-console.log(res);
+// const res = await ticketFields.get(360015269411)
+// console.log(res);
 
 // const res = await tickets.insert({
 //     subject: "Callback to test1 (111-111-111)",
@@ -460,6 +461,18 @@ console.log(res);
 
 // console.log(res);
 
+const pg = new etl.Knex.KnexEndpoint('pg', process.env.POSTGRES_CONNECTION_STRING!);// etl.K("users", process.env.POSTGRES_CONNECTION_STRING!, {watch: v => `${v.name} [${v.id}]`});
+const pgTable = pg.getTable('cities');
+
+const res = await pgTable.update({name: 'test6'}, {id: sqlvalue.isNull()});
+console.log(res);
+
+const PrintTable$ = pgTable.select().pipe(
+    etl.log()
+)
+
+await etl.run(PrintTable$);
+pg.releaseEndpoint();
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();

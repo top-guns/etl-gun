@@ -10,7 +10,11 @@ type PushOptions<S, T> = {
     valueFn?: (value: S) => (T | Promise<T>);
 }
 
-
+/**
+ * Performs collection.insert and go to the next pipe step without waiting for result.
+ * @param collection  Destination collection.
+ * @param options  Some options to specify the value to insert.
+ */
 export function push<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     //return tap<T>(v => collection.insert(v, params));
     const f = async (v: S) => {
@@ -23,6 +27,11 @@ export function push<S, T=S>(collection: UpdatableCollection<T>, options?: PushO
     return mergeMap((v: S)=> observable(v)); 
 }
 
+/**
+ * Performs collection.insert, wait for result and print the result to the log.
+ * @param collection  Destination collection.
+ * @param options  Some options to specify the value to insert.
+ */
 export function pushAndLog<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     const f = async (v: S) => {
         let vv: T = await getValue<S, T>(v, options);
@@ -34,7 +43,11 @@ export function pushAndLog<S, T=S>(collection: UpdatableCollection<T>, options?:
     return mergeMap((v: S)=> observable(v)); 
 }
 
-
+/**
+ * Performs collection.insert, wait for result and return the result to the next pipe step as the stream value.
+ * @param collection  Destination collection.
+ * @param options  Some options to specify the value to insert.
+ */
 export function pushAndGet<S, T, R>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R> {
     const f = async (v: S): Promise<R> => {
         let vv: T = await getValue<S, T>(v, options);
@@ -46,6 +59,11 @@ export function pushAndGet<S, T, R>(collection: UpdatableCollection<T>, options?
     return mergeMap<S, Observable<R>>((v: S)=> observable(v)); 
 }
 
+/**
+ * Performs collection.insert, wait for result, but skip the result value and go to the next pipe step.
+ * @param collection  Destination collection.
+ * @param options  Some options to specify the value to insert.
+ */
 export function pushAndWait<S, T=S>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> | null): OperatorFunction<S, S> {
     const f = async (v: S) => {
         let vv: T = await getValue<S, T>(v, options);
