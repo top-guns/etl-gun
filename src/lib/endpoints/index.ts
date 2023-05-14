@@ -9,7 +9,7 @@ import * as Magento from './magento/index.js'
 import * as Trello from './trello/index.js'
 import * as Zendesk from './zendesk/index.js'
 import * as Telegram from './telegram.js'
-import * as Database from './databases/index.js'
+import * as Databases from './databases/index.js'
 
 export {
     Errors,
@@ -23,5 +23,5 @@ export {
     Trello,
     Zendesk,
     Telegram,
-    Database
+    Databases
 }

@@ -16,8 +16,7 @@
     "./Interval": "./dist/endpoints/interval.js",
     "./Magento": "./dist/endpoints/magento.js",
     "./Memory": "./dist/endpoints/memory.js",
-    "./Mysql": "./dist/endpoints/mysql.js",
-    "./Postgres": "./dist/endpoints/postgres.js",
+    "./databases": "./dist/endpoints/databases/index.js",
     "./Telegram": "./dist/endpoints/telegram.js"
   },
   "types": "./dist/index.d.ts",

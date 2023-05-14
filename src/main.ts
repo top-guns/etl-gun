@@ -461,7 +461,7 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 // console.log(res);
 
-const pg = new etl.Database.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
+const pg = new etl.Databases.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
 const pgTable = pg.getTable('cities');
 
 const res = await pgTable.update({name: 'test7'}, {id: sqlvalue.of([20])});
