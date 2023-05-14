@@ -461,10 +461,10 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 // console.log(res);
 
-const pg = new etl.Knex.KnexEndpoint('pg', process.env.POSTGRES_CONNECTION_STRING!);// etl.K("users", process.env.POSTGRES_CONNECTION_STRING!, {watch: v => `${v.name} [${v.id}]`});
+const pg = new etl.Database.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
 const pgTable = pg.getTable('cities');
 
-const res = await pgTable.update({name: 'test6'}, {id: sqlvalue.isNull()});
+const res = await pgTable.update({name: 'test7'}, {id: sqlvalue.of([20])});
 console.log(res);
 
 const PrintTable$ = pgTable.select().pipe(

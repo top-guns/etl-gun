@@ -48,8 +48,15 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
             * [Json](#json)
             * [Xml](#xml)
         * [Databases]()
-            * [PostgreSQL](#postgres)
+            * [Knex](#knex)
+            * [CockroachDB](#cockroachdb)
+            * [MariaDb](#mariadb)
+            * [MS SQL Server](#ms-sql-server)
             * [MySQL](#mysql)
+            * [Oracle DB](#oracle-db)
+            * [PostgreSQL](#postgres)
+            * [Amazone Redshift](#amazone-redshift)
+            * [SQLite](#sqlite)
         * [CMS]()
             * [Magento](#magento)
         * [Task tracking systems]()
@@ -798,35 +805,41 @@ await etl.run(printXmlAuthors$);
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Postgres
+### Knex
 
-Represents PostgreSQL database. Based on [node-postgres (aka 'pg')](https://github.com/brianc/node-postgres) module.
+Represents common Knex database. Based on [knex engine](https://knexjs.org/).
 
-#### Endpoint
+#### KnexEndpoint
 
 Methods:
 
 ```typescript
-// Connection to the database can be performed using connection string or through the existing pool.
-constructor(connectionString: string);
-constructor(connectionPool: pg.Pool);
+constructor(client: ClientType, connectionString: string, pool?: PoolConfig);
+constructor(client: ClientType, connectionConfig: ConnectionConfig, pool?: PoolConfig);
+constructor(knexConfig: pkg.Knex.Config);
 
 // Create collection object for the specified database table
 // table: name of database table and identificator of the creating collection object
-// guiOptions: Some options how to display this endpoint
-getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection;
+// options: Some options how to display this endpoint
+getTable<T = Record<string, any>>(table: string, options: CollectionOptions<string[]> = {}): KnexTableCollection<T>;
+
+// Create collection object for the specified sql query result
+// collectionName: identificator of the creating collection object
+// query: sql query
+// options: Some options how to display this endpoint
+getQuery<T = Record<string, any>>(collectionName: string, query: string, options: CollectionOptions<string[]> = {}): KnexQueryCollection<T>;
 
 // Release collection object
 // table: identificator of the releasing collection object
-releaseTable(table: string);
+releaseCollection(collectionName: string);
 
 // Release all collection objects, endpoint object and release connections to database.
-releaseEndpoint();
+async releaseEndpoint();
 ```
 
-#### TableCollection
+#### KnexTableCollection
 
-Presents the table from the PostgreSQL database. 
+Presents the table from the database. 
 
 Methods:
 
@@ -836,11 +849,13 @@ Methods:
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-select(where: string | {} = ''): Observable<T>;
+select(where: SqlCondition<T>, fields?: string[]): BaseObservable<T>;
+select(whereSql?: string, whereParams?: any[], fields?: string[]): BaseObservable<T>;
 
 // Insert value to the database table
 // value: what will be added to the database
-async insert(value: T);
+async insert(value: T): Promise<number[]>;
+async insert(values: T[]): Promise<number[]>;
 
 // Update all rows in database table which match to the specified condition
 // where: you can filter table rows to deleting by this parameter
@@ -848,14 +863,57 @@ async insert(value: T);
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
 // value: what will be set as new value for updated rows
-async update(where: string | {} = ''value: T);
+async update(value: T, where: SqlCondition<T>): Promise<number>;
+async update(value: T, whereSql?: string, whereParams?: any[]): Promise<number>;
+
+// Update all rows in database table which match to the specified condition
+// where: you can filter table rows to deleting by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+// value: what will be set as new value for updated rows
+async upsert(value: T): Promise<number[]>;
 
 // Delete rows from the database table by condition
 // where: you can filter table rows to deleting by this parameter
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-async delete(where: string | {} = '');
+async delete(where: SqlCondition<T>): Promise<number>;
+async delete(whereSql?: string, whereParams?: any[]): Promise<number>;
+```
+
+#### KnexQueryCollection
+
+Readonly collection of sql query results. 
+
+Methods:
+
+```typescript
+// Create the observable object and send data from the database table to it
+// where: you can filter incoming data by this parameter
+//        it can be SQL where clause 
+//        or object with fields as collumn names 
+//        and its values as needed collumn values
+select(params?: any[]): BaseObservable<T>;
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### CockroachDB
+
+Represents CockroachDB database. Endpoint implementation based on KnexEndpoint.
+You should install [node-postgres (aka 'pg') package](https://github.com/brianc/node-postgres) module to use this endpoint! 
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 ```
 
 Example:
@@ -863,7 +921,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
+const pg = new etl.Database.CockroachDb.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -875,64 +933,20 @@ etl.run(logUsers$)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Mysql
+### MariaDB
 
-Represents MySQL database. Based on [mysql2-async](https://github.com/txstate-etc/mysql2-async) module.
+Represents MariaDB database. Endpoint implementation based on KnexEndpoint.
+You should install [mysql package](https://www.npmjs.com/package/mysql) module to use this endpoint! 
 
 #### Endpoint
 
-Methods:
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
 
 ```typescript
-// Connection to the database can be performed using connection string or through the existing pool.
-constructor(connectionString: string);
-constructor(connectionPool: Db.Pool);
-
-// Create collection object for the specified database table
-// table: name of database table and identificator of the creating collection object
-// guiOptions: Some options how to display this endpoint
-getTable(table: string, guiOptions: CollectionGuiOptions<string[]> = {}): TableCollection;
-
-// Release collection object
-// table: identificator of the releasing collection object
-releaseTable(table: string);
-
-// Release all collection objects, endpoint object and release connections to database.
-releaseEndpoint();
-```
-
-#### TableCollection
-
-Presents the table from the MySQL database. 
-
-Methods:
-
-```typescript
-// Create the observable object and send data from the database table to it
-// where: you can filter incoming data by this parameter
-//        it can be SQL where clause 
-//        or object with fields as collumn names 
-//        and its values as needed collumn values
-select(where: string | {} = ''): Observable<T>;
-
-// Insert value to the database table
-// value: what will be added to the database
-async insert(value: T);
-
-// Update all rows in database table which match to the specified condition
-// where: you can filter table rows to deleting by this parameter
-//        it can be SQL where clause 
-//        or object with fields as collumn names 
-//        and its values as needed collumn values
-// value: what will be set as new value for updated rows
-async update(where: string | {} = ''value: T);
-
-// Delete rows from the database table by condition
-// where: you can filter table rows to deleting by this parameter
-//        it can be SQL where clause 
-//        or object with fields as collumn names 
-//        and its values as needed collumn values
-async delete(where: string | {} = '');
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 ```
 
 Example:
@@ -940,8 +954,213 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const mysql = new etl.Postgres.Endpoint('mysql://user:password@localhost:3306/database');
-const table = mysql.getTable('users');
+const pg = new etl.Database.MariaDb.Endpoint('mysql://user:password@127.0.0.1:3306/database');
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### MS SQL Server
+
+Represents MS SQL Server database. Endpoint implementation based on KnexEndpoint.
+You should install [tedious package](https://github.com/tediousjs/tedious) module to use this endpoint! 
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.SqlServer.Endpoint('mssql://user:password@127.0.0.1:1433/database');
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### MySQL
+
+Represents MySQL database. Endpoint implementation based on KnexEndpoint.
+You should install [mysql package](https://www.npmjs.com/package/mysql) module to use this endpoint! 
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.MySql.Endpoint('mysql://user:password@127.0.0.1:3306/database');
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### Oracle DB
+
+Represents Oracle database. Endpoint implementation based on KnexEndpoint.
+You should install [oracledb package](https://www.npmjs.com/package/oracledb) module to use this endpoint! 
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.OracleDb.Endpoint({
+    host: config.oracle.host,
+    user: config.oracle.user,
+    password: config.oracle.password,
+    database: config.oracle.database,
+});
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### Postgres
+
+Represents PostgreSQL database. Endpoint implementation based on KnexEndpoint.
+You should install [node-postgres (aka 'pg') package](https://github.com/brianc/node-postgres) module to use this endpoint!
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### Amazone Redshift
+
+Represents Amazone Redshift database. Endpoint implementation based on KnexEndpoint.
+You should install [node-postgres (aka 'pg') package](https://github.com/brianc/node-postgres) module to use this endpoint!
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.Redshift.Endpoint('postgres://user:password@127.0.0.1:5439/database');
+const table = pg.getTable('users');
+
+const logUsers$ = table.select().pipe(
+    etl.log()
+);
+
+etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### SQLite
+
+Represents SQLite3 database. Endpoint implementation based on KnexEndpoint.
+You should install [sqlite3 package](https://www.npmjs.com/package/sqlite3) module to use this endpoint!
+
+#### Endpoint
+
+Extends KnexEndpoint and contains all it's methods.
+
+Constructors:
+
+```typescript
+constructor(connectionString: string, pool?: PoolConfig);
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+
+const pg = new etl.Database.SqlLite.Endpoint(connection: {
+    filename: "./mydb.sqlite"
+});
+const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
     etl.log()

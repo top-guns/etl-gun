@@ -9,7 +9,7 @@ import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { CollectionOptions, ReadonlyCollection } from '../../core/readonly_collection.js';
 
 
-type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon (and CockroachDB or Redshift instance) 
+type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
                         // pg-native for PostgreSQL with native C++ libpq bindings (requires PostgresSQL installed to link against)
     | 'mssql'           // tedious for MSSQL
     | 'mysql'           // mysql for MySQL or MariaDB
@@ -18,7 +18,7 @@ type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon (and Cockro
     | 'better-sqlite3'
 
 
-interface ConnectionConfig {
+export interface ConnectionConfig {
     host?: string;
     port?: number;
     user?: string;
@@ -28,7 +28,7 @@ interface ConnectionConfig {
     filename?: ":memory:" | string;
 }
 
-interface PoolConfig {
+export interface PoolConfig {
     min?: number;
     max?: number;
 }
@@ -73,8 +73,8 @@ export class KnexEndpoint extends BaseEndpoint {
         return c as unknown as KnexQueryCollection<T>;
     }
 
-    releaseTable(table: string) {
-        this._removeCollection(table);
+    releaseCollection(collectionName: string) {
+        this._removeCollection(collectionName);
     }
 
     async releaseEndpoint() {
