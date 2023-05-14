@@ -921,7 +921,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.CockroachDb.Endpoint('postgres://user:password@127.0.0.1:5432/database');
+const pg = new etl.databases.CockroachDb.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -954,7 +954,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.MariaDb.Endpoint('mysql://user:password@127.0.0.1:3306/database');
+const pg = new etl.databases.MariaDb.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -987,7 +987,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.SqlServer.Endpoint('mssql://user:password@127.0.0.1:1433/database');
+const pg = new etl.databases.SqlServer.Endpoint('mssql://user:password@127.0.0.1:1433/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -1020,7 +1020,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.MySql.Endpoint('mysql://user:password@127.0.0.1:3306/database');
+const pg = new etl.databases.MySql.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -1053,7 +1053,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.OracleDb.Endpoint({
+const pg = new etl.databases.OracleDb.Endpoint({
     host: config.oracle.host,
     user: config.oracle.user,
     password: config.oracle.password,
@@ -1091,7 +1091,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
+const pg = new etl.databases.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -1124,7 +1124,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.Redshift.Endpoint('postgres://user:password@127.0.0.1:5439/database');
+const pg = new etl.databases.Redshift.Endpoint('postgres://user:password@127.0.0.1:5439/database');
 const table = pg.getTable('users');
 
 const logUsers$ = table.select().pipe(
@@ -1157,7 +1157,7 @@ Example:
 ```typescript
 import * as etl from "rxjs-etl-kit";
 
-const pg = new etl.Database.SqlLite.Endpoint(connection: {
+const pg = new etl.databases.SqlLite.Endpoint(connection: {
     filename: "./mydb.sqlite"
 });
 const table = pg.getTable('users');
