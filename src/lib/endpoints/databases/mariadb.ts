@@ -1,10 +1,10 @@
 import { ConnectionConfig, KnexEndpoint, PoolConfig } from './knex_endpoint.js';
 
 export class Endpoint extends KnexEndpoint {
-    constructor(connectionString: string, pool?: PoolConfig);
-    constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
-    constructor(connection: any, pool?: PoolConfig) {
-        super('mysql', connection, pool);
+    constructor(connectionString: string, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
+    constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
+    constructor(connection: any, pool?: PoolConfig, driver: 'mysql' | 'mysql2' = 'mysql') {
+        super(driver, connection, pool);
     }
 
     get displayName(): string {

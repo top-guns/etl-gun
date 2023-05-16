@@ -461,18 +461,20 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 // console.log(res);
 
-const pg = new etl.databases.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
-const pgTable = pg.getTable('cities');
+//const db = new etl.databases.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
+//const table = db.getTable('cities');
+const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
+const table = db.getTable('test1');
 
-const res = await pgTable.update({name: 'test7'}, {id: sqlvalue.of([20])});
-console.log(res);
+//const res = await table.update({name: 'test7'}, {id: sqlvalue.of([20])});
+//console.log(res);
 
-const PrintTable$ = pgTable.select().pipe(
+const PrintTable$ = table.select().pipe(
     etl.log()
 )
 
 await etl.run(PrintTable$);
-pg.releaseEndpoint();
+db.releaseEndpoint();
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();

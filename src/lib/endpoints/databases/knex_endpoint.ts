@@ -13,6 +13,7 @@ type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
                         // pg-native for PostgreSQL with native C++ libpq bindings (requires PostgresSQL installed to link against)
     | 'mssql'           // tedious for MSSQL
     | 'mysql'           // mysql for MySQL or MariaDB
+    | 'mysql2'           // mysql for MySQL or MariaDB
     | 'oracledb' 
     | 'sqlite3'         // sqlite3 for SQLite3
     | 'better-sqlite3'
@@ -51,7 +52,7 @@ export class KnexEndpoint extends BaseEndpoint {
             this.config = {
                 client: p1,
                 connection: connection,
-                pool
+                pool: pool ? pool : undefined
             }
         }
         else {

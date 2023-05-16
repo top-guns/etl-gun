@@ -945,8 +945,8 @@ Extends KnexEndpoint and contains all it's methods.
 Constructors:
 
 ```typescript
-constructor(connectionString: string, pool?: PoolConfig);
-constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+constructor(connectionString: string, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
 ```
 
 Example:
@@ -1011,8 +1011,8 @@ Extends KnexEndpoint and contains all it's methods.
 Constructors:
 
 ```typescript
-constructor(connectionString: string, pool?: PoolConfig);
-constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
+constructor(connectionString: string, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
+constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig, driver?: 'mysql' | 'mysql2');
 ```
 
 Example:
