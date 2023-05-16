@@ -3,11 +3,11 @@ import glob from "glob";
 import path from 'path';
 import { Observable, Subscriber } from 'rxjs';
 import internal from "stream";
-import { BaseEndpoint} from "../core/endpoint.js";
-import { extractFileName, extractParentFolderPath, pathJoin } from "../utils/index.js";
-import { BaseObservable } from "../core/observable.js";
-import { CollectionOptions } from "../core/readonly_collection.js";
-import { UpdatableCollection } from "../core/updatable_collection.js";
+import { BaseEndpoint} from "../../core/endpoint.js";
+import { extractFileName, extractParentFolderPath, pathJoin } from "../../utils/index.js";
+import { BaseObservable } from "../../core/observable.js";
+import { CollectionOptions } from "../../core/readonly_collection.js";
+import { UpdatableCollection } from "../../core/updatable_collection.js";
 
 
 export type PathDetails = {
@@ -148,7 +148,7 @@ export class Collection extends UpdatableCollection<PathDetails> {
         }
         if (!data && pathDetails.content) data = pathDetails.content;
 
-        super.insert(pathDetails);
+        await super.insert(pathDetails);
 
         if (pathDetails.isFolder) {
             if (!fs.existsSync(pathDetails.fullPath)) {
@@ -164,7 +164,7 @@ export class Collection extends UpdatableCollection<PathDetails> {
     }
 
     public async delete(mask: string = '*', options: ReadOptions = {}) {
-        super.delete();
+        await super.delete(mask);
 
         if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
             fs.rmSync(this.folderPath, { recursive: true, force: true });
