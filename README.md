@@ -256,7 +256,7 @@ const bufferToCsv$ = buffer.select().pipe(
 await etl.run(scvToBuffer$);
 
 buffer.sort((row1, row2) => row1[0] > row2[0]);
-csv.delete();
+await csv.delete();
 
 await etl.run(bufferToCsv$)
  ```
@@ -450,7 +450,7 @@ const bufferToCsv$ = buffer.select().pipe(
 await etl.run(scvToBuffer$);
 
 buffer.sort((row1, row2) => row1[0] > row2[0]);
-csv.delete();
+await csv.delete();
 
 etl.run(bufferToCsv$)
 ```

@@ -32,16 +32,16 @@ describe('BufferEndpoint', () => {
     test('push method', async () => {
         const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1');
-        buf.insert(1);
-        buf.insert(2);
-        buf.insert(3);
+        await buf.insert(1);
+        await buf.insert(2);
+        await buf.insert(3);
         expect(buf.buffer).toEqual([1, 2, 3]);
     });
 
     test('clear method', async () => {
         const mem = Memory.getEndpoint();
         const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
-        buf.delete();
+        await buf.delete();
         expect(buf.buffer).toEqual([]);
     });
 

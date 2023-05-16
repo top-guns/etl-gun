@@ -20,7 +20,7 @@ export function push<S, T=S>(collection: UpdatableCollection<T>, options?: PushO
     const f = async (v: S) => {
         // No wait
         let vv: T = await getValue<S, T>(v, options);
-        collection.insert(vv);
+        await collection.insert(vv);
         return v;
     }
     const observable = (v: S) => from(f(v));
