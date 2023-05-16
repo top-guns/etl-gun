@@ -179,7 +179,7 @@ export class Collection extends UpdatableCollection<any> {
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
     public async insert(value: any, xpath: string = '', attribute: string = '') {
-        super.insert(value);
+        await super.insert(value);
         
         const selectedValue = this.get(xpath);
         let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
@@ -204,7 +204,7 @@ export class Collection extends UpdatableCollection<any> {
     }
 
     public async delete() {
-        super.delete();
+        await super.delete();
         this.xmlDocument = new DOMParser().parseFromString("", 'text/xml'); // ??? Test it !!!
         if (this.autosave) this.save();
     }

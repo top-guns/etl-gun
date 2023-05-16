@@ -104,12 +104,12 @@ export class Collection extends UpdatableCollection<InputMessage> {
     public async insert(valueOrChartId: InputMessage | string, message?: string) {
         if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
-        super.insert(value);
+        await super.insert(value);
         this.bot.sendMessage(value.chatId, value.message);
     }
 
     public async delete() {
-        //super.clear();
+        //await super.clear();
         throw new Error("Method not implemented.");
     }
 

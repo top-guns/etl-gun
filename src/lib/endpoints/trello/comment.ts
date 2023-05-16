@@ -101,12 +101,12 @@ export class CommentsCollection extends UpdatableCollection<Partial<Comment>> {
     }
 
     public async insert(text: string) {
-        super.insert(text);
+        await super.insert(text);
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
     }
 
     public async update(value: Omit<Partial<Comment>, 'id'>, commentId: string) {
-        super.update(value as Partial<Comment>, commentId);
+        await super.update(value as Partial<Comment>, commentId);
         return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments/${commentId}`, {filter: 'commentCard'}, 'PUT', value);
     }
 

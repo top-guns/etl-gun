@@ -64,7 +64,7 @@ export class ProductsCollection extends UpdatableCollection<Partial<Product>> {
     }
 
     public async insert(value: Omit<Partial<Product>, 'id'>) {
-        super.insert(value as Partial<Product>);
+        await super.insert(value as Partial<Product>);
         return await this.endpoint.post('/rest/V1/products', {product: value}) as Partial<Product>;
     }
 

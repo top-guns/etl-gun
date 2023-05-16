@@ -160,14 +160,14 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
     public async insert(value: T): Promise<number[]>;
     public async insert(values: T[]): Promise<number[]>;
     public async insert(value: T | T[]): Promise<number[]>{
-        super.insert(value);
+        await super.insert(value);
         return await this.endpoint.database(this.table).insert(value);
     }
 
     public async update(value: T, where: SqlCondition<T>): Promise<number>;
     public async update(value: T, whereSql?: string, whereParams?: any[]): Promise<number>;
     public async update(value: T, where: string | SqlCondition<T> = '', whereParams?: any[]): Promise<number> {
-        super.update(value, where);
+        await super.update(value, where);
 
         if (typeof where === 'string') {
             return await this.endpoint.database(this.table)
@@ -185,14 +185,14 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
     }
 
     public async upsert(value: T): Promise<number[]> {
-        super.upsert(value);
+        await super.upsert(value);
         return await this.endpoint.database(this.table).upsert(value);
     }
 
     public async delete(where: SqlCondition<T>): Promise<number>;
     public async delete(whereSql?: string, whereParams?: any[]): Promise<number>;
     public async delete(where: string | SqlCondition<T> = '', whereParams?: any[]): Promise<number> {
-        super.delete(where);
+        await super.delete(where);
 
         if (typeof where === 'string') {
             return await this.endpoint.database(this.table)

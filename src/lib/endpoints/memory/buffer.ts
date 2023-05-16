@@ -58,12 +58,12 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
     }
 
     public async insert(value: T) {
-        super.insert(value);
+        await super.insert(value);
         this._buffer.push(value); 
     }
 
     public async delete() {
-        super.delete();
+        await super.delete();
         this._buffer = [];
     }
 

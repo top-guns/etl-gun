@@ -56,6 +56,6 @@ export class ErrorsQueue extends QueueCollection<EtlError> {
     }
 
     public async insert(error: EtlError) {
-        super.insert(error);
+        await super.insert(error);
     }
 }

@@ -68,7 +68,7 @@ export class QueueCollection<T = any> extends UpdatableCollection<T> {
     }
 
     public async insert(value: T) {
-        super.insert(value);
+        await super.insert(value);
         this.queue.push(value);
         this.activateSignal.notify();
     }

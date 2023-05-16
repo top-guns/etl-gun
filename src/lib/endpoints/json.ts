@@ -239,7 +239,7 @@ export class Collection extends UpdatableCollection<any> {
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
     public async insert(value: any, path: string = '', fieldname: string = '') {
-        super.insert(value);
+        await super.insert(value);
 
         const obj = this.get(path);
 
@@ -250,7 +250,7 @@ export class Collection extends UpdatableCollection<any> {
     }
 
     public async delete() {
-        super.delete();
+        await super.delete();
         this.json = {};
         if (this.autosave) this.save();
     }

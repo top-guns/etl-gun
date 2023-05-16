@@ -101,12 +101,12 @@ export class BoardsCollection extends UpdatableCollection<Partial<Board>> {
         return this.endpoint.fetchJson(url.endsWith('.json') ? url : url + ".json");
     }
     public async insert(value: Omit<Partial<Board>, 'id'>) {
-        super.insert(value as Partial<Board>);
+        await super.insert(value as Partial<Board>);
         return await this.endpoint.fetchJson('1/boards', {}, 'POST', value);
     }
 
     public async update(value: Omit<Partial<Board>, 'id'>, boardId: string) {
-        super.update(value as Partial<Board>, boardId);
+        await super.update(value as Partial<Board>, boardId);
         return await this.endpoint.fetchJson(`1/boards/${boardId}`, {}, 'PUT', value);
     }
 

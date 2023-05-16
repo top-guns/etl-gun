@@ -71,12 +71,12 @@ export class CardsCollection extends UpdatableCollection<Partial<Card>> {
     }
 
     public async insert(value: Omit<Partial<Card>, 'id'>) {
-        super.insert(value as Partial<Card>);
+        await super.insert(value as Partial<Card>);
         return await this.endpoint.fetchJson('1/cards', {}, 'POST', value);
     }
 
     public async update(value: Omit<Partial<Card>, 'id'>, cardId: string) {
-        super.update(value as Partial<Card>, cardId);
+        await super.update(value as Partial<Card>, cardId);
         return await this.endpoint.fetchJson(`1/cards/${cardId}`, {}, 'PUT', value);
     }
 
