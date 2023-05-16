@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../utils/filesystem.js';
-import { Endpoint as FilesystemEndpoint } from '../../lib/endpoints/filesystem.js'
+import { Endpoint as FilesystemEndpoint } from '../../lib/endpoints/filesystems/local.js'
 
 describe('FilesystemEndpoint', () => {
     test('push method with simple parameters to create file', async () => {

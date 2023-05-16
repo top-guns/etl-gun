@@ -42,7 +42,8 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
             * [Memory](#memory)
             * [Interval](#interval)
         * [Filesystems]()
-            * [Filesystem](#filesystem)
+            * [Local Filesystem](#local-filesystem)
+            * [FTP, FTPS](#ftp)
         * [File formates]()
             * [Csv](#csv)
             * [Json](#json)
@@ -476,7 +477,7 @@ async delete();
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-### Filesystem
+### Local Filesystem
 
 Search for files and folders with standart unix shell wildcards [see glob documentation for details](https://www.npmjs.com/package/glob).
 
@@ -509,7 +510,7 @@ Methods:
 //       *.js - all js files in root folder
 //       **/*.png - all png files in root folder and subfolders
 // options: Search options, see below
-select(mask: string = '*', options?: ReadOptions): Observable<string[]>;
+select(mask: string = '*', options?: ReadOptions): BaseObservable<PathDetails>;
 
 // Create folder or file
 // pathDetails: Information about path, which returns from select() method
@@ -567,6 +568,73 @@ const printAllJsFileNames$ = scripts.select('**/*.js').pipe(
 );
 
 etl.run(printAllJsFileNames$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### FTP
+
+Endpoint to access files on ftp and ftps servers. Implementation based on [Basic ftp](https://www.npmjs.com/package/basic-ftp) package.
+
+#### Endpoint
+
+Methods:
+
+```typescript
+// options: specify connection parameters
+constructor(options: AccessOptions, verbose: boolean = false);
+
+// Creates new Collection object to get remote folder contents
+// folderPath: remote path to the ftp folder and identificator of the creating collection object
+// options: Some options how to display this endpoint
+getFolder(folderPath: string = '.', options: CollectionOptions<FileInfo> = {}): Collection;
+
+// Release FilesystemCollection
+// folderPath: identificator of the releasing collection object
+releaseFolder(folderPath: string);
+```
+
+#### Collection
+
+Methods:
+
+```typescript
+// Create the observable object and send files and folders information to it
+select(): BaseObservable<FileInfo>;
+
+// Create folder or file. 
+// remoteFolderPath, remoteFilePath, remotePath: remote path to be created
+// localFilePath: Local source file path 
+// sourceStream: Source stream
+// fileContents: String as file contents
+async insertFolder(remoteFolderPath: string);
+async insertFile(remoteFilePath: string, localFilePath: string);
+async insertFile(remoteFilePath: string, sourceStream: Readable);
+async insertFileWithContents(remoteFilePath: string, fileContents: string);
+// isFolder: flag to indicate want want to add folder or file
+// Only one of localFilePath, sourceStream, contents can be specified here
+async insert(remotePath: string, contents: { isFolder: boolean, localFilePath?: string, sourceStream?: Readable, contents?: string }); 
+
+// Delete file or folder with all it's contents
+// remoteFolderPath, remoteFilePath, remotePath: Remote path to file or folder we want to delete
+async deleteFolder(remoteFolderPath: string);
+async deleteEmptyFolder(remoteFolderPath: string); // raise the exception if the specified folder is not empty
+async deleteFile(remoteFilePath: string);
+async delete(remotePath: string);
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+import * as rxjs from "rxjs";
+
+const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER, password: process.env.FTP_PASSWORD});
+const folder = ftp.getFolder('/var/logs');
+const PrintFolderContents$ = folder.select().pipe(
+    etl.log()
+)
+await etl.run(PrintFolderContents$);
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------

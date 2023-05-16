@@ -463,18 +463,32 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 //const db = new etl.databases.Postgres.Endpoint(process.env.POSTGRES_CONNECTION_STRING!);
 //const table = db.getTable('cities');
-const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
-const table = db.getTable('test1');
+// const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
+// const table = db.getTable('test1');
 
-//const res = await table.update({name: 'test7'}, {id: sqlvalue.of([20])});
-//console.log(res);
+// //const res = await table.update({name: 'test7'}, {id: sqlvalue.of([20])});
+// //console.log(res);
 
-const PrintTable$ = table.select().pipe(
-    etl.log()
-)
+// const PrintTable$ = table.select().pipe(
+//     etl.log()
+// )
 
-await etl.run(PrintTable$);
-db.releaseEndpoint();
+// await etl.run(PrintTable$);
+// db.releaseEndpoint();
+
+
+// const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER, password: process.env.FTP_PASSWORD});
+// const folder = ftp.getFolder('Vorne');
+// const PrintFolder$ = folder.select().pipe(
+//     etl.log(),
+//     rx.tap(v => folder.insert('111', {isFolder: true, contents: "ttttttt"}))
+// )
+// await etl.run(PrintFolder$);
+
+const mem = etl.Memory.getEndpoint();
+const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+await buf.delete();
+console.log(buf.buffer)
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();
