@@ -30,11 +30,11 @@ export type Product = {
     custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[];
 }
 
-export class ProductsCollection extends UpdatableCollection<Partial<Product>> {
+export class ProductCollection extends UpdatableCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
     constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Product>> = {}) {
-        ProductsCollection.instanceNo++;
+        ProductCollection.instanceNo++;
         super(endpoint, collectionName, options);
     }
 
@@ -42,7 +42,7 @@ export class ProductsCollection extends UpdatableCollection<Partial<Product>> {
         const observable = new BaseObservable<Partial<Product>>(this, (subscriber) => {
             (async () => {
                 try {
-                    const products = await ProductsCollection.getProducts(this.endpoint, where, fields);
+                    const products = await ProductCollection.getProducts(this.endpoint, where, fields);
 
                     this.sendStartEvent();
                     for (const p of products) {
@@ -84,8 +84,9 @@ export class ProductsCollection extends UpdatableCollection<Partial<Product>> {
 
         if (fields) getParams += `&fields=items[${fields.join(',')}]`;
 
-        const products = await endpoint.get('/rest/V1/products?' + getParams) as {items: Partial<Product>[]};
-        return products.items;
+        const products = await endpoint.get('/rest/V1/products?' + getParams);
+        if (products.items) return products.items;
+        return [products];
     }
 
     // "product": {
