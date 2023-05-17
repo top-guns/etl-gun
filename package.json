@@ -26,7 +26,7 @@
     "build": "tsc",
     "test": "NODE_ENV=test jest",
     "pub:npm": "yarn publish",
-    "pub:coverage": "./node_modules/.bin/codecov --token=$CODECOV_TOKEN"
+    "pub:coverage": "eval $(grep '^CODECOV_TOKEN' .env) && ./node_modules/.bin/codecov --token=$CODECOV_TOKEN"
   },
   "repository": {
     "type": "git",
