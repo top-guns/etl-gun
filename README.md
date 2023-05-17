@@ -190,7 +190,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
   2. Create pipelines to process collection data (via **select** method of the source collections)
   3. Run piplines in order you want (with **run** operator)
 * This library contains embedded debug console. It created as console application and works in any terminals. It supports step-by-step debuging with watching the processed values. If you want to use this GUI - you simply need to create the instance of **GuiManager** class before any endpoints and collections creation (see [GUI](#gui))
-* Libraty written in typescript, contains end systems types information and full support of types checking. But you can use it in javascript applications too
+* Library written in typescript, contains end systems types information and full support of types checking. But you can use it in javascript applications too
 * Fully compatible with **RsJs** library, it's observables, operators etc.
 * Contains many kind of sources and destinations, for example many relational databases (Postgre, Mysql, ...), file formats (csv, json, xml), business applications (Magento, Trello, ZenDesk, ...), etc.
 * Work with any types of input/output data, including arrays any hierarchical data structures (json, xml)
