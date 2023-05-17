@@ -1,24 +1,24 @@
-# RxJs-ETL-Kit
+# ETL-Gun
 
-<img src="https://github.com/igor-berezhnoy/rxjs-etl-kit/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
+<img src="https://github.com/etl-gun/etl-gun/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
 
-RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
+ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
 
-[![npm package](https://nodei.co/npm/rxjs-etl-kit.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/rxjs-etl-kit/)
+[![npm package](https://nodei.co/npm/etl-gun.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/etl-gun/)
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/igor-berezhnoy/rxjs-etl-kit/actions?query=branch%3Amain+workflow%3A"Project%20CI")
-[![Coverage Status](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit/branch/main/graph/badge.svg)](https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
+[![Build Status](https://github.com/etl-gun/etl-gun/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/etl-gun/etl-gun/actions?query=branch%3Amain+workflow%3A"Project%20CI")
+[![Coverage Status](https://codecov.io/gh/etl-gun/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/etl-gun/etl-gun)
 
-[//]: # (https://img.shields.io/codecov/c/github/igor-berezhnoy/rxjs-etl-kit/.svg   https://codecov.io/gh/igor-berezhnoy/rxjs-etl-kit)
+[//]: # (https://img.shields.io/codecov/c/github/etl-gun/etl-gun/.svg   https://codecov.io/gh/etl-gun/etl-gun)
 
 
-[npm-image]: https://img.shields.io/npm/v/rxjs-etl-kit.svg
-[npm-url]: https://npmjs.org/package/rxjs-etl-kit
-[downloads-image]: https://img.shields.io/npm/dm/rxjs-etl-kit.svg
-[downloads-url]: https://npmjs.org/package/rxjs-etl-kit
+[npm-image]: https://img.shields.io/npm/v/etl-gun.svg
+[npm-url]: https://npmjs.org/package/etl-gun
+[downloads-image]: https://img.shields.io/npm/dm/etl-gun.svg
+[downloads-url]: https://npmjs.org/package/etl-gun
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -90,12 +90,12 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 
 # Why / when would I need this?
 
-**RxJs-ETL-Kit** is a simple **ETL glue** represented as an extention to the **RxJs** library. 
-Typically, you'd use **RxJs-ETL-Kit** to help with ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
+**ETL-Gun** is a simple **ETL glue** represented as an extention to the **RxJs** library. 
+Typically, you'd use **ETL-Gun** to help with ETL processes. It can extract data from the one or more sources, transform it and load to one or more destinations in nedded order.
 
 You can use javascript and typescript with it.
 
-**RxJs-ETL-Kit** will **NOT** help you with "big data" - it executes on the one computer and is not supports clustering from the box.
+**ETL-Gun** will **NOT** help you with "big data" - it executes on the one computer and is not supports clustering from the box.
 
 Here's some ways to use it:
 
@@ -105,32 +105,32 @@ Here's some ways to use it:
 4. Run some queries in database
 5. Create Telegram bots with [Telegram.Endpoint](#telegram)
 
-You can find many examples of using **RxJs-ETL-Kit** in the API Reference section of this file.
+You can find many examples of using **ETL-Gun** in the API Reference section of this file.
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Installation
 
 ```
-npm install rxjs-etl-kit
+npm install etl-gun
 ```
 or
 ```
-yarn add rxjs-etl-kit
+yarn add etl-gun
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Usage
 
-Import the RxJs-ETL-Kit library in the desired file to make it accessible.
+Import the ETL-Gun library in the desired file to make it accessible.
 
 **Warning:** Since the version 2.0.4 this library is native [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and no longer provides a CommonJS export. If your project uses CommonJS, you will have to [convert to ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) or use the [dynamic `import()`](https://v8.dev/features/dynamic-import) function.
 
 Introductory example of library using: postgresql -> .csv
 ```typescript
 import { map } from "rxjs";
-import { Csv, GuiManager, Header, Postgres, log, push, run } from "rxjs-etl-kit";
+import { Csv, GuiManager, Header, Postgres, log, push, run } from "etl-gun";
 
 // If you want to view GUI, uncomment the next line of code
 // new GuiManager();
@@ -159,7 +159,7 @@ await run(sourceToDest$);
 
 # Concept
 
-**RxJs-ETL-Kit** contains several main concepts: 
+**ETL-Gun** contains several main concepts: 
 * Endpoints - sources and destinations of data, which holds connection to the one system instance and other parameters of this system, and groups methods to get collections related this system
 * Collections - data object types exists in the endpoint system
 * Piplines (or streams) - routs of data transformation and delivery, based on **RxJs** streams
@@ -173,7 +173,7 @@ Using of this library consists of 3 steps:
 ETL process:
 
 * **Extract**: Data extraction from the source collection performs with **select()** method, which returns the **RxJs** stream
-* **Transform**: Use any **RxJs** and **RxJs-ETL-Kit** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **Memory.Endpoint** class, which can store data and which collections have **forEach()** and some other methods to manipulate with data in it
+* **Transform**: Use any **RxJs** and **ETL-Gun** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **Memory.Endpoint** class, which can store data and which collections have **forEach()** and some other methods to manipulate with data in it
 * **Load**: Loading of data to the destination endpoint performs with **push()** collection operator
 
 Chaining:
@@ -208,7 +208,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 
 # GUI
 
-<img src="https://github.com/igor-berezhnoy/rxjs-etl-kit/raw/main/static/GUI.jpg" alt="GUI" title="GUI" style="max-width: 100%">
+<img src="https://github.com/etl-gun/etl-gun/raw/main/static/GUI.jpg" alt="GUI" title="GUI" style="max-width: 100%">
 
 * Simple way to use, you need only create instance of **GuiManager** class before any endpoint creation (at the begin of the program)
 * You can pause the ETL-process and resume it with 'space' on keyboard
@@ -225,7 +225,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 ### Export rows from Postgres table to csv-file (postgresql -> .csv)
 
 ```typescript
-import { Postgres, Csv, Header, log, push, run } from "rxjs-etl-kit";
+import { Postgres, Csv, Header, log, push, run } from "etl-gun";
 import { map } from "rxjs";
 
 const postgres = new Postgres.Endpoint("postgres://user:password@127.0.0.1:5432/database");
@@ -248,7 +248,7 @@ await run(sourceToDest$);
  ### Sort rows in csv-file by the first column (.csv -> .csv)
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const csvEndpoint = new etl.Csv.Endpoint();
 const csv = csvEndpoint.getFile('users.scv');
@@ -273,7 +273,7 @@ await etl.run(bufferToCsv$)
  ### Create telegram bot with translation functionality
 
  ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', process.env.TELEGRAM_BOT_TOKEN!);
@@ -442,7 +442,7 @@ forEach(callbackfn: (value: T, index: number, array: T[]) => void);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const csvEndpoint = new etl.Csv.Endpoint();
 const csv = csvEndpoint.getFile('users.scv');
@@ -565,7 +565,7 @@ type PathDetails = {
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rxjs from "rxjs";
 
 const fs = new etl.Filesystem.Endpoint('~');
@@ -635,7 +635,7 @@ async delete(remotePath: string);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rxjs from "rxjs";
 
 const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER, password: process.env.FTP_PASSWORD});
@@ -689,7 +689,7 @@ async delete();
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const csv = new etl.Csv.Endpoint('~');
 const testFile = csv.getFile('test.csv')
@@ -776,7 +776,7 @@ type JsonReadOptions = {
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import { tap } from "rxjs";
 
 const json = new etl.Json.Endpoint('~');
@@ -866,7 +866,7 @@ export type XmlReadOptions = {
 Example
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import { map } from "rxjs";
 
 const xml = new etl.Xml.Endpoint('/tmp');
@@ -996,7 +996,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.CockroachDb.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
@@ -1029,7 +1029,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig, driver?: 'mys
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.MariaDb.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
@@ -1062,7 +1062,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.SqlServer.Endpoint('mssql://user:password@127.0.0.1:1433/database');
 const table = pg.getTable('users');
@@ -1095,7 +1095,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig, driver?: 'mys
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.MySql.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
@@ -1128,7 +1128,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.OracleDb.Endpoint({
     host: config.oracle.host,
@@ -1166,7 +1166,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
@@ -1199,7 +1199,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.Redshift.Endpoint('postgres://user:password@127.0.0.1:5439/database');
 const table = pg.getTable('users');
@@ -1232,7 +1232,7 @@ constructor(connectionConfig: ConnectionConfig, pool?: PoolConfig);
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.databases.SqlLite.Endpoint(connection: {
     filename: "./mydb.sqlite"
@@ -1305,7 +1305,7 @@ static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, field
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const magento = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
 const products = magento.getProducts();
@@ -1530,7 +1530,7 @@ Example:
 
 ```typescript
 import * as rx from 'rxjs';
-import * as etl from 'rxjs-etl-kit';
+import * as etl from 'etl-gun';
 
 const trello = new etl.Trello.Endpoint(process.env.TRELLO_API_KEY!, process.env.TRELLO_AUTH_TOKEN!);
 
@@ -1645,7 +1645,7 @@ Example:
 
 ```typescript
 import * as rx from 'rxjs';
-import * as etl from 'rxjs-etl-kit';
+import * as etl from 'etl-gun';
 
 const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, process.env.ZENDESK_TOKEN!);
 const tickets = zendesk.getTickets();
@@ -1711,7 +1711,7 @@ setKeyboard(keyboard: any)
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', '**********');
@@ -1768,7 +1768,7 @@ async delete();
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const timer = new etl.Interval.Endpoint();
 const seq = new etl.getSequence('every 500 ms', 500);
@@ -1791,7 +1791,7 @@ Apart from operators from this library, you can use any operators of **RxJs** li
 This function runs one or several streams and return promise to waiting when all streams are complites.
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let memory = new etl.Memory.Endpoint();
 let buffer = memory.getBuffer('test buffer', [1, 2, 3, 4, 5]);
@@ -1812,7 +1812,7 @@ Prints the value from the stream to the console.
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
@@ -1827,7 +1827,7 @@ etl.run(stream$);
 This function checks condition end if false - throws an error to the error collection.
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let memory = new etl.Memory.Endpoint();
 let buffer = memory.getBuffer('test buffer', [{count: 1}, {count: 2}]);
@@ -1859,7 +1859,7 @@ This operator is analog of **where** operation in SQL and is synonym of the **fi
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rx from "rxjs";
 
 let stream$ = rx.interval(1000).pipe(
@@ -1897,7 +1897,7 @@ function pushAndGet<S, T, R>(collection: BaseCollection<T>, options?: PushOption
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rx from "rxjs";
 
 let csv = new etl.Csv.Endpoint();
@@ -1947,7 +1947,7 @@ function rools<T, R = T>(rools: Rools): rx.OperatorFunction<T, R>;
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 import * as rx from "rxjs";
 import { Rools, Rule } from 'rools';
 
@@ -1997,7 +1997,7 @@ This operator moves to specified property the whole stream value or it's propert
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
@@ -2022,7 +2022,7 @@ This operator copy the specified property of the stream value to the another pro
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
@@ -2047,7 +2047,7 @@ This operator enumerate input values and add index field to value if it is objec
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
@@ -2069,7 +2069,7 @@ This operator applicable to the stream of objects. It calculate callback functio
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 const pg = new etl.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
@@ -2091,7 +2091,7 @@ This operator applicable to the stream of arrays. It calculate callback function
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
@@ -2113,7 +2113,7 @@ This operator is analog of join operation in SQL. It takes the second input stre
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
@@ -2138,7 +2138,7 @@ This operator is analog of rxjs map operator for async callback function. It cal
 Example:
 
 ```typescript
-import * as etl from "rxjs-etl-kit";
+import * as etl from "etl-gun";
 
 let mem = new etl.Memory.Endpoint();
 let buffer = mem.getBuffer('urls', ['1.json', '2.json', '3.json']);
@@ -2162,7 +2162,7 @@ etl.run(stream$);
 This class help you to use Google translate service.
 
 ```typescript
-import { Csv, GoogleTranslateHelper, log, run } from "rxjs-etl-kit";
+import { Csv, GoogleTranslateHelper, log, run } from "etl-gun";
 
 let csv = new Csv.Endpoint();
 let src = csv.getFile('products.csv');
@@ -2238,7 +2238,7 @@ Methods:
 Example:
 
 ```typescript
-import { Csv, HttpClientHelper, run } from "rxjs-etl-kit";
+import { Csv, HttpClientHelper, run } from "etl-gun";
 import { map } from "rxjs";
 
 let csv = new Csv.Endpoint();
@@ -2257,7 +2257,7 @@ await run(sendProductsToSite$);
 This class can store array of column names and convert object to array or array to object representation.
 
 ```typescript
-import { Postgres, Csv, Header, log, push, run } from "rxjs-etl-kit";
+import { Postgres, Csv, Header, log, push, run } from "etl-gun";
 import { map } from "rxjs";
 
 const pg = new Postgres.Endpoint("postgres://user:password@127.0.0.1:5432/database");
