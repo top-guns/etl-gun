@@ -4,7 +4,8 @@ import https from 'node:https';
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { CollectionOptions } from '../../core/readonly_collection.js';
 import { pathJoin } from '../../utils/index.js';
-import { Product, ProductsCollection } from './products.js';
+import { Category, CategoryCollection } from './categories.js';
+import { Product, ProductCollection } from './products.js';
 import { StockItem, StockCollection } from './stock.js';
 
 
@@ -106,15 +107,26 @@ export class Endpoint extends BaseEndpoint {
         return (await (await fetch(this.getUrl(relativeUrl), init)).json()) as T;
     }
 
-    getProducts(options: CollectionOptions<Partial<Product>> = {}): ProductsCollection {
+    getProducts(options: CollectionOptions<Partial<Product>> = {}): ProductCollection {
         options.displayName ??= `products`;
-        const collection = new ProductsCollection(this, COLLECTIONS_NAMES.products, options);
+        const collection = new ProductCollection(this, COLLECTIONS_NAMES.products, options);
         this._addCollection(COLLECTIONS_NAMES.products, collection);
         return collection;
     }
 
     releaseProducts() {
         this._removeCollection(COLLECTIONS_NAMES.products);
+    }
+
+    getCategories(options: CollectionOptions<Partial<Category>> = {}): CategoryCollection {
+        options.displayName ??= `categories`;
+        const collection = new CategoryCollection(this, COLLECTIONS_NAMES.categories, options);
+        this._addCollection(COLLECTIONS_NAMES.categories, collection);
+        return collection;
+    }
+
+    releaseCategories() {
+        this._removeCollection(COLLECTIONS_NAMES.categories);
     }
 
     getStockItems(options: CollectionOptions<StockItem> = {}): StockCollection {

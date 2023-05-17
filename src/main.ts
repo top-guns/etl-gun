@@ -485,10 +485,15 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 // )
 // await etl.run(PrintFolder$);
 
-const mem = etl.Memory.getEndpoint();
-const buf = mem.getBuffer<number>('bufer1', [1, 2, 3]);
-await buf.delete();
-console.log(buf.buffer)
+const magentoStage = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
+const magentoStageCategories = magentoStage.getCategories();
+
+const PrintStageCategories$ = magentoStageCategories.select().pipe(
+    rx.take(10),
+    etl.log(),
+)
+
+await etl.run(PrintStageCategories$);
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();

@@ -2,7 +2,7 @@ import { BaseObservable } from '../../core/observable.js';
 import { CollectionOptions } from '../../core/readonly_collection.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { Endpoint } from './endpoint.js';
-import { Product, ProductsCollection } from "./products.js";
+import { Product, ProductCollection } from "./products.js";
 
 export type StockItem = {
     "item_id": number;
@@ -50,7 +50,7 @@ export class StockCollection extends UpdatableCollection<StockItem> {
                 try {
                     if (param && typeof param !== 'string') param = {sku: param};
                     
-                    const products = await ProductsCollection.getProducts(this.endpoint, param, ['sku']);
+                    const products = await ProductCollection.getProducts(this.endpoint, param, ['sku']);
 
                     this.sendStartEvent();
                     for (const p of products) {
