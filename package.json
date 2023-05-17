@@ -41,8 +41,6 @@
     "etl",
     "stream",
     "typescript",
-    "node",
-    "nodejs",
     "node.js",
     "google translate",
     "magento",
@@ -65,10 +63,8 @@
     "sqllite",
     "queue",
     "extract",
-    "validate",
-    "transform",
     "load",
-    "lib"
+    "business rules"
   ],
   "author": "Berezhnoy I.A.",
   "license": "MIT",

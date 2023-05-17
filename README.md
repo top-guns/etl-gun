@@ -185,16 +185,24 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 
 # Features
 
-* Simple way to use, consists of 3 steps: 1) Endpoints creation and collections getting 2) Piplines creation 3) Run piplines in order you want (and if you want to use GUI - then the zerro step is creating instance of **GuiManager** class)
-* This library can be used to build simple console application or application with console GUI, which support many usefull functions to debug process (see [GUI](#gui))
-* It written in typescript and you can use it in javascript and typescript applications
+* Simple way to use! Consists of only 3 steps: 
+  1. Create endpoints and get all collections which you need 
+  2. Create pipelines to process collection data (via **select** method of the source collections)
+  3. Run piplines in order you want (with **run** operator)
+* This library contains embedded debug console. It created as console application and works in any terminals. It supports step-by-step debuging with watching the processed values. If you want to use this GUI - you simply need to create the instance of **GuiManager** class before any endpoints and collections creation (see [GUI](#gui))
+* Libraty written in typescript, contains end systems types information and full support of types checking. But you can use it in javascript applications too
 * Fully compatible with **RsJs** library, it's observables, operators etc.
-* Create pipelines of data extraction, transformation and loading, and run this pipelines in nedded order
-* Many kind of source and destination endpoints, for example PostgreSql, csv, json, xml
-* Work with any type of data, including hierarchical data structures (json, xml) and support typescript types
+* Contains many kind of sources and destinations, for example many relational databases (Postgre, Mysql, ...), file formats (csv, json, xml), business applications (Magento, Trello, ZenDesk, ...), etc.
+* Work with any types of input/output data, including arrays any hierarchical data structures (json, xml)
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
-* You can create Telegram bots with [Telegram.Endpoint](#telegram) to control the ETL process for example
-* You can translate some data to another language with [GoogleTranslateHelper](#googletranslatehelper)
+* Supports validation and error handling mechanism: 
+  1. Data validation with [expect](#expect) operator
+  2. Special endpoint type for errors, which base on queue
+  3. Any collections contains property **errors** with endpoint which collect all errors, occurred while collection processing. This endpoint automatic creates when the collection creates, but you can change it's value to collect errors in place of you chois
+  4. Any collections contains method **selectErrors** to create processing pipeline for the collection errors
+  5. Console GUI display all error collections, statistic for it and it's errors
+* Contains some ready to use helpers and integrations, for example you can translate some data to another language with [GoogleTranslateHelper](#googletranslatehelper)
+* Contains business rules integration and allows to extract analisys and transformation logic from the etl program sources, and then change it in runtime without application changing and redeployment (see [rools](#rools))
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
