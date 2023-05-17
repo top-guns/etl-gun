@@ -6,8 +6,9 @@ It is not contains any usefull code, is not a part of library and is not an exam
 import * as rx from "rxjs";
 import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
+import { Rools, Rule } from 'rools';
 import * as etl from './lib/index.js';
-import { GuiManager, Magento } from "./lib/index.js";
+import { EtlRoolsResult, GuiManager, Magento } from "./lib/index.js";
 import { CsvCellType } from "./lib/endpoints/csv.js";
 import { sqlvalue } from "./lib/endpoints/databases/condition.js";
 //import { DiscordHelper } from "./lib/index.js";
@@ -197,8 +198,6 @@ const csvPuma = csv.getFile("puma.csv", headerPuma, ';');
 const memory = etl.Memory.getEndpoint();
 const queue = memory.getQueue<DbProduct>('queue');
 
-//const mysql = etl.Mysql.getEndpoint('mysql://test:test@localhost:7306/test');
-//const table = mysql.getTable<DbProduct>('test1');
 
 const errorsEndpoint = etl.Errors.getEndpoint();
 const errors = errorsEndpoint.getCollection('all');
@@ -485,11 +484,35 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 // )
 // await etl.run(PrintFolder$);
 
-const magentoStage = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
-const magentoStageCategories = magentoStage.getCategories();
+const ruleSkipCheapProducts = new Rule({
+    name: 'skip products with price <= 1000',
+    when: (product: DbProduct) => product.price! <= 1000,
+    then: (product: DbProduct & EtlRoolsResult) => {
+        product.etl = {skip: true};
+    },
+});
 
-const PrintStageCategories$ = magentoStageCategories.select().pipe(
+const ruleSetProductTaxClass = new Rule({
+    name: 'update product tax class',
+    when: (product: DbProduct) => product.price! > 1000,
+    then: (product: DbProduct & EtlRoolsResult) => {
+        product.tax_class_id = '10';
+    },
+});
+
+const rools = new Rools();
+await rools.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);
+
+//const magento = new Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
+//const magento = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
+//const magentoStageProducts = magento.getProducts();
+
+const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
+const table = db.getTable<DbProduct>('test1');
+
+const PrintStageCategories$ = table.select().pipe(
     rx.take(10),
+    etl.rools(rools),
     etl.log(),
 )
 

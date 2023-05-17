@@ -87,6 +87,7 @@
     "node-telegram-bot-api": "^0.61.0",
     "open": "^9.1.0",
     "parse-database-url": "^0.3.0",
+    "rools": "^2.3.0",
     "rxjs": "^7.8.1",
     "signal-promise": "^1.0.3",
     "xmldom-ts": "^0.3.1",

@@ -71,6 +71,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
         * [expect](#expect)
         * [where](#where)
         * [push](#push)
+        * [rools](#rools)
         * [move](#move)
         * [copy](#copy)
         * [numerate](#numerate)
@@ -1899,6 +1900,84 @@ let stream$ = rx.interval(1000).pipe(
 );
 
 etl.run(stream$);
+```
+
+### rools
+
+<a name="push" href="#push">#</a> etl.<b>rools</b>([<i>options</i>])
+
+This operator integrates etl engine with [Rools](https://www.npmjs.com/package/rools) business rules engine. It calls the specified rule set and put the current stream data value to it as a fact, and then uses the result of rules execution as a new stream value.
+
+It allows separate business logic of data analysis and transformation from other etl code. You can load rules from any source at runtime and allow to modify it by the end users. 
+
+In rules you can:
+* Analyse and change any stream value properties
+* Call any async methods from 'then' section (the 'when' section is sync, it is a rule engine specific, but 'then' is fully async compatible)
+* Add 'etl' property to value with some control flow instructions for etl engine:
+  * value.etl.skip - set to true to skip futher processing of this value
+  * value.etl.stop - set to true to stop processing of all remaining collection values
+  * value.etl.error - set to error message if any error was founded (it raise the exception and stop futher processing)
+* Specify priority of rules
+* Use rules inheritance
+
+You can write you rules in any order, it does not metter to rules engine. See [rools documentation](https://www.npmjs.com/package/rools) for details.
+
+Specification:
+
+```typescript
+type EtlRoolsResult = {
+    etl?: {
+        skip?: boolean;
+        stop?: boolean;
+        error?: string;
+    }
+}
+
+function rools<T, R = T>(rools: Rools): rx.OperatorFunction<T, R>;
+```
+
+Example:
+
+```typescript
+import * as etl from "rxjs-etl-kit";
+import * as rx from "rxjs";
+import { Rools, Rule } from 'rools';
+
+type DbProduct = {
+    id: number, 
+    name: string, 
+    price: number, 
+    tax_class_id?: number
+}
+
+const ruleSkipCheapProducts = new Rule({
+    name: 'skip products with price <= 1000',
+    when: (product: DbProduct) => product.price! <= 1000,
+    then: (product: DbProduct & EtlRoolsResult) => {
+        product.etl = {skip: true};
+    },
+});
+
+const ruleSetProductTaxClass = new Rule({
+    name: 'update product tax class',
+    when: (product: DbProduct) => product.price! > 1000,
+    then: (product: DbProduct & EtlRoolsResult) => {
+        product.tax_class_id = 10;
+    },
+});
+
+const rules = new Rools();
+await rules.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);
+
+const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
+const table = db.getTable<DbProduct>('products');
+
+const PrintRichProducts$ = table.select().pipe(
+    etl.rools(rules),
+    etl.log()
+)
+
+await etl.run(PrintRichProducts$);
 ```
 
 ### move
