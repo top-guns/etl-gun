@@ -1,7 +1,7 @@
 {
-  "name": "rxjs-etl-kit",
-  "version": "2.0.46",
-  "description": "ETL extension for RxJs library",
+  "name": "etl-gun",
+  "version": "2.1.0",
+  "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "type": "module",
   "--main": "dist/index.js",
   "exports": {
@@ -30,12 +30,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/igor-berezhnoy/rxjs-etl-kit.git"
+    "url": "git+https://github.com/etl-gun/etl-gun.git"
   },
   "bugs": {
-    "url": "https://github.com/igor-berezhnoy/rxjs-etl-kit/issues"
+    "url": "https://github.com/etl-gun/etl-gun/issues"
   },
-  "homepage": "https://github.com/igor-berezhnoy/rxjs-etl-kit#readme",
+  "homepage": "https://github.com/etl-gun/etl-gun#readme",
   "keywords": [
     "rxjs",
     "etl",

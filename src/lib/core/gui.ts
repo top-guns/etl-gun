@@ -73,7 +73,7 @@ export class GuiManager {
 
     protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
-            title: title || 'RxJs-ETL-Kit',
+            title: title || 'ETL-Gun',
             enableMouse: false,
             overrideConsole: true,
             logPageSize,            // Number of lines to show in logs page
