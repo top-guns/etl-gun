@@ -1,4 +1,4 @@
-<h1>ETL-Gun <div style="float: right; width: calc(100% - 130px);"><img src="./static/gun-02.png" height="40px"/></h1>
+<h1>ETL-Gun <div style="float: right; width: calc(100% - 130px);"><img src="./static/gun-02.png" height="40px"/></div></h1>
 
 <img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
 
