@@ -22,7 +22,7 @@ RxJs-ETL-Kit is a platform that employs RxJs observables, allowing developers to
 
 ## Project has been moved!
 
-The project has moved to [ETL-Gun](https://github.com/etl-gun/etl-gun).
+The project has moved to [ETL-Gun](https://github.com/top-guns/etl-gun).
 The name RxJs-ETL-Kit is no longer support. 
-Please, see [ETL-Gun](https://github.com/etl-gun/etl-gun) instead.
+Please, see [ETL-Gun](https://github.com/top-guns/etl-gun) instead.
 
