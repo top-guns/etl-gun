@@ -1,8 +1,8 @@
-# ETL-Gun
+# ETL-Gun <div style="float: right; width: calc(100% - 130px);"><img src="./static/gun-02.png" height="40px"/></div> 
 
-<img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
+<img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
 
-ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
+ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering, error handling and many useful features.
 
 [![npm package](https://nodei.co/npm/etl-gun.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/etl-gun/)
 
@@ -13,7 +13,6 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
 [![Coverage Status](https://codecov.io/gh/top-guns/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/top-guns/etl-gun)
 
 [//]: # (https://img.shields.io/codecov/c/github/top-guns/etl-gun/.svg   https://codecov.io/gh/top-guns/etl-gun)
-
 
 [npm-image]: https://img.shields.io/npm/v/etl-gun.svg
 [npm-url]: https://npmjs.org/package/etl-gun
