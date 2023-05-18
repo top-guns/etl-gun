@@ -1,6 +1,6 @@
 # ETL-Gun
 
-<img src="https://github.com/etl-gun/etl-gun/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
+<img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Logo" title="Logo" style="max-width: 100%;">
 
 ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering and bulk-insertions.
 
@@ -9,10 +9,10 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/etl-gun/etl-gun/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/etl-gun/etl-gun/actions?query=branch%3Amain+workflow%3A"Project%20CI")
-[![Coverage Status](https://codecov.io/gh/etl-gun/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/etl-gun/etl-gun)
+[![Build Status](https://github.com/top-guns/etl-gun/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/top-guns/etl-gun/actions?query=branch%3Amain+workflow%3A"Project%20CI")
+[![Coverage Status](https://codecov.io/gh/top-guns/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/top-guns/etl-gun)
 
-[//]: # (https://img.shields.io/codecov/c/github/etl-gun/etl-gun/.svg   https://codecov.io/gh/etl-gun/etl-gun)
+[//]: # (https://img.shields.io/codecov/c/github/top-guns/etl-gun/.svg   https://codecov.io/gh/top-guns/etl-gun)
 
 
 [npm-image]: https://img.shields.io/npm/v/etl-gun.svg
@@ -208,7 +208,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 
 # GUI
 
-<img src="https://github.com/etl-gun/etl-gun/raw/main/static/GUI.jpg" alt="GUI" title="GUI" style="max-width: 100%">
+<img src="https://github.com/top-guns/etl-gun/raw/main/static/GUI.jpg" alt="GUI" title="GUI" style="max-width: 100%">
 
 * Simple way to use, you need only create instance of **GuiManager** class before any endpoint creation (at the begin of the program)
 * You can pause the ETL-process and resume it with 'space' on keyboard

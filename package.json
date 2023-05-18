@@ -30,12 +30,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/etl-gun/etl-gun.git"
+    "url": "git+https://github.com/top-guns/etl-gun.git"
   },
   "bugs": {
-    "url": "https://github.com/etl-gun/etl-gun/issues"
+    "url": "https://github.com/top-guns/etl-gun/issues"
   },
-  "homepage": "https://github.com/etl-gun/etl-gun#readme",
+  "homepage": "https://github.com/top-guns/etl-gun#readme",
   "keywords": [
     "rxjs",
     "etl",
