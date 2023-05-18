@@ -1,6 +1,6 @@
 <h1>
     ETL-Gun
-    <img src="./static/gun-02.png" height="40px" style="margin-left: 20px; vertical-align: middle"/>
+    <img src="./static/gun-02.png" height="40px" style="margin-left: 10px; vertical-align: middle"/>
 </h1>
 
 <img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
