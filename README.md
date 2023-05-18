@@ -34,14 +34,14 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
     * [Create telegram bot with 'echo' functionality](#create-telegram-bot-with-echo-functionality)
 * [API Reference](#api-reference)
     * [Core classes](#core)
-        * [BaseCollection](#basecollection) (base class for all collections)
-        * [Errors](#errors) (queues to store and process errors which occurred in other endpoints)
+        * [BaseCollection](#basecollection) - base class for all collections
+        * [Errors](#errors) - queues to store and process errors which occurred in other endpoints
     * [Endpoints](#endpoints-and-its-collections)
-        * [Auxiliary]() (service endpoints)
-            * [Memory](#memory)
+        * [Auxiliary]()
+            * [Memory](#memory) - contains Buffer and Queue collections to operate data in memory
             * [Interval](#interval)
         * [Filesystems]()
-            * [Local Filesystem](#local-filesystem)
+            * [Local filesystem](#local-filesystem)
             * [FTP, FTPS](#ftp)
         * [File formates]()
             * [Csv](#csv)
@@ -52,7 +52,7 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
             * [CockroachDB](#cockroachdb)
             * [MariaDb](#mariadb)
             * [MS SQL Server](#ms-sql-server)
-            * [MySQL](#mysql)
+            * [MySQL](#mysql) - mysql and mysql2 drivers both are supported
             * [Oracle DB](#oracle-db)
             * [PostgreSQL](#postgres)
             * [Amazone Redshift](#amazone-redshift)
@@ -67,17 +67,17 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
-        * [expect](#expect)
-        * [where](#where)
+        * [expect](#expect) - as expect() in unit test engines, used for data validation
+        * [where](#where) - similar to rxjs filter() operator, but more useful to data processing
         * [push](#push)
-        * [rools](#rools)
+        * [rools](#rools) - integration with business rules engine
         * [move](#move)
         * [copy](#copy)
         * [numerate](#numerate)
         * [addField](#addfield)
         * [addColumn](#addcolumn)
         * [join](#join)
-        * [mapAsync](#mapasync)
+        * [mapAsync](#mapasync) - as rxjs map() operator, but work with async callback handler
     * [Misc](#misc)
         * [GoogleTranslateHelper](#googletranslatehelper)
         * [HttpClientHelper](#httpclienthelper)
