@@ -1,5 +1,5 @@
 <h1 style="display: flex">
-    <div>ETL-Gun</div>
+    ETL-Gun
     <img src="./static/gun-02.png" height="40px" style="margin-left: 20px"/>
 </h1>
 
