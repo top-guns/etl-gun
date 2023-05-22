@@ -86,6 +86,8 @@
     "rools": "^2.3.0",
     "rxjs": "^7.8.1",
     "signal-promise": "^1.0.3",
+    "ssh2-sftp-client": "^9.1.0",
+    "stream-buffers": "^3.0.2",
     "xmldom-ts": "^0.3.1",
     "xpath": "^0.0.32"
   },
@@ -94,6 +96,8 @@
     "@types/jest": "^29.5.1",
     "@types/node": "^20.1.4",
     "@types/node-telegram-bot-api": "^0.61.6",
+    "@types/ssh2-sftp-client": "^9.0.0",
+    "@types/stream-buffers": "^3.0.4",
     "codecov": "^3.8.3",
     "jest": "^29.5.0",
     "mysql": "^2.18.1",

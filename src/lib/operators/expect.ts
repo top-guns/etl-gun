@@ -1,6 +1,6 @@
 import { Observable, OperatorFunction } from "rxjs";
 import { BaseObservable } from "../core/observable.js";
-import { ReadonlyCollection } from "../core/readonly_collection.js";
+import { BaseCollection } from "../core/readonly_collection.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
 import { EtlError, EtlErrorData } from "../endpoints/errors.js";
 import { Condition, findDifference } from "../index.js";
@@ -20,7 +20,7 @@ export function expect<T>(name: string, condition: Condition<T>, errorsCollectio
 
     return (function doObserve(observable: Observable<T>): Observable<T> {
         const pipeObservable: BaseObservable<T> = this;
-        const collection = pipeObservable && (pipeObservable.collection as ReadonlyCollection<T>);
+        const collection = pipeObservable && (pipeObservable.collection as BaseCollection<T>);
 
         return new Observable<T>((subscriber) => {
             // this function will be called each time this Observable is subscribed to.

@@ -1,26 +1,57 @@
-import { CollectionEvent, ReadonlyCollection } from "./readonly_collection.js";
+import { BaseEndpoint } from "./endpoint.js";
+import { BaseCollectionEvent, BaseCollection, CollectionOptions, CollectionEventListener } from "./readonly_collection.js";
 
 
-export class UpdatableCollection<T> extends ReadonlyCollection<T> {
-    public async insert(value: T | any, ...params: any[]): Promise<any> {
-        super.sendEvent("insert", { value });
+export type UpdatableCollectionEvent = BaseCollectionEvent |
+    "insert" |
+    "update" |
+    "upsert" |
+    "delete";
+
+export abstract class UpdatableCollection<T> extends BaseCollection<T> {
+    protected get listeners(): Record<UpdatableCollectionEvent, CollectionEventListener[]> {
+        return this._listeners as Record<UpdatableCollectionEvent, CollectionEventListener[]>;
     }
 
-    public async update(value: T, where: any, ...params: any[]): Promise<any> {
-        super.sendEvent("update", { value, where });
+    constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
+        super(endpoint, collectionName, options);
+
+        this.listeners.insert = [];
+        this.listeners.update = [];
+        this.listeners.upsert = [];
+        this.listeners.delete = [];
     }
 
-    public async upsert(value: T, where?: any, ...params: any[]): Promise<any> {
-        super.sendEvent("upsert", { value });
+    public abstract insert(value: T | any, ...params: any[]): Promise<any>;
+    public abstract update(value: T | any, where: any, ...params: any[]): Promise<any>;
+    public abstract upsert(value: T | any, where?: any, ...params: any[]): Promise<boolean>;
+    public abstract delete(where?: any, ...params: any[]): Promise<boolean>;
+
+    public on(event: UpdatableCollectionEvent, listener: EventListener): UpdatableCollection<T> {
+        if (!this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event].push(listener); 
+        return this;
     }
 
-    public async delete(where?: any): Promise<any> {
-        super.sendEvent("delete", { where });
+    protected sendEvent(event: UpdatableCollectionEvent, ...data: any[]) {
+        if (!this.listeners[event]) this.listeners[event] = [];
+        this.listeners[event].forEach(listener => listener(...data));
     }
 
-    public on(event: CollectionEvent, listener: EventListener): UpdatableCollection<T> {
-        return super.on(event, listener) as UpdatableCollection<T>;
+    protected sendInsertEvent(value: T | any, ...params: any[]) {
+        this.sendEvent("insert", { value, params });
     }
 
+    protected sendUpdateEvent(value: T | any, where: any, ...params: any[]) {
+        this.sendEvent("update", { value, where, params });
+    }
+
+    protected sendUpsertEvent(value: T | any, where?: any, ...params: any[]) {
+        this.sendEvent("upsert", { value, where, params });
+    }
+
+    protected sendDeleteEvent(where?: any, ...params: any[]) {
+        this.sendEvent("delete", { where, params });
+    }
 }
   

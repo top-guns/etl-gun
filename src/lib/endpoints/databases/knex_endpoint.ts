@@ -6,7 +6,7 @@ import { BaseEndpoint} from "../../core/endpoint.js";
 import { BaseObservable } from '../../core/observable.js';
 import { conditionToSql, SqlCondition } from './condition.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
-import { CollectionOptions, ReadonlyCollection } from '../../core/readonly_collection.js';
+import { CollectionOptions, BaseCollection } from '../../core/readonly_collection.js';
 
 
 type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
@@ -214,7 +214,7 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
 }
 
 
-export class KnexQueryCollection<T = Record<string, any>> extends ReadonlyCollection<T> {
+export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection<T> {
     protected static instanceNo = 0;
 
     protected selectQuerySql: string;

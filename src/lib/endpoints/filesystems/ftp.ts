@@ -1,11 +1,14 @@
 import * as ftp from "basic-ftp";
 import { AccessOptions, Client, FileInfo } from "basic-ftp";
 import { Readable } from "stream";
+import { WritableStreamBuffer } from 'stream-buffers';
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { extractParentFolderPath } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
 import { CollectionOptions } from "../../core/readonly_collection.js";
-import { UpdatableCollection } from "../../core/updatable_collection.js";
+import { RemoteFilesystemCollection } from "./remote_filesystem_collection.js";
+import { AlreadyExistsAction } from "./filesystem_collection.js";
+import { join } from "path";
 
 
 export class Endpoint extends BaseEndpoint {
@@ -31,11 +34,9 @@ export class Endpoint extends BaseEndpoint {
         this.options = options;
     }
 
-    getFolder(folderPath: string = '.', options: CollectionOptions<FileInfo> = {}): Collection {
+    getFolder(folderPath: string = '', options: CollectionOptions<FileInfo> = {}): Collection {
         options.displayName ??= folderPath;
-
-        let path = folderPath == '.' ? '' : folderPath;
-        return this._addCollection(folderPath, new Collection(this, folderPath, path, options));
+        return this._addCollection(folderPath, new Collection(this, folderPath, folderPath, options));
     }
 
     releaseFolder(folderPath: string) {
@@ -53,26 +54,26 @@ export function getEndpoint(options: AccessOptions, verbose: boolean = false): E
 }
 
 
-export class Collection extends UpdatableCollection<FileInfo> {
+export class Collection extends RemoteFilesystemCollection<FileInfo> {
     protected static instanceCount = 0;
 
-    protected folderPath: string;
+    protected rootPath: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, folderPath: string, options: CollectionOptions<FileInfo> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, rootPath: string = '', options: CollectionOptions<FileInfo> = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
-        this.folderPath = folderPath.trim();
-        if (this.folderPath.endsWith('/')) this.folderPath.substring(0, this.folderPath.lastIndexOf('/'));
+        this.rootPath = rootPath.trim();
+        if (this.rootPath.endsWith('/')) this.rootPath.substring(0, this.rootPath.lastIndexOf('/'));
     }
 
-    public select(): BaseObservable<FileInfo> {
+    public select(folderPath: string = ''): BaseObservable<FileInfo> {
         const observable = new BaseObservable<any>(this, (subscriber) => {
             this.sendStartEvent();
             try {
                 (async () => {
                     try {
                         const connection = await this.endpoint.getConnection();
-                        const list: FileInfo[] = await connection.list(this.folderPath);
+                        const list: FileInfo[] = await connection.list(this.getFullPath(folderPath));
                         
                         for (let fileInfo of list) {
                             if (subscriber.closed) break;
@@ -100,75 +101,196 @@ export class Collection extends UpdatableCollection<FileInfo> {
         return observable;
     }
 
+    // Get
 
-    public async insertFolder(remoteFolderPath: string) {
-        await super.insert(remoteFolderPath);
+    public async get(remotePath: string): Promise<undefined | string | FileInfo[]> {
         const connection = await this.endpoint.getConnection();
-        await connection.ensureDir(remoteFolderPath);
+        const path = this.getFullPath(remotePath);
+
+        if (!await this.isExists(remotePath)) {
+            this.sendGetEvent(remotePath, undefined);
+            return undefined;
+        }
+
+        if (await this.isFolder(remotePath)) {
+            const res = await connection.list(path);
+            this.sendGetEvent(remotePath, res);
+            return res;
+        }
+
+        const writableStreamBuffer = new WritableStreamBuffer();
+        await connection.downloadTo(writableStreamBuffer, path);
+        const res: string = writableStreamBuffer.getContentsAsString() as string;
+
+        this.sendGetEvent(remotePath, res);
+        return res;
     }
 
-    public async insertFile(remoteFilePath: string, localFilePath: string);
-    public async insertFile(remoteFilePath: string, sourceStream: Readable);
-    public async insertFile(remoteFilePath: string, source: string | Readable) {
-        await super.insert(remoteFilePath);
+    // Insert
+
+    public async insert(remoteFolderPath: string);
+    public async insert(remoteFilePath: string, fileContents: string);
+    public async insert(remoteFilePath: string, sourceStream: Readable);
+    public async insert(remotePath: string, fileContents?: string | Readable) {
+        this.sendInsertEvent(remotePath, fileContents);
+        const path = this.getFullPath(remotePath);
+        if (await this.isExists(remotePath)) throw new Error(`Path ${path} already exists`);
         const connection = await this.endpoint.getConnection();
 
-        const parentPath = extractParentFolderPath(remoteFilePath);
-        if (parentPath) await connection.ensureDir(parentPath);
+        if (typeof fileContents === 'undefined') return await this.ensureDir(remotePath);
 
-        await connection.uploadFrom(source, remoteFilePath);
+        await this.ensureParentDir(remotePath);
+
+        if (typeof fileContents === 'string') fileContents = Readable.from(fileContents);
+        await connection.uploadFrom(fileContents, path);
     }
 
-    public async insertFileWithContents(remoteFilePath: string, fileContents: string) {
-        let stream = Readable.from(fileContents);
-        await this.insertFile(remoteFilePath, stream);
-    }
+    // Update
 
-    public async insert(remotePath: string, contents: { isFolder: boolean, localFilePath?: string, sourceStream?: Readable, contents?: string }) {
-        if (contents.isFolder) return await this.insertFolder(remotePath);
-
-        let source = contents.localFilePath ?? contents.sourceStream;
-        if (contents.contents) source = Readable.from(contents.contents);
-
-        return await this.insertFile(remotePath, source as any);
-    }
-
-
-    public async deleteFolder(remoteFolderPath: string) {
-        await super.delete(remoteFolderPath);
+    public async update(remoteFilePath: string, fileContents: string);
+    public async update(remoteFilePath: string, sourceStream: Readable);
+    public async update(remoteFilePath: string, fileContents: string | Readable) {
+        this.sendUpdateEvent(remoteFilePath, fileContents);
+        const path = this.getFullPath(remoteFilePath);
         const connection = await this.endpoint.getConnection();
-        await connection.removeDir(remoteFolderPath);
+
+        if (!await this.isExists(remoteFilePath)) throw new Error(`File ${path} does not exists`);
+
+        if (typeof fileContents === 'string') fileContents = Readable.from(fileContents);
+        await connection.uploadFrom(fileContents, path);
     }
 
-    public async deleteEmptyFolder(remoteFolderPath: string) {
-        await super.delete(remoteFolderPath);
+    // Upsert
+
+    public async upsert(remoteFolderPath: string): Promise<boolean>;
+    public async upsert(remoteFilePath: string, fileContents: string): Promise<boolean>;
+    public async upsert(remoteFilePath: string, sourceStream: Readable): Promise<boolean>;
+    public async upsert(remotePath: string, fileContents?: string | Readable): Promise<boolean> {
+        const path = this.getFullPath(remotePath);
         const connection = await this.endpoint.getConnection();
-        await connection.removeEmptyDir(remoteFolderPath);
+        const exists = await this.isExists(remotePath);
+
+        if (exists) this.sendUpdateEvent(remotePath, fileContents);
+        else this.sendInsertEvent(remotePath, fileContents);
+
+        if (typeof fileContents === 'undefined') return await this.ensureDir(remotePath);
+
+        await this.ensureParentDir(remotePath);
+
+        if (exists) await this.update(remotePath, fileContents as any);
+        else await this.insert(remotePath, fileContents as any);
+        return exists;
     }
 
-    public async deleteFile(remoteFilePath: string) {
-        await super.delete(remoteFilePath);
-        const connection = await this.endpoint.getConnection();
-        await connection.remove(remoteFilePath);
-    }
+    // Delete
 
     public async delete(remotePath: string) {
-        const fileInfo = await this.getPathInfo(remotePath);
-        if (!fileInfo) {
-            await super.delete(remotePath);
+        this.sendDeleteEvent(remotePath);
+        const path = this.getFullPath(remotePath);
+        const connection = await this.endpoint.getConnection();
+        if (!await this.isExists(remotePath)) return false;
+
+        if (await this.isFolder(remotePath)) await connection.removeDir(path);
+        else await connection.remove(path);
+
+        return true;
+    }
+
+    // Append & clear
+
+    public async append(remoteFilePath: string, fileContents: string);
+    public async append(remoteFilePath: string, sourceStream: Readable);
+    public async append(remoteFilePath: string, fileContents: string | Readable): Promise<void> {
+        this.sendUpdateEvent(remoteFilePath, fileContents);
+        const path = this.getFullPath(remoteFilePath);
+        const connection = await this.endpoint.getConnection();
+        
+        if (!await this.isExists(remoteFilePath)) throw new Error(`File ${remoteFilePath} does not exists`);
+
+        if (typeof fileContents === 'string') fileContents = Readable.from(fileContents);
+        await connection.appendFrom(fileContents, path);
+    }
+
+    public async clear(remotePath: string): Promise<void> {
+        this.sendUpdateEvent(remotePath, '');
+        const path = this.getFullPath(remotePath);
+        const connection = await this.endpoint.getConnection();
+        
+        if (!await this.isExists(remotePath)) throw new Error(`Path ${remotePath} does not exists`);
+
+        if (await this.isFolder(remotePath)) {
+            const curpath = await connection.pwd();
+            await connection.cd(path);
+            await connection.clearWorkingDir();
+            await connection.cd(curpath);
             return;
         }
 
-        if (fileInfo.isDirectory) return await this.deleteFolder(remotePath);
-        return await this.deleteFile(remotePath);
+        await connection.uploadFrom(Readable.from(''), path);
     }
 
-    public async getPathInfo(remotePath: string) {
+    //
+
+    public async copy(remoteSrcPath: string, remoteDstPath: string): Promise<void> {
+        throw new Error(`Method copy for the ftp collection is not implemented`);
+    }
+    public async move(remoteSrcPath: string, remoteDstPath: string): Promise<void> {
+        throw new Error(`Method copy for the ftp collection is not implemented`);
+    }
+  
+    public async download(remotePath: string, localPath: string): Promise<void> {
         const connection = await this.endpoint.getConnection();
-        const list: FileInfo[] = await connection.list(remotePath);
+        const path = this.getFullPath(remotePath);
+        this.sendDownloadEvent(remotePath, localPath);
+        await connection.downloadTo(localPath, path);
+    }
+    public async upload(localPath: string, remotePath: string): Promise<void> {
+        const connection = await this.endpoint.getConnection();
+        const path = this.getFullPath(remotePath);
+        this.sendUploadEvent(localPath, remotePath);
+        await connection.uploadFrom(localPath, path);
+    }
+
+    // Get info
+
+    public async getInfo(remotePath: string) {
+        const connection = await this.endpoint.getConnection();
+        const list: FileInfo[] = await connection.list(this.getFullPath(remotePath));
         if (!list || !list.length) return null;
         return list[0];
     }
+
+    public async isFolder(remotePath: string): Promise<boolean> {
+        const info = await this.getInfo(remotePath);
+        return info.isDirectory;
+    }
+
+    public async isExists(remotePath: string) {
+        const info = await this.getInfo(remotePath);
+        return !!info;
+    }
+
+
+    protected getFullPath(path: string): string {
+        return join(this.rootPath, path);
+    }
+
+    protected async ensureDir(remotePath: string): Promise<boolean> {
+        const connection = await this.endpoint.getConnection();
+        const exists = await this.isExists(remotePath);
+        await connection.ensureDir(this.getFullPath(remotePath));
+        return exists;
+    }
+
+    protected async ensureParentDir(path: string): Promise<boolean> {
+        const connection = await this.endpoint.getConnection();
+        const parentPath = extractParentFolderPath(this.getFullPath(path));
+        
+        const info = await this.getInfo(parentPath);
+        await connection.ensureDir(parentPath);
+        return !!info;
+    }
+
 
     get endpoint(): Endpoint {
         return super.endpoint as Endpoint;

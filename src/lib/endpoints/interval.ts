@@ -2,7 +2,7 @@ import { Observable, Subscriber } from "rxjs";
 import { GuiManager } from "../core/gui.js";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseObservable } from "../core/observable.js";
-import { CollectionOptions, ReadonlyCollection } from "../core/readonly_collection.js";
+import { CollectionOptions, BaseCollection } from "../core/readonly_collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected static _instance: Endpoint;
@@ -33,7 +33,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends ReadonlyCollection<number> {
+export class Collection extends BaseCollection<number> {
     protected static instanceNo = 0;
 
     protected interval: number;
