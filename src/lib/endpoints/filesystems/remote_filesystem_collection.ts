@@ -21,12 +21,12 @@ export abstract class RemoteFilesystemCollection<T> extends FilesystemCollection
     public abstract upload(localPath: string, remotePath: string): Promise<void>;
 
 
-    protected sendDownloadEvent(remotePath: string, localPath: string) {
+    public sendDownloadEvent(remotePath: string, localPath: string) {
         super.sendGetEvent(remotePath, localPath, 'download', { localPath, remotePath });
     }
 
-    protected sendUploadEvent(localPath: string, remotePath: string) {
-        super.sendUpsertEvent(remotePath, localPath, 'upload', { localPath, remotePath });
+    public sendUploadEvent(localPath: string, remotePath: string) {
+        super.sendInsertEvent(remotePath, localPath, 'upload', { localPath, remotePath });
     }
 }
   

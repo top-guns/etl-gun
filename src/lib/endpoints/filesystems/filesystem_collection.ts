@@ -54,12 +54,12 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     //     this.listeners[event].forEach(listener => listener(...data));
     // }
 
-    public sendInsertEvent(path: string, fileContents?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable) {
+    public sendInsertEvent(path: string, fileContents?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable, operation: string = 'insert', params?: {}) {
         super.sendInsertEvent({ 
             path, 
             isFolder: typeof fileContents === 'undefined', 
             fileContents: typeof fileContents === undefined ? undefined : typeof fileContents === 'string' ? fileContents : '[readable stream]' 
-        }, { operation: typeof fileContents === 'undefined' ? 'create folder' : 'create file' });
+        }, { ...params, operation });
     }
 
     public sendUpdateEvent(filePath: string, fileContents: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable, operation: string = 'update', params?: {}) {
