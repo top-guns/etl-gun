@@ -5,7 +5,6 @@ import { BaseCollectionEvent, BaseCollection, CollectionOptions, CollectionEvent
 export type UpdatableCollectionEvent = BaseCollectionEvent |
     "insert" |
     "update" |
-    "upsert" |
     "delete";
 
 export abstract class UpdatableCollection<T> extends BaseCollection<T> {
@@ -18,7 +17,6 @@ export abstract class UpdatableCollection<T> extends BaseCollection<T> {
 
         this.listeners.insert = [];
         this.listeners.update = [];
-        this.listeners.upsert = [];
         this.listeners.delete = [];
     }
 
@@ -27,30 +25,26 @@ export abstract class UpdatableCollection<T> extends BaseCollection<T> {
     public abstract upsert(value: T | any, where?: any, ...params: any[]): Promise<boolean>;
     public abstract delete(where?: any, ...params: any[]): Promise<boolean>;
 
-    public on(event: UpdatableCollectionEvent, listener: EventListener): UpdatableCollection<T> {
+    public on(event: UpdatableCollectionEvent, listener: CollectionEventListener): UpdatableCollection<T> {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].push(listener); 
         return this;
     }
 
-    protected sendEvent(event: UpdatableCollectionEvent, ...data: any[]) {
+    public sendEvent(event: UpdatableCollectionEvent, ...data: any[]) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].forEach(listener => listener(...data));
     }
 
-    protected sendInsertEvent(value: T | any, ...params: any[]) {
+    public sendInsertEvent(value: T | any, ...params: any[]) {
         this.sendEvent("insert", { value, params });
     }
 
-    protected sendUpdateEvent(value: T | any, where: any, ...params: any[]) {
+    public sendUpdateEvent(value: T | any, where: any, ...params: any[]) {
         this.sendEvent("update", { value, where, params });
     }
 
-    protected sendUpsertEvent(value: T | any, where?: any, ...params: any[]) {
-        this.sendEvent("upsert", { value, where, params });
-    }
-
-    protected sendDeleteEvent(where?: any, ...params: any[]) {
+    public sendDeleteEvent(where?: any, ...params: any[]) {
         this.sendEvent("delete", { where, params });
     }
 }

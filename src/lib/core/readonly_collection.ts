@@ -140,52 +140,52 @@ export abstract class BaseCollection<T> {
     }
 
    
-    protected sendEvent(event: BaseCollectionEvent, ...data: any[]) {
+    public sendEvent(event: BaseCollectionEvent, ...data: any[]) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].forEach(listener => listener(...data));
     }
   
-    protected sendStartEvent() {
+    public sendStartEvent() {
         this.sendEvent("select.start");
     }
   
-    protected sendEndEvent() {
+    public sendEndEvent() {
         this.sendEvent("select.end");
     }
 
-    protected sendSleepEvent() {
+    public sendSleepEvent() {
         this.sendEvent("select.sleep");
     }
   
-    protected sendErrorEvent(error: any) {
+    public sendErrorEvent(error: any) {
         this.sendEvent("select.error", {error});
     }
   
-    protected sendReciveEvent(value: T) {
+    public sendReciveEvent(value: T) {
         this.sendEvent("select.recive", {value});
     }
   
-    protected sendSkipEvent(value: T) {
+    public sendSkipEvent(value: T) {
         this.sendEvent("select.skip", {value});
     }
   
-    protected sendUpEvent() {
+    public sendUpEvent() {
       this.sendEvent("select.up");
     }
   
-    protected sendDownEvent() {
+    public sendDownEvent() {
         this.sendEvent("select.down");
     }
 
-    protected sendPipeStartEvent(value: T) {
+    public sendPipeStartEvent(value: T) {
         this.sendEvent("pipe.start", {value});
     }
   
-    protected sendPipeEndEvent(value: T) {
+    public sendPipeEndEvent(value: T) {
         this.sendEvent("pipe.end", {value});
     }
 
-    protected sendGetEvent(where: any, value: T | any, ...params: any[]) {
+    public sendGetEvent(where: any, value: T | any, ...params: any[]) {
         this.sendEvent("get", { where, value, params });
     }
 }

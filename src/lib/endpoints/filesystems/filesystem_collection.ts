@@ -54,7 +54,7 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     //     this.listeners[event].forEach(listener => listener(...data));
     // }
 
-    protected sendInsertEvent(path: string, fileContents?: string | Readable) {
+    public sendInsertEvent(path: string, fileContents?: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable) {
         super.sendInsertEvent({ 
             path, 
             isFolder: typeof fileContents === 'undefined', 
@@ -62,37 +62,29 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
         }, { operation: typeof fileContents === 'undefined' ? 'create folder' : 'create file' });
     }
 
-    protected sendUpdateEvent(filePath: string, fileContents: string | Readable, operation: string = 'update', params?: {}) {
+    public sendUpdateEvent(filePath: string, fileContents: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable, operation: string = 'update', params?: {}) {
         super.sendUpdateEvent({ filePath, fileContents: typeof fileContents === 'string' ? fileContents : '[readable stream]' }, filePath, { ...params, operation });
     }
 
-    protected sendUpsertEvent(path: string, fileContents?: string | Readable, operation: string = 'upsert', params?: {}) {
-        super.sendUpsertEvent({ 
-            path, 
-            isFolder: typeof fileContents === 'undefined', 
-            fileContents: typeof fileContents === undefined ? undefined : typeof fileContents === 'string' ? fileContents : '[readable stream]'  
-        }, path, { ...params, operation });
-    }
-
-    protected sendDeleteEvent(path: string) {
+    public sendDeleteEvent(path: string) {
         super.sendDeleteEvent(path, { operation: 'delete' });
     }
 
 
-    protected sendAppendEvent(filePath: string, fileContents: string | Readable) {
-        super.sendUpsertEvent({ filePath, fileContents: typeof fileContents === 'string' ? fileContents : '[readable stream]' }, filePath, { operation: 'append' });
+    public sendAppendEvent(filePath: string, fileContents: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable) {
+        super.sendUpdateEvent({ filePath, fileContents: typeof fileContents === 'string' ? fileContents : '[readable stream]' }, filePath, { operation: 'append' });
     }
 
-    protected sendCopyEvent(srcPath: string, dstPath: string) {
-        super.sendUpsertEvent({ srcPath, dstPath }, dstPath, { operation: 'copy' });
+    public sendCopyEvent(srcPath: string, dstPath: string) {
+        super.sendUpdateEvent({ srcPath, dstPath }, dstPath, { operation: 'copy' });
     }
 
-    protected sendMoveEvent(srcPath: string, dstPath: string) {
-        super.sendUpsertEvent({ srcPath, dstPath }, dstPath, { operation: 'move' });
+    public sendMoveEvent(srcPath: string, dstPath: string) {
+        super.sendUpdateEvent({ srcPath, dstPath }, dstPath, { operation: 'move' });
     }
 
 
-    protected sendGetEvent(path: string, value: any, operation: string = 'get', params?: {}) {
+    public sendGetEvent(path: string, value: any, operation: string = 'get', params?: {}) {
         this.sendEvent("get", { where: path, value, params: { ...params, operation } } );
     }
 }

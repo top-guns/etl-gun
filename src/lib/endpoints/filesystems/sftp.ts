@@ -124,16 +124,19 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Insert
 
-    public async insert(remoteFolderPath: string);
-    public async insert(remoteFilePath: string, fileContents: string);
-    public async insert(remoteFilePath: string, sourceStream: Readable);
-    public async insert(remotePath: string, fileContents?: string | Readable) {
+    public async insert(remoteFolderPath: string): Promise<void>;
+    public async insert(remoteFilePath: string, fileContents: string): Promise<void>;
+    public async insert(remoteFilePath: string, sourceStream: Readable): Promise<void>;
+    public async insert(remotePath: string, fileContents?: string | Readable): Promise<void> {
         this.sendInsertEvent(remotePath, fileContents);
         const path = this.getFullPath(remotePath);
         if (await this.isExists(remotePath)) throw new Error(`Path ${path} already exists`);
         const connection = await this.endpoint.getConnection();
 
-        if (typeof fileContents === 'undefined') return await this.ensureDir(remotePath);
+        if (typeof fileContents === 'undefined') {
+            await this.ensureDir(remotePath);
+            return;
+        }
 
         await this.ensureParentDir(remotePath);
 
@@ -143,9 +146,9 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Update
 
-    public async update(remoteFilePath: string, fileContents: string);
-    public async update(remoteFilePath: string, sourceStream: Readable);
-    public async update(remoteFilePath: string, fileContents: string | Readable) {
+    public async update(remoteFilePath: string, fileContents: string): Promise<void>;
+    public async update(remoteFilePath: string, sourceStream: Readable): Promise<void>;
+    public async update(remoteFilePath: string, fileContents: string | Readable): Promise<void> {
         this.sendUpdateEvent(remoteFilePath, fileContents);
         const path = this.getFullPath(remoteFilePath);
         const connection = await this.endpoint.getConnection();
@@ -198,8 +201,8 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Append & clear
 
-    public async append(remoteFilePath: string, fileContents: string);
-    public async append(remoteFilePath: string, sourceStream: Readable);
+    public async append(remoteFilePath: string, fileContents: string): Promise<void>;
+    public async append(remoteFilePath: string, sourceStream: Readable): Promise<void>;
     public async append(remoteFilePath: string, fileContents: string | Readable): Promise<void> {
         this.sendUpdateEvent(remoteFilePath, fileContents);
         const path = this.getFullPath(remoteFilePath);
