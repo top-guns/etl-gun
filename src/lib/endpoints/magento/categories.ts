@@ -49,7 +49,7 @@ export class CategoryCollection extends UpdatableCollection<Partial<Category>> {
 
     public async insert(value: Omit<Partial<Category>, 'id'>) {
         await super.insert(value as Partial<Category>);
-        return await this.endpoint.post('/rest/V1/categories', {product: value}) as Partial<Category>;
+        return await this.endpoint.post('/rest/V1/categories', {category: value}) as Partial<Category>;
     }
 
     public static async getCategories(endpoint: Endpoint, where: Partial<Category> = {}, fields: (keyof Category)[] = null): Promise<Partial<Category>[]> {
