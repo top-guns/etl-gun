@@ -1,9 +1,8 @@
 import Signal from 'signal-promise';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
-import { BaseQueueCollection } from '../../core/queue_collection.js';
-import { BaseCollection, CollectionOptions } from "../../core/readonly_collection.js";
-import { Endpoint } from "./endpoint.js";
+import { QueueCollection as BaseQueueCollection } from '../../core/queue_collection.js';
 
 
 export class QueueCollection<T = any> extends BaseQueueCollection<T> {
@@ -66,6 +65,7 @@ export class QueueCollection<T = any> extends BaseQueueCollection<T> {
         return observable;
     }
 
+
     public async get(): Promise<T> {
         if (!this._queue.length) await this.activateSignal.wait();
         const value = this._queue.shift();
@@ -83,7 +83,7 @@ export class QueueCollection<T = any> extends BaseQueueCollection<T> {
     public async delete(): Promise<boolean> {
         this.sendDeleteEvent();
         let exists = this.queue.length > 0;
-        this.queue.length = 0;
+        this._queue = [];
         return exists;
     }
     

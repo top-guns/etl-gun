@@ -15,7 +15,7 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME, 'test', false);
+            await src.insert(OUT_FILE_NAME, 'test');
 
             const res = loadFileContent(OUT_FILE_FULL_PATH);
             expect(res).toEqual('test');
@@ -34,7 +34,7 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FOLDER_NAME, '', true);
+            await src.insert(OUT_FOLDER_NAME);
 
             const res = fs.existsSync(OUT_FOLDER_FULL_PATH);
             expect(res).toBe(true);
@@ -53,7 +53,7 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME, 'test', false);
+            await src.insert(OUT_FILE_NAME, 'test');
 
             let res = fs.existsSync(OUT_FILE_FULL_PATH);
             expect(res).toBe(true);
@@ -82,15 +82,17 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME1, 'test1', false);
-            await src.insert(OUT_FILE_NAME2, 'test2', false);
+            await src.insert(OUT_FILE_NAME1, 'test1');
+            await src.insert(OUT_FILE_NAME2, 'test2');
 
             const res: string[] = [];
             let stream$ = src.select().pipe(
+                etl.log(),
                 rx.tap(v => res.push(v.name))
             );
             await etl.run(stream$);
 
+            res.sort((a, b) => (a > b) ? 1 : -1)
             expect(res).toEqual([ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
         }
         finally {

@@ -1,14 +1,12 @@
 import * as fs from "fs";
-import glob from "glob";
-import PATH, { resolve } from 'path';
-import { Observable, Subscriber } from 'rxjs';
+import { glob, Glob } from 'glob';
+import PATH from 'path';
 import internal from "stream";
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
-import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { FilesystemCollection } from "./filesystem_collection.js";
+import { CollectionOptions } from "../../core/base_collection.js";
 
 
 export type PathDetails = {
@@ -81,25 +79,20 @@ export class Collection extends FilesystemCollection<PathDetails> {
     // use path '' for the root object
     public select(mask: string = '*', options: ReadOptions = {}): BaseObservable<PathDetails> {
         const observable = new BaseObservable<any>(this, (subscriber) => {
+            this.sendStartEvent();
             try {
-                this.sendStartEvent();
+                (async () => {
+                    try {
+                        if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
+                            let res = this.getRootFolderDetails();
+                            this.sendReciveEvent(res);
+                            subscriber.next(res);
+                        }
+                
+                        const matches = new Glob(mask, { cwd: this.rootPath });
 
-                if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
-                    let res = this.getRootFolderDetails();
-                    this.sendReciveEvent(res);
-                    subscriber.next(res);
-                }
-        
-                glob(mask, {cwd: this.rootPath}, (err: Error, matches: string[]) => {
-                    if (err) {
-                        this.sendErrorEvent(err);
-                        subscriber.error(err);
-                        return;
-                    }
-
-                    (async () => {
-                        for (let i = 0; i < matches.length; i++) {
-                            const res: PathDetails = await this.getInfo(matches[i], options);
+                        for await (const path of matches) {
+                            const res: PathDetails = await this.getInfo(path, options);
                             if ( (res.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
                                 || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
                             {
@@ -107,15 +100,19 @@ export class Collection extends FilesystemCollection<PathDetails> {
                                 await this.waitWhilePaused();
                                 this.sendReciveEvent(res);
                                 subscriber.next(res);
-
-                                if (i == matches.length - 1) {
-                                    subscriber.complete();
-                                    this.sendEndEvent();
-                                }
                             }
-                        };
-                    })();
-                });
+                        }
+
+                        if (!subscriber.closed) {
+                            subscriber.complete();
+                            this.sendEndEvent();
+                        }
+                    }
+                    catch(err) {
+                        this.sendErrorEvent(err);
+                        subscriber.error(err);
+                    }
+                })();
             }
             catch(err) {
                 this.sendErrorEvent(err);
@@ -125,40 +122,53 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return observable;
     }
 
-    public get(mask: string = '*', options: ReadOptions = {}): Promise<PathDetails[]> {
-        return new Promise<PathDetails[]>((
-            resolve: (value: PathDetails[]) => void, 
-            reject: (reason?: any) => void
-        ) => {
+    public async get(filePath: string): Promise<string> {
+        if (await this.isFolder(filePath)) throw new Error("Error: method 'get' of filesystem collections can be used only with file path");
 
-            const res: PathDetails[] = [];
+        let resStr = '';
+        if (await this.isExists(filePath)) {
+            const res = await fs.promises.readFile(this.getFullPath(filePath));
+            resStr = res.toString();
+        }
+        
+        this.sendGetEvent(resStr, filePath);
+        return resStr;
+    }
 
-            if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
-                res.push(this.getRootFolderDetails());
+    public async list(folderPath: string = ''): Promise<PathDetails[]> {
+        const res = await this._list(folderPath);
+        this.sendListEvent(res, folderPath);
+        return res;
+    }
+
+    public async _list(folderPath: string = ''): Promise<PathDetails[]> {
+        const res: PathDetails[] = [];
+        const names = await fs.promises.readdir(this.getFullPath(folderPath));
+        for (const path of names) res.push(await this.getInfo(path));
+        return res;
+    }
+
+
+    public async find(folderPath: string = '', params: {mask?: string, options?: ReadOptions} = { mask: '*', options: {} }): Promise<PathDetails[]> {
+        const res: PathDetails[] = [];
+
+        if (params?.options?.includeRootDir && (params?.options?.objectsToSearch === 'all' || params?.options?.objectsToSearch === 'foldersOnly' || !params?.options?.objectsToSearch)) {
+            res.push(this.getRootFolderDetails());
+        }
+
+        const matches = await glob(params?.mask ?? '*', { cwd: this.getFullPath(folderPath) });
+
+        for (const path of matches) {
+            const cur: PathDetails = await this.getInfo(path, params?.options);
+            if ( (cur.isFolder && (params?.options?.objectsToSearch == 'all' || params?.options?.objectsToSearch == 'foldersOnly' || !params?.options?.objectsToSearch))
+                || (!cur.isFolder && (params?.options?.objectsToSearch == 'filesOnly' || params?.options?.objectsToSearch == 'all' || !params?.options?.objectsToSearch)) )
+            {
+                res.push(cur);
             }
+        }
 
-            glob(mask, {cwd: this.rootPath}, (err: Error, matches: string[]) => {
-                if (err) {
-                    this.sendErrorEvent(err);
-                    reject(err);
-                    return [];
-                }
-    
-                (async () => {
-                    for (let i = 0; i < matches.length; i++) {
-                        const selres: PathDetails = await this.getInfo(matches[i], options);
-                        if ( (selres.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
-                            || (!selres.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
-                        {
-                            res.push(selres);
-                        }
-                    };
-                    this.sendGetEvent(mask, res);
-                    resolve(res);
-                })();
-            });
-
-        });
+        this.sendFindEvent(res, folderPath, params);
+        return res;
     }
 
     public async insert(folderPathDetails: PathDetails): Promise<void>;

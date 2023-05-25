@@ -6,7 +6,7 @@ import { BaseEndpoint} from "../../core/endpoint.js";
 import { BaseObservable } from '../../core/observable.js';
 import { conditionToSql, SqlCondition } from './condition.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
-import { CollectionOptions, BaseCollection } from '../../core/readonly_collection.js';
+import { CollectionOptions } from '../../core/base_collection.js';
 
 
 type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
@@ -151,9 +151,24 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
         return observable;
     }
 
-    public async get(where: SqlCondition<T>, fields?: string[]): Promise<any[]>;
-    public async get(whereSql?: string, whereParams?: any[], fields?: string[]): Promise<any[]>;
-    public async get(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): Promise<any[]> {
+    public async get(where: SqlCondition<T>): Promise<any>;
+    public async get(whereSql?: string, whereParams?: any[]): Promise<any>;
+    public async get(where: string | SqlCondition<T> = '', params?: any[]): Promise<any> {
+        const results = await this._find(where, params);
+        const result = results.length > 0 ? results[0] : undefined;
+        this.sendGetEvent(result, where, params);
+        return result;
+    }
+
+    public async find(where: SqlCondition<T>, fields?: string[]): Promise<any[]>;
+    public async find(whereSql?: string, whereParams?: any[], fields?: string[]): Promise<any[]>;
+    public async find(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): Promise<any[]> {
+        const result = await this._find(where, params, fields);
+        this.sendListEvent(result, where, params);
+        return result;
+    }
+
+    public async _find(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): Promise<any[]> {
         let result: any[];
         if (typeof where === 'string') {
             result = await this.endpoint.database(this.table)
@@ -167,25 +182,23 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
                 // .where(where)
                 // .select(...params);
         } 
-
-        this.sendGetEvent(where, result);
         return result;
     }
 
-    public async insert(value: T): Promise<number[]>;
-    public async insert(values: T[]): Promise<number[]>;
-    public async insert(value: T | T[]): Promise<number[]>{
+    public async insert(value: T): Promise<void>;
+    public async insert(values: T[]): Promise<void>;
+    public async insert(value: T | T[]): Promise<void>{
         this.sendInsertEvent(value);
-        return await this.endpoint.database(this.table).insert(value);
+        await this.endpoint.database(this.table).insert(value);
     }
 
-    public async update(value: T, where: SqlCondition<T>): Promise<number>;
-    public async update(value: T, whereSql?: string, whereParams?: any[]): Promise<number>;
-    public async update(value: T, where: string | SqlCondition<T> = '', whereParams?: any[]): Promise<number> {
+    public async update(value: T, where: SqlCondition<T>): Promise<void>;
+    public async update(value: T, whereSql?: string, whereParams?: any[]): Promise<void>;
+    public async update(value: T, where: string | SqlCondition<T> = '', whereParams?: any[]): Promise<void> {
         this.sendUpdateEvent(value, where);
 
         if (typeof where === 'string') {
-            return await this.endpoint.database(this.table)
+            await this.endpoint.database(this.table)
                 .whereRaw(where, whereParams)
                 .update(value);
         }
@@ -193,7 +206,7 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
             const whereExpr = conditionToSql(where);
             console.log(whereExpr);
             
-            return await this.endpoint.database(this.table)
+            await this.endpoint.database(this.table)
                 .whereRaw(whereExpr.expression, whereExpr.params)
                 .update(value);
         } 

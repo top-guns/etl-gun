@@ -1,13 +1,13 @@
 import * as fs from "fs";
-import { Observable, Subscriber, tap } from 'rxjs';
+import { Subscriber, tap } from 'rxjs';
 import * as XPath from 'xpath';
 //import { DOMParserImpl, XMLSerializerImpl } from 'xmldom-ts';
 import 'xmldom-ts';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
-import { CollectionOptions } from "../core/readonly_collection.js";
-import { UpdatableCollection } from "../core/updatable_collection.js";
+import { CollectionOptions } from "../core/base_collection.js";
+import { BaseCollection_GF_ID } from "../core/base_collection_gf_id.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -51,7 +51,7 @@ export function getEndpoint(rootFolder: string = null): Endpoint {
 // .hasChildNodes, .firstChild and .lastChild
 // .tagName and .nodeValue
 // Text inside the tag (like <tag>TEXT</tag>) is child node too, the only child.
-export class Collection extends UpdatableCollection<any> {
+export class Collection extends BaseCollection_GF_ID<any> {
     protected static instanceNo = 0;
 
     protected filename: string;
@@ -75,7 +75,7 @@ export class Collection extends UpdatableCollection<any> {
             (async () => {
                 try {
                     this.sendStartEvent();
-                    let selectedValue: XPath.SelectedValue = this.get(xpath);
+                    let selectedValue: XPath.SelectedValue = await this.get(xpath);
                     if (selectedValue) {
                         if (Array.isArray(selectedValue)) {
                             for (const value of selectedValue) {
@@ -170,18 +170,27 @@ export class Collection extends UpdatableCollection<any> {
     // Uses simple path syntax from lodash.get function
     // path example: '/store/book/author'
     // use xpath '' for the root object
-    public get(xpath: string = ''): XPath.SelectedValue {
+    public async get(xpath: string = ''): Promise<XPath.SelectedValue> {
+        if (this.autoload) this.load();
+        let result: any = xpath ? XPath.select(xpath, this.xmlDocument, true) : this.xmlDocument;
+        this.sendGetEvent(result, xpath);
+        return result;
+    }
+
+    public async find(xpath: string = ''): Promise<Array<XPath.SelectedValue>> {
         if (this.autoload) this.load();
         let result: any = xpath ? XPath.select(xpath, this.xmlDocument) : this.xmlDocument;
+        if (!Array.isArray(result)) result = [result];
+        this.sendListEvent(result, xpath);
         return result;
     }
 
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
-    public async insert(value: any, xpath: string = '', attribute: string = '') {
-        await super.insert(value);
+    public async insert(value: any, xpath: string = '', attribute: string = ''): Promise<void> {
+        this.sendInsertEvent(value, { xpath, attribute });
         
-        const selectedValue = this.get(xpath);
+        const selectedValue = await this.get(xpath);
         let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
         if (!node) throw new Error('Unexpected result of xpath in push method. Should by Node, but we have: ' + selectedValue.toString());
 
@@ -203,10 +212,12 @@ export class Collection extends UpdatableCollection<any> {
         if (this.autosave) this.save();
     }
 
-    public async delete() {
-        await super.delete();
+    public async delete(): Promise<boolean> {
+        this.sendDeleteEvent();
+        const exists: boolean = !!(this.xmlDocument || this.xmlDocument.firstChild || this.xmlDocument.body);
         this.xmlDocument = new DOMParser().parseFromString("", 'text/xml'); // ??? Test it !!!
         if (this.autosave) this.save();
+        return exists;
     }
 
     public load() {

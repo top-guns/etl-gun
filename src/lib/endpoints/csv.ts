@@ -3,8 +3,8 @@ import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { Header, pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
-import { CollectionOptions } from "../core/readonly_collection.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
+import { CollectionOptions } from "../core/base_collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string = null;
@@ -105,8 +105,15 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
         return observable;
     }
 
-    public async insert(value: CsvCellType[], nullValue: string = '') {
-        await super.insert(value);
+    public async get(where: any, ...params: any[]): Promise<CsvCellType[]> {
+        throw new Error("Method not implemented.");
+    }
+    public async find(): Promise<CsvCellType[][]> {
+        throw new Error("Method not implemented.");
+    }
+
+    public async insert(value: CsvCellType[], nullValue: string = ''): Promise<void> {
+        this.sendInsertEvent(value);
         const strVal = this.getCsvStrFromArr(value) + "\n";
         // await fs.appendFile(this.filename, strVal, function (err) {
         //     if (err) throw err;
@@ -114,9 +121,21 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
         fs.appendFileSync(this.filename, strVal);
     }
 
-    public async delete() {
-        await super.delete();
+    public async update(value: any, where: any, ...params: any[]): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    public upsert(value: any, where?: any, ...params: any[]): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+
+    public async delete(): Promise<boolean> {
+        this.sendDeleteEvent();
+        //const content = await fs.promises.readFile("myFile.txt");
+        const stats = await fs.promises.stat(this.filename);
+        const exists = stats && stats.size > 0;
         await fs.promises.writeFile(this.filename, '');
+        return exists;
     }
 
     protected getCsvStrFromArr(vals: CsvCellType[]) {

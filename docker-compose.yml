@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  ftp:
+    image: stilliard/pure-ftpd:hardened
+    #image: stilliard/pure-ftpd
+    ports:
+      - 20:20
+      - "21:21"
+      - "30000-30009:30000-30009"
+      #- '40000-40009:40000-40009/tcp'   # passive mode
+    volumes:
+      - "./data/ftp:/home/${FTP_USER}/"
+      - "./data/ftp/pass:/etc/pure-ftpd/passwd"
+    environment:
+      PUBLICHOST: "0.0.0.0"
+      FTP_USER_NAME: "${FTP_USER}"
+      FTP_USER_PASS: "${FTP_PASSWORD}"
+      FTP_USER_HOME: "/home/${FTP_USER}/data"
+    restart: always

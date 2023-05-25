@@ -1,5 +1,5 @@
+import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
 import { BufferCollection } from "./buffer.js";
 import { QueueCollection } from "./queue.js";
 

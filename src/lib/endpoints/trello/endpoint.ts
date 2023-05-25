@@ -6,7 +6,9 @@ import { Board, BoardsCollection } from './board.js';
 import { List, ListsCollection } from './list.js';
 import { Card, CardsCollection } from './card.js';
 import { CommentsCollection, Comment } from './comment.js';
-import { CollectionOptions } from '../../core/readonly_collection.js';
+import { CollectionOptions } from '../../core/base_collection.js';
+import { RestEndpoint } from '../rest/endpoint.js';
+
 
 export type User = {
     id: string;
@@ -63,51 +65,29 @@ export type User = {
 }
 
 
-export class Endpoint extends BaseEndpoint {
-    protected url: string;
+export class Endpoint extends RestEndpoint {
     protected apiKey: string;
     protected authToken: string;
-    protected token: string;
-    protected rejectUnauthorized: boolean;
-    protected agent: https.Agent;
 
     constructor(apiKey: string, authToken: string, url: string = "https://trello.com", rejectUnauthorized: boolean = true) {
-        super();
+        if (!url.endsWith('/1')) url = pathJoin([url, '1']);
 
-        this.url = url;
+        super(url, rejectUnauthorized);
+
         this.apiKey = apiKey;
         this.authToken = authToken;
-
-        this.rejectUnauthorized = rejectUnauthorized;
-        this.agent = rejectUnauthorized ? null : new https.Agent({
-            rejectUnauthorized
-        });
     }
 
-    async fetchJson<T = any>(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any): Promise<T> {
-        const init: RequestInit = {
-            method,
-            agent: this.agent,
-            headers: {
-                "Content-Type": "application/json"
-            }
-        }
-        if (body) init.body = JSON.stringify(body);
-
-        const  getParams = new URLSearchParams(params).toString();
-
-        let fullUrl = url.startsWith('http') ? url : pathJoin([this.url, url], '/');
-        fullUrl += `?key=${this.apiKey}&token=${this.authToken}${getParams ? '&' + getParams : ''}`;
-        //console.log(fullUrl);
-        const res = await fetch(fullUrl, init);
-        //console.log(res)
-        return (await res.json()) as T;
+    async fetchJson<T = any>(url: string, method: 'GET' | 'PUT' | 'POST' | 'DELETE' = 'GET', body?: any, headers?: {}): Promise<T> {
+        if (url.indexOf('?') < 0) url += '?';
+        url += `key=${this.apiKey}&token=${this.authToken}`;
+    return super.fetchJson(url, method, { body, headers });
     }
 
     async getUser(username: string): Promise<User>;
     async getUser(userid: number): Promise<User>;
     async getUser(user: any): Promise<User> {
-        return this.fetchJson(`1/members/${user}`);
+        return this.fetchJson(`members/${user}`);
     }
 
     getUserBoards(username: string = 'me', collectionName: string = 'Boards', options: CollectionOptions<Partial<Board>> = {}): BoardsCollection {
@@ -149,7 +129,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     get displayName(): string {
-        return `Trello (${this.url})`;
+        return `Trello (${this.apiUrl})`;
     }
 }
 

@@ -1,7 +1,8 @@
+import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from './endpoint.js';
+import { ZendeskCollection } from "./zendesk_collection.js";
 
 
 
@@ -39,57 +40,12 @@ export type Field = {
     sub_type_id?: number;
 }
 
-export class TicketFieldsCollection extends UpdatableCollection<Partial<Field>> {
+export class TicketFieldsCollection extends ZendeskCollection<Field> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Field>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Field> = {}) {
         TicketFieldsCollection.instanceNo++;
-        super(endpoint, collectionName, options);
-    }
-
-    public select(): BaseObservable<Partial<Field>> {
-        const observable = new BaseObservable<Partial<Field>>(this, (subscriber) => {
-            (async () => {
-                try {
-                    const tickets = (await this.endpoint.fetchJson(`/ticket_fields`)).ticket_fields as Partial<Field>[];
-
-                    this.sendStartEvent();
-                    for (const obj of tickets) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(obj);
-                        subscriber.next(obj);
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    async get(): Promise<Field[]>;
-    async get(fieldId: number): Promise<Field>;
-    async get(fieldId?: number) {
-        if (fieldId) return (await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`)).ticket_field;
-        return (await this.endpoint.fetchJson(`/ticket_fields`)).ticket_fields;
-    }
-
-    public async insert(value: Omit<Partial<Field>, 'id'>) {
-        await super.insert(value as Partial<Field>);
-        return await this.endpoint.fetchJson('/ticket_fields', {}, 'POST', { ticket_field: value });
-    }
-
-    public async update(value: Omit<Partial<Field>, 'id'>, fieldId: number) {
-        await super.update(value as Partial<Field>, fieldId);
-        return await this.endpoint.fetchJson(`/ticket_fields/${fieldId}`, {}, 'PUT', { ticket_field: value });
-    }
-
-    get endpoint(): Endpoint {
-        return super.endpoint as Endpoint;
+        super(endpoint, collectionName, 'ticket_field', 'ticket_fields', options);
     }
 }
+

@@ -1,6 +1,5 @@
-import { Observable } from "rxjs";
+import { BaseCollection } from "./base_collection.js";
 import { GuiManager } from "./gui.js";
-import { BaseCollection } from "./readonly_collection.js";
 
 export class BaseEndpoint {
     protected static instanceCount = 0;

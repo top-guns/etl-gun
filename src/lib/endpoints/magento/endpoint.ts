@@ -1,9 +1,10 @@
 import fetch, { RequestInit } from 'node-fetch';
 //let {fetch, RequestInit} = await import('node-fetch');
 import https from 'node:https';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from '../../core/readonly_collection.js';
 import { pathJoin } from '../../utils/index.js';
+import { RestEndpoint, RestFetchOptions } from '../rest/endpoint.js';
 import { Category, CategoryCollection } from './categories.js';
 import { Product, ProductCollection } from './products.js';
 import { StockItem, StockCollection } from './stock.js';
@@ -17,29 +18,26 @@ enum COLLECTIONS_NAMES {
 
 const TOKEN_LIFE_TIME = 1 * 60 * 60 * 1000;
 
-export class Endpoint extends BaseEndpoint {
-    protected _magentoUrl: string;
+export class Endpoint extends RestEndpoint {
     protected login: string;
     protected password: string;
     protected token: string;
     protected tokenTS: Date = null;
-    protected rejectUnauthorized: boolean;
-    protected agent: https.Agent;
+
 
     constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true) {
-        super();
+        let apiUrl = magentoUrl;
+        if (!apiUrl.endsWith('/V1')) {
+            if (!apiUrl.endsWith('/rest')) apiUrl = pathJoin([apiUrl, 'rest']);
+            apiUrl = pathJoin([apiUrl, 'V1']);
+        }
 
-        this._magentoUrl = magentoUrl;
+        super(apiUrl, rejectUnauthorized);
         this.login = login;
         this.password = password;
-        this.rejectUnauthorized = rejectUnauthorized;
-
-        this.agent = rejectUnauthorized ? null : new https.Agent({
-            rejectUnauthorized
-        });
     }
 
-    async updateToken() {
+    protected async updateToken() {
         if (this.tokenTS && new Date().getTime() - this.tokenTS.getTime() < TOKEN_LIFE_TIME) return;
         
         let init: RequestInit = {
@@ -54,58 +52,25 @@ export class Endpoint extends BaseEndpoint {
             })
         }
         
-        this.token = await (await fetch(this.getUrl('/rest/V1/integration/admin/token'), init)).json() as string;
+        const url = this.makeUrl([`integration/admin/token`]);
+        this.token = await (await fetch(url), init).json() as string;
         this.tokenTS = new Date();
     }
 
-    protected getUrl(...parts: string[]) {
-        return pathJoin([this._magentoUrl, ...parts], '/');
-    }
-
-    get url(): string {
-        return this._magentoUrl;
-    }
-
-    async get<T = any>(relativeUrl: string): Promise<T> {
+    async fetchJson<T = any>(url: string, method: 'GET' | 'PUT' | 'POST' | 'DELETE' = 'GET', options: RestFetchOptions = {}): Promise<T> {
         await this.updateToken();
-        let init: RequestInit = {
-            agent: this.agent,
-            headers: {
+        
+        return super.fetchJson(url, method, { 
+            body: options.body,
+            params: options.params,
+            headers: { 
                 "Authorization": 'Bearer ' + this.token,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...options.headers 
             }
-        }
-
-        return (await (await fetch(this.getUrl(relativeUrl), init)).json()) as T;
+        });
     }
 
-    async post<T = any>(relativeUrl: string, value: any): Promise<T> {
-        await this.updateToken();
-        let init: RequestInit = {
-            method: "POST", 
-            agent: this.agent,
-            headers: {
-                "Authorization": 'Bearer ' + this.token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(value)
-        }
-        return (await (await fetch(this.getUrl(relativeUrl), init)).json() as T);
-    }
-
-    async put<T = any>(relativeUrl: string, value: any): Promise<T> {
-        await this.updateToken();
-        let init: RequestInit = {
-            method: "PUT", 
-            agent: this.agent,
-            headers: {
-                "Authorization": 'Bearer ' + this.token,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(value)
-        }
-        return (await (await fetch(this.getUrl(relativeUrl), init)).json()) as T;
-    }
 
     getProducts(options: CollectionOptions<Partial<Product>> = {}): ProductCollection {
         options.displayName ??= `products`;
@@ -141,7 +106,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     get displayName(): string {
-        return `Magento (${this._magentoUrl})`;
+        return `Magento (${this.apiUrl})`;
     }
 }
 

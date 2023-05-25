@@ -1,14 +1,12 @@
 import { default as SFTPClient, ConnectOptions, FileInfo, FileStats } from "ssh2-sftp-client";
-import { Readable, Writable } from "stream";
+import { Readable } from "stream";
 import { WritableStreamBuffer } from 'stream-buffers';
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { extractParentFolderPath } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
-import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { RemoteFilesystemCollection } from "./remote_filesystem_collection.js";
 import { join } from "path";
-import { AlreadyExistsAction } from "./filesystem_collection.js";
+import { CollectionOptions } from "../../core/base_collection.js";
 
 
 export class Endpoint extends BaseEndpoint {
@@ -69,7 +67,7 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
                 (async () => {
                     try {
                         const connection = await this.endpoint.getConnection();
-                        const list: FileInfo[] = await connection.list(this.getFullPath(folderPath));
+                        const list: FileInfo[] = await this._list(folderPath);
                         
                         for (let fileInfo of list) {
                             if (subscriber.closed) break;
@@ -99,34 +97,43 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Get
 
-    public async get(remotePath: string): Promise<undefined | string | FileInfo[]> {
+    public async get(filePath: string): Promise<string> {
         const connection = await this.endpoint.getConnection();
-        const path = this.getFullPath(remotePath);
-
-        if (!await this.isExists(remotePath)) {
-            this.sendGetEvent(remotePath, undefined);
-            return undefined;
-        }
-
-        if (await this.isFolder(remotePath)) {
-            const res = await connection.list(path);
-            this.sendGetEvent(remotePath, res);
-            return res;
-        }
+        if (await this.isFolder(filePath)) throw new Error("Error: method 'get' of filesystem collections can be used only with file path");
 
         const writableStreamBuffer = new WritableStreamBuffer();
-        await connection.get(path, writableStreamBuffer);
-        const res: string = writableStreamBuffer.getContentsAsString() as string;
+        await connection.get(this.getFullPath(filePath), writableStreamBuffer);
+        const res = writableStreamBuffer.getContentsAsString() as string;
 
-        this.sendGetEvent(remotePath, res);
+        this.sendGetEvent(res, filePath);
         return res;
     }
 
+    public async list(folderPath: string = ''): Promise<FileInfo[]> {
+        const res = await this._list(folderPath);
+        this.sendListEvent(res, folderPath);
+        return res;
+    }
+
+    public async _list(folderPath: string = ''): Promise<FileInfo[]> {
+        const connection = await this.endpoint.getConnection();
+        let res: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
+        return res;
+    }
+
+    public async find(folderPath: string = ''): Promise<FileInfo[]> {
+        const connection = await this.endpoint.getConnection();
+        let res: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
+        this.sendFindEvent(res, folderPath);
+        return res;
+    }
+
+
     // Insert
 
-    public async insert(remoteFolderPath: string): Promise<void>;
-    public async insert(remoteFilePath: string, fileContents: string): Promise<void>;
-    public async insert(remoteFilePath: string, sourceStream: Readable): Promise<void>;
+    public async insert(folderPath: string): Promise<void>;
+    public async insert(filePath: string, fileContents: string): Promise<void>;
+    public async insert(filePath: string, sourceStream: Readable): Promise<void>;
     public async insert(remotePath: string, fileContents?: string | Readable): Promise<void> {
         this.sendInsertEvent(remotePath, fileContents);
         const path = this.getFullPath(remotePath);
@@ -146,8 +153,8 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Update
 
-    public async update(remoteFilePath: string, fileContents: string): Promise<void>;
-    public async update(remoteFilePath: string, sourceStream: Readable): Promise<void>;
+    public async update(filePath: string, fileContents: string): Promise<void>;
+    public async update(filePath: string, sourceStream: Readable): Promise<void>;
     public async update(remoteFilePath: string, fileContents: string | Readable): Promise<void> {
         this.sendUpdateEvent(remoteFilePath, fileContents);
         const path = this.getFullPath(remoteFilePath);
@@ -161,9 +168,9 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Upsert
 
-    public async upsert(remoteFolderPath: string): Promise<boolean>;
-    public async upsert(remoteFilePath: string, fileContents: string): Promise<boolean>;
-    public async upsert(remoteFilePath: string, sourceStream: Readable): Promise<boolean>;
+    public async upsert(folderPath: string): Promise<boolean>;
+    public async upsert(filePath: string, fileContents: string): Promise<boolean>;
+    public async upsert(filePath: string, sourceStream: Readable): Promise<boolean>;
     public async upsert(remotePath: string, fileContents?: string | Readable): Promise<boolean> {
         const path = this.getFullPath(remotePath);
         const connection = await this.endpoint.getConnection();
@@ -188,42 +195,42 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
         return this._delete(remotePath);
     }
 
-    protected async _delete(remotePath: string): Promise<boolean> {
-        const path = this.getFullPath(remotePath);
+    protected async _delete(path: string): Promise<boolean> {
         const connection = await this.endpoint.getConnection();
-        if (!await this.isExists(remotePath)) return false;
+        if (!await this.isExists(path)) return false;
 
-        if (await this.isFolder(remotePath)) await connection.rmdir(path, true);
-        else await connection.delete(path);
+        if (await this.isFolder(path)) await connection.rmdir(this.getFullPath(path), true);
+        else await connection.delete(this.getFullPath(path));
 
         return true;
     }
 
     // Append & clear
 
-    public async append(remoteFilePath: string, fileContents: string): Promise<void>;
-    public async append(remoteFilePath: string, sourceStream: Readable): Promise<void>;
-    public async append(remoteFilePath: string, fileContents: string | Readable): Promise<void> {
-        this.sendUpdateEvent(remoteFilePath, fileContents);
-        const path = this.getFullPath(remoteFilePath);
+    public async append(filePath: string, fileContents: string): Promise<void>;
+    public async append(filePath: string, sourceStream: Readable): Promise<void>;
+    public async append(filePath: string, fileContents: string | Readable): Promise<void> {
+        this.sendUpdateEvent(filePath, fileContents);
+        const path = this.getFullPath(filePath);
         const connection = await this.endpoint.getConnection();
         
-        if (!await this.isExists(remoteFilePath)) throw new Error(`File ${remoteFilePath} does not exists`);
+        if (!await this.isExists(filePath)) throw new Error(`File ${filePath} does not exists`);
 
         if (typeof fileContents === 'string') fileContents = Readable.from(fileContents);
         await connection.append(fileContents, path);
     }
 
-    public async clear(remotePath: string): Promise<void> {
-        this.sendUpdateEvent(remotePath, '');
-        const path = this.getFullPath(remotePath);
+    public async clear(path: string): Promise<void> {
+        this.sendUpdateEvent(path, '');
+        
         const connection = await this.endpoint.getConnection();
         
-        if (!await this.isExists(remotePath)) throw new Error(`Path ${remotePath} does not exists`);
+        if (!await this.isExists(path)) throw new Error(`Path ${path} does not exists`);
 
-        if (await this.isFolder(remotePath)) {
-            await connection.rmdir(path, true)
-            await connection.mkdir(path);
+        if (await this.isFolder(path)) {
+            const fullPath = this.getFullPath(path);
+            await connection.rmdir(fullPath, true)
+            await connection.mkdir(fullPath);
             return;
         }
 
@@ -273,28 +280,28 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Get info
 
-    public async getInfo(remotePath: string) {
+    public async getInfo(path: string) {
         const connection = await this.endpoint.getConnection();
-        const list: FileInfo[] = await connection.list(this.getFullPath(remotePath));
+        const list: FileInfo[] = await connection.list(this.getFullPath(path));
         if (!list || !list.length) return null;
         return list[0];
     }
 
-    public async getInfoExt(remotePath: string) {
+    public async getInfoExt(path: string) {
         const connection = await this.endpoint.getConnection();
-        const stats: FileStats = await connection.stat(this.getFullPath(remotePath));
+        const stats: FileStats = await connection.stat(this.getFullPath(path));
         if (!stats) return null;
         return stats;
     }
 
-    public async isFolder(remotePath: string): Promise<boolean> {
-        const info = await this.getInfoExt(remotePath);
+    public async isFolder(path: string): Promise<boolean> {
+        const info = await this.getInfoExt(path);
         return info.isDirectory;
     }
 
-    public async isExists(remotePath: string): Promise<boolean> {
+    public async isExists(path: string): Promise<boolean> {
         const connection = await this.endpoint.getConnection();
-        return !!(await connection.exists(this.getFullPath(remotePath)));
+        return !!(await connection.exists(this.getFullPath(path)));
     }
 
 
@@ -302,10 +309,10 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
         return join(this.rootPath, path);
     }
 
-    protected async ensureDir(remotePath: string): Promise<boolean> {
+    protected async ensureDir(folderPath: string): Promise<boolean> {
         const connection = await this.endpoint.getConnection();
-        const exists = await this.isExists(remotePath);
-        if (!exists) await connection.mkdir(this.getFullPath(remotePath));
+        const exists = await this.isExists(folderPath);
+        if (!exists) await connection.mkdir(this.getFullPath(folderPath));
         return exists;
     }
 

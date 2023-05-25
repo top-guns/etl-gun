@@ -1,5 +1,5 @@
 import { identity, MonoTypeOperatorFunction, Observable, OperatorFunction, Subscriber, tap, TeardownLogic, UnaryFunction } from "rxjs";
-import { BaseCollection } from "./readonly_collection.js";
+import { BaseCollection } from "./base_collection.js";
 
 export class BaseObservable<T> extends Observable<T> {
   protected _collection: BaseCollection<T>;

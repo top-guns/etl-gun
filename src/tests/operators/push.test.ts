@@ -13,6 +13,8 @@ describe('Operator push()', () => {
             etl.push(buf)
         )
 
+        console.log(buf.buffer)
+
         await rx.lastValueFrom(src$);
 
         let stream$ = buf.select().pipe(

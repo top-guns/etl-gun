@@ -1,8 +1,8 @@
 import _ from 'lodash';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { Condition, isMatch } from "../../core/condition.js";
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
 
 
@@ -46,13 +46,21 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         return observable;
     }
 
-    public async get(condition?: Condition<T>): Promise<T[]> {
-        if (!condition) {
-            this.sendGetEvent(undefined, this._buffer);
+    public async get(where: any): Promise<T> {
+        const elements = this._buffer.filter(v => isMatch(v, where));
+        const res = elements.length ? elements[0] : undefined;
+        this.sendGetEvent(res, where);
+        return res;
+    }
+
+    public async find(where?: Condition<T>): Promise<T[]> {
+        if (!where) {
+            this.sendListEvent(this._buffer);
             return this._buffer;
         }
 
-        const elements = this._buffer.filter(v => isMatch(v, condition))
+        const elements = this._buffer.filter(v => isMatch(v, where));
+        this.sendListEvent(elements, where);
         return elements;
     }
 
@@ -61,10 +69,10 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         this._buffer.push(value); 
     }
 
-    public async update(value: Partial<T>, condition: Condition<T>): Promise<any> {
-        this.sendUpdateEvent(value, condition);
+    public async update(value: Partial<T>, where?: Condition<T>): Promise<any> {
+        this.sendUpdateEvent(value, where);
         this._buffer = this._buffer.map(v => {
-            if (isMatch(v, condition)) {
+            if (!where || isMatch(v, where)) {
                 for (let key in value) {
                     if (!value.hasOwnProperty(key)) continue;
                     _.set(v, key, value);
@@ -74,12 +82,12 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         })
     }
 
-    public async upsert(value: T, condition: Condition<T>): Promise<boolean> {
+    public async upsert(value: T, where?: Condition<T>): Promise<boolean> {
         let exists = false;
         this._buffer = this._buffer.map(v => {
-            if (isMatch(v, condition)) {
+            if (where && isMatch(v, where)) {
                 exists = true;
-                this.sendUpdateEvent(value, condition);
+                this.sendUpdateEvent(value, where);
                 for (let key in value) {
                     if (!value.hasOwnProperty(key)) continue;
                     _.set(v, key, value);
@@ -91,18 +99,18 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         return exists;
     }
 
-    public async delete(condition?: Condition<T>): Promise<boolean> {
-        this.sendDeleteEvent(condition);
+    public async delete(where?: Condition<T>): Promise<boolean> {
+        this.sendDeleteEvent(where);
         let exists = false;
 
-        if (!condition) {
+        if (!where) {
             exists = this._buffer.length > 0;
             if (exists) this._buffer = [];
             return exists;
         }
         
         this._buffer = this._buffer.filter(v => {
-            if (isMatch(v, condition)) {
+            if (isMatch(v, where)) {
                 exists = true;
                 return false;
             }
