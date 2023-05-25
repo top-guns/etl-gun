@@ -1,5 +1,7 @@
+import * as fs from "fs";
 import fetch, { RequestInit, Response } from 'node-fetch';
 import https from 'node:https';
+import http from 'node:http';
 import { pathJoin } from '../utils/index.js';
 import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
@@ -170,6 +172,71 @@ export class HttpClientHelper {
 
         const res: Response = await fetch(this.getUrl(url), init);
         return res;
+    }
+
+
+    async downloadFile(srcUrl: string, destPath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            let filePath = destPath;
+            let folderPath = destPath;
+            if (destPath.endsWith('/')) {
+                filePath = pathJoin([folderPath, this.generateFilenameFromPath(srcUrl)]);
+                let exists = fs.existsSync(folderPath);
+                if (!exists) fs.mkdirSync(folderPath, { recursive: true });
+            }
+            else {
+                let stat = fs.statSync(folderPath);
+                if (stat && stat.isDirectory) filePath = pathJoin([folderPath, this.generateFilenameFromPath(srcUrl)]);
+                else {
+                    const urlParts = destPath.split("/");
+                    urlParts.pop();
+                    folderPath = urlParts.join('/');
+                    let exists = fs.existsSync(folderPath);
+                    if (!exists) fs.mkdirSync(folderPath, { recursive: true });
+                }
+            } 
+
+            const file = fs.createWriteStream(filePath, { flags: "wx" });
+
+            file.on("finish", () => {
+                resolve();
+            });
+
+            const httpModule = srcUrl.startsWith('http:') ? http : https;
+
+            const download = (url: string) => {
+                const request = httpModule.get(url, response => {
+                    if ([301,302].includes(response.statusCode)) {
+                        download(response.headers.location);
+                        return;
+                    }
+    
+                    if (response.statusCode === 200) {
+                        response.pipe(file);
+                        return;
+                    }
+    
+                    // Error
+                    file.close();
+                    fs.unlink(filePath, () => {}); // Delete temp file
+                    reject(`Server responded with ${response.statusCode}: ${response.statusMessage}`);
+                });
+        
+                request.on("error", err => {
+                    file.close();
+                    fs.unlink(filePath, () => {}); // Delete temp file
+                    reject(err.message);
+                });
+            }
+
+            download(srcUrl);
+        });
+    }
+
+
+    protected generateFilenameFromPath(url: string): string {
+        const urlParts = url.split("/");
+        return urlParts[urlParts.length - 1] ?? "";
     }
 
 
