@@ -243,12 +243,12 @@ export class Collection extends FilesystemCollection<PathDetails> {
             const isFolder = (await fs.promises.lstat(matchPath)).isDirectory();
 
             if ( isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch) ) {
-                fs.rmdirSync(matchPath, { recursive: true });
+                await fs.promises.rm(matchPath, { recursive: true });
                 res = true;
             }
 
             if ( !isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch) ) {
-                fs.rmSync(matchPath, { force: true });
+                await fs.promises.rm(matchPath, { force: true });
                 res = true;
             }
             
@@ -280,7 +280,7 @@ export class Collection extends FilesystemCollection<PathDetails> {
         if (!await this.isExists(filePath)) throw new Error(`Path ${filePath} does not exists`);
 
         if (await this.isFolder(filePath)) {
-            await fs.promises.rmdir(path, {recursive: true});
+            await fs.promises.rm(path, {recursive: true});
             await fs.promises.mkdir(path);
             return;
         }

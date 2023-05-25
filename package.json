@@ -24,7 +24,9 @@
   "scripts": {
     "start": "ts-node --esm src/main.ts",
     "build": "tsc",
-    "test": "NODE_ENV=test jest",
+    "-test": "NODE_ENV=test jest",
+    "test:clear": "jest --clearCache",
+    "test": "jest",
     "pub:npm": "yarn publish",
     "pub:coverage": "eval $(grep '^CODECOV_TOKEN' .env) && ./node_modules/.bin/codecov --token=$CODECOV_TOKEN"
   },

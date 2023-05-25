@@ -1,6 +1,5 @@
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
-import * as fs from 'fs';
 import { StringWritable } from '../../utils/stringWritable.js';
 
 describe('Operator log()', () => {

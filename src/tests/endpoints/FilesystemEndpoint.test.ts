@@ -87,7 +87,6 @@ describe('FilesystemEndpoint', () => {
 
             const res: string[] = [];
             let stream$ = src.select().pipe(
-                etl.log(),
                 rx.tap(v => res.push(v.name))
             );
             await etl.run(stream$);
