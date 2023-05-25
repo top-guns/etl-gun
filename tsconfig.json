@@ -29,7 +29,7 @@
   "include": [
     "src/lib/**/*"
   ],
-  "ts-node": {
+  "--ts-node": {
 		"transpileOnly": true,
 		"files": true,
 		"experimentalResolver": true,
