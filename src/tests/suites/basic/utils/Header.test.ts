@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
+import * as etl from '../../../../lib/index.js';
 
 describe('Header', () => {
     test('arrToObj', async () => {

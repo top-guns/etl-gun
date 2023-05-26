@@ -1,9 +1,9 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { deleteFileIfExists, getTempPath, loadFileContent } from '../../utils/filesystem.js';
-import { Endpoint as CsvEndpoint } from '../../lib/endpoints/csv.js'
+import * as etl from '../../../../lib/index.js';
+import { deleteFileIfExists, getTempPath, loadFileContent } from '../../../../utils/filesystem.js';
+import { Endpoint as CsvEndpoint } from '../../../../lib/endpoints/csv.js'
 
 describe('CsvEndpoint', () => {
     test('push method', async () => {

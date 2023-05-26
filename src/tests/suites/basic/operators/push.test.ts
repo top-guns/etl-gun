@@ -1,8 +1,8 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { Memory } from '../../lib/endpoints/index.js'
+import * as etl from '../../../../lib/index.js';
+import { Memory } from '../../../../lib/endpoints/index.js'
 
 describe('Operator push()', () => {
     test('push to buffer endpoint', async () => {

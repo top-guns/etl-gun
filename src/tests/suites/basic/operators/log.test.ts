@@ -1,8 +1,8 @@
 import { describe, test,  } from 'node:test';
 import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { StringWritable } from '../../utils/stringWritable.js';
+import * as etl from '../../../../lib/index.js';
+import { StringWritable } from '../../../../utils/stringWritable.js';
 
 describe('Operator log()', () => {
     test('log to StringWritable', async () => {

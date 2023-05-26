@@ -1,0 +1,2 @@
+#!/bin/bash
+find "./src/tests/suites/$1" -type f -name '*.test.ts' -exec dirname {} + | sort -u | sed 's/.*/&\/*.test.ts /g' | tr -d '\n'

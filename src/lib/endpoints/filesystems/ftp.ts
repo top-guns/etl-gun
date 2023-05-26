@@ -42,6 +42,10 @@ export class Endpoint extends BaseEndpoint {
         this._removeCollection(folderPath);
     }
 
+    async releaseEndpoint(): Promise<void> {
+        if (this._client && !this._client.closed) this._client.close();
+    }
+
     get displayName(): string {
         return this.options.host ? `FTP (${this.options.host})` : `FTP (${this.instanceNo})`;
     }
