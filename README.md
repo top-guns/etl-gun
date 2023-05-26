@@ -46,6 +46,8 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
         * [Filesystems]()
             * [Local filesystem](#local-filesystem)
             * [FTP, FTPS](#ftp)
+            * [SFTP](#sftp)
+            * [WebDAV](#webdav)
         * [File formates]()
             * [Csv](#csv)
             * [Json](#json)
@@ -647,6 +649,26 @@ const PrintFolderContents$ = folder.select().pipe(
 )
 await etl.run(PrintFolderContents$);
 ```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### SFTP
+
+Endpoint to access files by sftp. Implementation based on [ssh2-sftp-client](https://www.npmjs.com/package/ssh2-sftp-client) package.
+
+#### Endpoint
+
+#### Collection
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### WebDAV
+
+Endpoint to access remote filesystem via WebDAV protocol. Implementation based on [webdav](https://www.npmjs.com/package/webdav) package.
+
+#### Endpoint
+
+#### Collection
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

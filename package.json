@@ -69,6 +69,8 @@
     "jsonpath",
     "xml",
     "xpath",
+    "ftp",
+    "webdav",
     "database",
     "CockroachDb",
     "mariadb",
