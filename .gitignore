@@ -13,3 +13,4 @@ coverage
 .DS_Store
 *.log
 jest.config.old.ts
+node-starter

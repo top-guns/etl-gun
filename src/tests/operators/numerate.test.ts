@@ -1,3 +1,5 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { getError } from '../../utils/getError.js';
@@ -17,7 +19,7 @@ describe('Operator numerate()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [2, 11], [3, 12]]);
+        assert.deepStrictEqual(res, [[1, 10], [2, 11], [3, 12]]);
     });
 
     test('numerate objects', async () => {
@@ -33,7 +35,7 @@ describe('Operator numerate()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([{f1: 1, index: 10}, {f1: 2, index: 11}, {f1: 3, index: 12}]);
+        assert.deepStrictEqual(res, [{f1: 1, index: 10}, {f1: 2, index: 11}, {f1: 3, index: 12}]);
     });
 
     test('numerate scalars', async () => {
@@ -49,7 +51,7 @@ describe('Operator numerate()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [2, 11], [3, 12]]);
+        assert.deepStrictEqual(res, [[1, 10], [2, 11], [3, 12]]);
     });
 
 
@@ -63,7 +65,7 @@ describe('Operator numerate()', () => {
 
         //expect(() => {etl.run(stream$)}).toThrow();
         const error = await getError(async () => etl.run(stream$));
-        expect(error).toBeInstanceOf(Error);
+        assert.strictEqual(error.constructor, Error);
     });
 
     test('numerate arrays with field name specification', async () => {
@@ -75,7 +77,7 @@ describe('Operator numerate()', () => {
         );
 
         const error = await getError(async () => etl.run(stream$));
-        expect(error).toBeInstanceOf(Error);
+        assert.strictEqual(error.constructor, Error);
     });
 
     test('numerate scalars with field name specification', async () => {
@@ -88,6 +90,6 @@ describe('Operator numerate()', () => {
         );
 
         const error = await getError(async () => etl.run(stream$));
-        expect(error).toBeInstanceOf(Error);
+        assert.strictEqual(error.constructor, Error);
     });
 });

@@ -25,8 +25,11 @@
     "start": "ts-node --esm src/main.ts",
     "build": "tsc",
     "-test": "NODE_ENV=test jest",
-    "test:clear": "jest --clearCache",
-    "test": "jest",
+    "-test:clear": "jest --clearCache",
+    "-test:node2": "node --test --require ts-node/register ./src/tests/**/*.test.ts",
+    "test": "node --test --loader ts-node/esm ./src/tests/**/*.test.ts",
+    "spec": "node --test --loader ts-node/esm --test-reporter spec ./src/tests/**/*.test.ts",
+    "tap": "node --test --loader ts-node/esm --test-reporter tap ./src/tests/**/*.test.ts | npx faucet",
     "pub:npm": "yarn publish",
     "pub:coverage": "eval $(grep '^CODECOV_TOKEN' .env) && ./node_modules/.bin/codecov --token=$CODECOV_TOKEN"
   },
@@ -95,18 +98,15 @@
     "xpath": "^0.0.32"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.1",
     "@types/node": "^20.1.4",
     "@types/node-telegram-bot-api": "^0.61.6",
     "@types/ssh2-sftp-client": "^9.0.0",
     "@types/stream-buffers": "^3.0.4",
     "codecov": "^3.8.3",
-    "jest": "^29.5.0",
+    "faucet": "^0.0.4",
     "mysql": "^2.18.1",
     "mysql2": "^3.3.1",
     "pg": "^8.10.0",
-    "ts-jest": "^29.1.0",
-    "ts-jest-resolver": "^2.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },

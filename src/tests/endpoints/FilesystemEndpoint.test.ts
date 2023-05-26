@@ -1,3 +1,5 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import path from 'path';
 import * as fs from "fs";
 import * as rx from 'rxjs';
@@ -18,7 +20,7 @@ describe('FilesystemEndpoint', () => {
             await src.insert(OUT_FILE_NAME, 'test');
 
             const res = loadFileContent(OUT_FILE_FULL_PATH);
-            expect(res).toEqual('test');
+            assert.strictEqual(res, 'test');
         }
         finally {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
@@ -37,7 +39,7 @@ describe('FilesystemEndpoint', () => {
             await src.insert(OUT_FOLDER_NAME);
 
             const res = fs.existsSync(OUT_FOLDER_FULL_PATH);
-            expect(res).toBe(true);
+            assert.strictEqual(res, true);
         }
         finally {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
@@ -56,17 +58,17 @@ describe('FilesystemEndpoint', () => {
             await src.insert(OUT_FILE_NAME, 'test');
 
             let res = fs.existsSync(OUT_FILE_FULL_PATH);
-            expect(res).toBe(true);
+            assert.strictEqual(res, true);
             
             await src.delete();
 
             res = fs.existsSync(OUT_FILE_FULL_PATH);
-            expect(res).toBe(false);
+            assert.strictEqual(res, false);
 
             await src.delete('*', {includeRootDir: true});
 
             res = fs.existsSync(ROOT_FOLDER);
-            expect(res).toBe(false);
+            assert.strictEqual(res, false);
         }
         finally {
             deleteFileIfExists(ROOT_FOLDER);
@@ -92,7 +94,7 @@ describe('FilesystemEndpoint', () => {
             await etl.run(stream$);
 
             res.sort((a, b) => (a > b) ? 1 : -1)
-            expect(res).toEqual([ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
+            assert.deepStrictEqual(res, [ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
         }
         finally {
             deleteFileIfExists(ROOT_FOLDER);

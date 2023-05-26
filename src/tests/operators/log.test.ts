@@ -1,3 +1,5 @@
+import { describe, test,  } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { StringWritable } from '../../utils/stringWritable.js';
@@ -12,6 +14,6 @@ describe('Operator log()', () => {
 
         await etl.run(src$);
 
-        expect(res.toString()).toEqual("h 100\n");
+        assert.strictEqual(res.toString(), "h 100\n");
     });
 });

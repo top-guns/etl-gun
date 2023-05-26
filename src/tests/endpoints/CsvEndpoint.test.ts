@@ -1,3 +1,5 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { deleteFileIfExists, getTempPath, loadFileContent } from '../../utils/filesystem.js';
@@ -15,7 +17,7 @@ describe('CsvEndpoint', () => {
             await src.insert([' a\\b/c;', '11,22']);
 
             const res = loadFileContent(OUT_FILE_NAME);
-            expect(res).toEqual('"1","1"\n" a\\b/c;","11,22"\n');
+            assert.strictEqual(res, '"1","1"\n" a\\b/c;","11,22"\n');
         }
         finally {
             deleteFileIfExists(OUT_FILE_NAME);
@@ -34,7 +36,7 @@ describe('CsvEndpoint', () => {
 
             await src.delete();
 
-            expect(loadFileContent(OUT_FILE_NAME)).toEqual('');
+            assert.strictEqual(loadFileContent(OUT_FILE_NAME), '');
         }
         finally {
             deleteFileIfExists(OUT_FILE_NAME);
@@ -58,7 +60,7 @@ describe('CsvEndpoint', () => {
             );
             await etl.run(stream$);
 
-            expect(res).toEqual([ [ '10', 'abc' ], [ '11', ' a\\b/c;' ], [ '33', '66,55' ] ]);
+            assert.deepStrictEqual(res, [ [ '10', 'abc' ], [ '11', ' a\\b/c;' ], [ '33', '66,55' ] ]);
         }
         finally {
             deleteFileIfExists(OUT_FILE_NAME);

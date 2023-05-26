@@ -484,6 +484,9 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 // )
 // await etl.run(PrintFolder$);
 
+
+
+
 const ruleSkipCheapProducts = new Rule({
     name: 'skip products with price <= 1000',
     when: (product: DbProduct) => product.price! <= 1000,
@@ -499,6 +502,9 @@ const ruleSetProductTaxClass = new Rule({
         product.tax_class_id = '10';
     },
 });
+
+
+
 
 const rools = new Rools();
 await rools.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);

@@ -1,3 +1,5 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
 import * as etl from '../../lib/index.js';
 import { Memory } from '../../lib/endpoints/index.js'
@@ -16,7 +18,7 @@ describe('Operator addColumn()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [2, 20], [3, 30]]);
+        assert.deepStrictEqual(res, [[1, 10], [2, 20], [3, 30]]);
     });
 
     test('add column to scalars', async () => {
@@ -32,6 +34,6 @@ describe('Operator addColumn()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [2, 20], [3, 30]]);
+        assert.deepStrictEqual(res, [[1, 10], [2, 20], [3, 30]]);
     });
 });
