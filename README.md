@@ -2326,6 +2326,3 @@ function getChildByPropVal(obj: {} | [], propName: string, propVal?: any): any;
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # License
-
-This library is provided with [MIT](LICENSE) license. 
-
