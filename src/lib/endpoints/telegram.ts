@@ -1,10 +1,9 @@
-import * as pg from 'pg'
-import { Observable, Subscriber } from "rxjs";
+import { Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
 import { BaseObservable } from '../core/observable.js';
-import { CollectionOptions } from '../core/readonly_collection.js';
-import { UpdatableCollection } from '../core/updatable_collection.js';
+import { BaseCollection_I } from '../core/base_collection_i.js';
+import { CollectionOptions } from '../core/base_collection.js';
 
 export type InputMessage = {
     chatId: string;
@@ -40,7 +39,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends UpdatableCollection<InputMessage> {
+export class Collection extends BaseCollection_I<InputMessage> {
     protected static instanceNo = 0;
 
     protected token: string;
@@ -99,18 +98,13 @@ export class Collection extends UpdatableCollection<InputMessage> {
         this.bot = undefined;
     }
 
-    public async insert(value: InputMessage);
-    public async insert(chatId: string, message: string);
-    public async insert(valueOrChartId: InputMessage | string, message?: string) {
+    public async insert(value: InputMessage): Promise<void>;
+    public async insert(chatId: string, message: string): Promise<void>;
+    public async insert(valueOrChartId: InputMessage | string, message?: string): Promise<void> {
         if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
-        await super.insert(value);
+        this.sendInsertEvent(value);
         this.bot.sendMessage(value.chatId, value.message);
-    }
-
-    public async delete() {
-        //await super.clear();
-        throw new Error("Method not implemented.");
     }
 
     public setKeyboard(keyboard: any) {

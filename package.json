@@ -1,7 +1,7 @@
 {
-  "name": "rxjs-etl-kit",
-  "version": "2.0.48",
-  "description": "ETL extension for RxJs library",
+  "name": "etl-gun",
+  "version": "2.1.7",
+  "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "type": "module",
   "--main": "dist/index.js",
   "exports": {
@@ -22,20 +22,37 @@
   "types": "./dist/index.d.ts",
   "node": ">=16",
   "scripts": {
-    "start": "ts-node --esm src/main.ts",
+    "--start": "node -r dotenv/config --loader ts-node/esm src/main.ts",
+    "start": "dotenv -e .env -- node --loader ts-node/esm src/main.ts",
+    "start:testenv": "dotenv -e ./src/tests/suites/docker/docker.env -- node --loader ts-node/esm src/main.ts",
+    "test": "yarn test:all",
+    "test:exec": "yarn test:all:exec",
     "build": "tsc",
-    "test": "NODE_ENV=test jest",
-    "pub:npm": "yarn publish",
-    "pub:coverage": "./node_modules/.bin/codecov --token=$RXJS_ETL_KIT_CODECOV_TOKEN"
+    "--test:node2": "node --test --require ts-node/register ./src/tests/**/*.test.ts",
+    "test:": "dotenv -e ./src/tests/suites/docker/docker.env -- node --test --loader ts-node/esm",
+    "test:basic": "yarn test: `./get-test-path basic`",
+    "test:docker": "yarn test:docker:up && yarn test:docker:exec ; yarn test:docker:down",
+    "test:docker:exec": "yarn test: `./get-test-path docker`",
+    "test:all": "yarn test:docker:up && yarn test:all:exec ; yarn test:docker:down",
+    "test:all:exec": "yarn test: `./get-test-path`",
+    "test:docker:": "docker compose -f ./src/tests/suites/docker/docker-compose.yml",
+    "test:docker:up": "yarn test:docker: up -d",
+    "test:docker:down": "yarn test:docker: down",
+    "test:docker:config": "yarn test:docker: config",
+    "test:docker:ps": "yarn test:docker: ps",
+    "spec": "yarn test: --test-reporter spec ./src/tests/suites/basic/**/*.test.ts",
+    "tap": "yarn test: --test-reporter tap ./src/tests/suites/basic/**/*.test.ts | npx faucet",
+    "pub:npm": "yarn publish ",
+    "pub:coverage": "eval $(grep '^CODECOV_TOKEN' .env) && ./node_modules/.bin/codecov --token=$CODECOV_TOKEN "
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/igor-berezhnoy/rxjs-etl-kit.git"
+    "url": "git+https://github.com/top-guns/etl-gun.git"
   },
   "bugs": {
-    "url": "https://github.com/igor-berezhnoy/rxjs-etl-kit/issues"
+    "url": "https://github.com/top-guns/etl-gun/issues"
   },
-  "homepage": "https://github.com/igor-berezhnoy/rxjs-etl-kit#readme",
+  "homepage": "https://github.com/top-guns/etl-gun#readme",
   "keywords": [
     "rxjs",
     "etl",
@@ -52,6 +69,8 @@
     "jsonpath",
     "xml",
     "xpath",
+    "ftp",
+    "webdav",
     "database",
     "CockroachDb",
     "mariadb",
@@ -74,8 +93,7 @@
     "chalk": "^5.2.0",
     "console-gui-tools": "^3.0.2",
     "csv": "^6.3.0",
-    "dotenv": "^16.0.3",
-    "glob": "^8.0.3",
+    "glob": "^10.2.6",
     "jsonpath-plus": "^7.2.0",
     "knex": "^2.4.2",
     "lodash": "^4.17.21",
@@ -86,21 +104,23 @@
     "rools": "^2.3.0",
     "rxjs": "^7.8.1",
     "signal-promise": "^1.0.3",
+    "ssh2-sftp-client": "^9.1.0",
+    "stream-buffers": "^3.0.2",
+    "webdav": "^5.0.0",
     "xmldom-ts": "^0.3.1",
     "xpath": "^0.0.32"
   },
   "devDependencies": {
-    "@types/glob": "^8.0.0",
-    "@types/jest": "^29.5.1",
     "@types/node": "^20.1.4",
     "@types/node-telegram-bot-api": "^0.61.6",
+    "@types/ssh2-sftp-client": "^9.0.0",
+    "@types/stream-buffers": "^3.0.4",
     "codecov": "^3.8.3",
-    "jest": "^29.5.0",
+    "dotenv-cli": "^7.2.1",
+    "faucet": "^0.0.4",
     "mysql": "^2.18.1",
     "mysql2": "^3.3.1",
     "pg": "^8.10.0",
-    "ts-jest": "^29.1.0",
-    "ts-jest-resolver": "^2.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },

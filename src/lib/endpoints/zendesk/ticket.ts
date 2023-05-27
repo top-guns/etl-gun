@@ -1,7 +1,6 @@
-import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
-import { UpdatableCollection } from "../../core/updatable_collection.js";
+import { CollectionOptions } from "../../core/base_collection.js";
 import { Endpoint } from './endpoint.js';
+import { ZendeskCollection } from "./zendesk_collection.js";
 
 
 
@@ -53,66 +52,11 @@ export type Ticket = {
     from_messaging_channel: boolean;
 }
 
-export class TicketsCollection extends UpdatableCollection<Partial<Ticket>> {
+export class TicketsCollection extends ZendeskCollection<Ticket> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Ticket>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Ticket> = {}) {
         TicketsCollection.instanceNo++;
-        super(endpoint, collectionName, options);
-    }
-
-    public select(where: Partial<Ticket> = {}): BaseObservable<Partial<Ticket>> {
-        const observable = new BaseObservable<Partial<Ticket>>(this, (subscriber) => {
-            (async () => {
-                try {
-                    let tickets: Partial<Ticket>[];
-                    if (!where) tickets = (await this.endpoint.fetchJson(`/tickets`, where)).tickets as Partial<Ticket>[];
-                    else {
-                        let query = "type%3Aticket";
-                        for (let key in where) {
-                            if (!where.hasOwnProperty(key)) continue;
-                            query += '+' + key + '%3A' + where[key];
-                        }
-                        tickets = (await this.endpoint.fetchJson(`/search.json?query=${query}`)).results as Partial<Ticket>[];
-                    }
-
-                    this.sendStartEvent();
-                    for (const obj of tickets) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(obj);
-                        subscriber.next(obj);
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    async get(): Promise<Ticket[]>;
-    async get(ticketId: number): Promise<Ticket>;
-    async get(ticketId?: number) {
-        if (ticketId) return (await this.endpoint.fetchJson(`/tickets/${ticketId}`)).ticket;
-        return (await this.endpoint.fetchJson(`/tickets`)).tickets;
-    }
-
-    public async insert(value: Omit<Partial<Ticket>, 'id'>) {
-        await super.insert(value as Partial<Ticket>);
-        return await this.endpoint.fetchJson('/tickets', {}, 'POST', { ticket: value });
-    }
-
-    public async update(value: Omit<Partial<Ticket>, 'id'>, ticketId: number) {
-        await super.update(value as Partial<Ticket>, ticketId);
-        return await this.endpoint.fetchJson(`/tickets/${ticketId}`, {}, 'PUT', { ticket: value });
-    }
-
-    get endpoint(): Endpoint {
-        return super.endpoint as Endpoint;
+        super(endpoint, collectionName, 'ticket', 'tickets', options);
     }
 }

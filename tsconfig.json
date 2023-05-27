@@ -5,7 +5,8 @@
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "types": ["node", "jest"],
+    //"types": ["node", "jest"],
+    "types": ["node", "node/test"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -29,10 +30,10 @@
   "include": [
     "src/lib/**/*"
   ],
-  "ts-node": {
-		"transpileOnly": true,
-		"files": true,
-		"experimentalResolver": true,
-    "esm": true
-	}
+  // "ts-node": {
+	// 	"transpileOnly": true,
+	// 	"files": true,
+	// 	"experimentalResolver": true,
+  //   "esm": true
+	// }
 }

@@ -1,8 +1,8 @@
-import { Observable, Subscriber } from "rxjs";
-import { GuiManager } from "../core/gui.js";
+import { Subscriber } from "rxjs";
 import { BaseEndpoint} from "../core/endpoint.js";
 import { BaseObservable } from "../core/observable.js";
-import { CollectionOptions, ReadonlyCollection } from "../core/readonly_collection.js";
+import { BaseCollection_G } from "../core/base_collection_g.js";
+import { CollectionOptions } from "../core/base_collection.js";
 
 export class Endpoint extends BaseEndpoint {
     protected static _instance: Endpoint;
@@ -33,7 +33,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends ReadonlyCollection<number> {
+export class Collection extends BaseCollection_G<number> {
     protected static instanceNo = 0;
 
     protected interval: number;
@@ -60,6 +60,12 @@ export class Collection extends ReadonlyCollection<number> {
             }
         });
         return observable;
+    }
+
+    public async get(): Promise<number> {
+        const value = this.counter;
+        this.sendGetEvent(value);
+        return value;
     }
 
     protected onTick() {

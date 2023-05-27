@@ -1,7 +1,8 @@
+import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { Endpoint } from './endpoint.js';
+import { TrelloCollection } from "./trello_collection.js";
 
 
 export type Comment = {
@@ -52,69 +53,34 @@ export type Comment = {
 }
 
 
-export class CommentsCollection extends UpdatableCollection<Partial<Comment>> {
+export class CommentsCollection extends TrelloCollection<Comment> {
     protected static instanceNo = 0;
     //protected boardId: string;
     protected cardId: string;
     
-    constructor(endpoint: Endpoint, collectionName: string, cardId: string, options: CollectionOptions<Partial<Comment>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, cardId: string, options: CollectionOptions<Comment> = {}) {
         CommentsCollection.instanceNo++;
-        super(endpoint, collectionName, options);
+        super(endpoint, collectionName, 'commentCard', 'comments', options);
         //this.boardId = boardId;
         this.cardId = cardId;
     }
 
-    public select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): BaseObservable<Partial<Comment>> {
-        const observable = new BaseObservable<Partial<Comment>>(this, (subscriber) => {
-            (async () => {
-                try {
-                    if (!where) where = {};
-                    const params =
-                        fields && fields.length ? {
-                            fields,
-                            ...where,
-                            filter: 'commentCard'
-                        }
-                        : {
-                            ...where,
-                            filter: 'commentCard'
-                        }
-                    const comments = await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions`, params) as Partial<Comment>[];
+    protected getResourceUrl(id: string): string {
+        return `cards/${this.cardId}/actions/${this.resourceNameS}/${id}`;
+    }
 
-                    this.sendStartEvent();
-                    for (const obj of comments) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(obj);
-                        subscriber.next(obj);
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch (err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
+    protected getResourceListUrl(): string {
+        return `cards/${this.cardId}/actions/${this.resourceNameS}`;
+    }
+
+    protected getSearchUrl(): string {
+        // `cards/${this.cardId}/actions/${this.resourceNameS}`
+        return `cards/${this.cardId}/actions?filter=${this.resourceName}`;
     }
 
     public async insert(text: string) {
-        await super.insert(text);
-        return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
-    }
-
-    public async update(value: Omit<Partial<Comment>, 'id'>, commentId: string) {
-        await super.update(value as Partial<Comment>, commentId);
-        return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments/${commentId}`, {filter: 'commentCard'}, 'PUT', value);
-    }
-
-    async get(): Promise<Comment[]>;
-    async get(commentId?: string): Promise<Comment>;
-    async get(commentId?: string) {
-        if (commentId) return this.endpoint.fetchJson(`1/cards/${this.cardId}/actions/comments/${commentId}`);
-        return await this.endpoint.fetchJson(`1/cards/${this.cardId}/actions/comments`);
+        return await super.insert({ text });
+        //return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
     }
 
     get endpoint(): Endpoint {

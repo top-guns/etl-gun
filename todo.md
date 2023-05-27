@@ -37,7 +37,9 @@
 1. Zabbix
 1. HTTP, WebDav, REST
 1. FTP
-1. YAML
+1. YAML format
+1. ndjson format
+1. Apache Parquet format
 1. Git
 1. WebSocket client & server
 1. Google tables

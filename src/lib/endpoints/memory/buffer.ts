@@ -1,9 +1,9 @@
-import { from, Observable } from "rxjs";
+import _ from 'lodash';
+import { CollectionOptions } from '../../core/base_collection.js';
+import { Condition, isMatch } from "../../core/condition.js";
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
-import { Endpoint } from "./endpoint.js";
 
 
 export class BufferCollection<T = any> extends UpdatableCollection<T> {
@@ -20,31 +20,20 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         this._buffer = [...values];
     }
 
-    public select(deleteProcessedElements?: true): BaseObservable<T>;
-    public select(deleteProcessedElements?: false, filter?: (value: T, index: number) => T): BaseObservable<T>;
-    public select(deleteProcessedElements: boolean = false, filter?: (value: T, index: number) => T): BaseObservable<T> {
+    public select(where?: (value: T, index: number) => T): BaseObservable<T> {
         const observable = new BaseObservable<T>(this, (subscriber) => {
             (async () => {
                 try {
                     this.sendStartEvent();
-                    if (deleteProcessedElements) {
-                        let value;
-                        while (value = this._buffer.shift()) {
-                            if (subscriber.closed) break;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(value);
-                            subscriber.next(value);
-                        }
-                    }
-                    else {
-                        const elements = filter ? this._buffer.filter(filter) : this._buffer;
-                        for(const value of elements) {
-                            if (subscriber.closed) break;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(value);
-                            subscriber.next(value);
-                        };
-                    }
+                    
+                    const elements = where ? this._buffer.filter(where) : this._buffer;
+                    for(const value of elements) {
+                        if (subscriber.closed) break;
+                        await this.waitWhilePaused();
+                        this.sendReciveEvent(value);
+                        subscriber.next(value);
+                    };
+
                     subscriber.complete();
                     this.sendEndEvent();
                 }
@@ -57,14 +46,78 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         return observable;
     }
 
+    public async get(where: any): Promise<T> {
+        const elements = this._buffer.filter(v => isMatch(v, where));
+        const res = elements.length ? elements[0] : undefined;
+        this.sendGetEvent(res, where);
+        return res;
+    }
+
+    public async find(where?: Condition<T>): Promise<T[]> {
+        if (!where) {
+            this.sendListEvent(this._buffer);
+            return this._buffer;
+        }
+
+        const elements = this._buffer.filter(v => isMatch(v, where));
+        this.sendListEvent(elements, where);
+        return elements;
+    }
+
     public async insert(value: T) {
-        await super.insert(value);
+        this.sendInsertEvent(value);
         this._buffer.push(value); 
     }
 
-    public async delete() {
-        await super.delete();
-        this._buffer = [];
+    public async update(value: Partial<T>, where?: Condition<T>): Promise<any> {
+        this.sendUpdateEvent(value, where);
+        this._buffer = this._buffer.map(v => {
+            if (!where || isMatch(v, where)) {
+                for (let key in value) {
+                    if (!value.hasOwnProperty(key)) continue;
+                    _.set(v, key, value);
+                }
+            }
+            return v;
+        })
+    }
+
+    public async upsert(value: T, where?: Condition<T>): Promise<boolean> {
+        let exists = false;
+        this._buffer = this._buffer.map(v => {
+            if (where && isMatch(v, where)) {
+                exists = true;
+                this.sendUpdateEvent(value, where);
+                for (let key in value) {
+                    if (!value.hasOwnProperty(key)) continue;
+                    _.set(v, key, value);
+                }
+            }
+            return v;
+        })
+        if (!exists) this.insert(value);
+        return exists;
+    }
+
+    public async delete(where?: Condition<T>): Promise<boolean> {
+        this.sendDeleteEvent(where);
+        let exists = false;
+
+        if (!where) {
+            exists = this._buffer.length > 0;
+            if (exists) this._buffer = [];
+            return exists;
+        }
+        
+        this._buffer = this._buffer.filter(v => {
+            if (isMatch(v, where)) {
+                exists = true;
+                return false;
+            }
+            return true;
+        })
+
+        return exists;
     }
 
     public sort(compareFn: ((v1: T, v2: T) => number | boolean) | undefined = undefined): void {

@@ -1,13 +1,11 @@
-import { from, Observable } from "rxjs";
 import Signal from 'signal-promise';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
-import { CollectionOptions } from "../../core/readonly_collection.js";
-import { UpdatableCollection } from "../../core/updatable_collection.js";
-import { Endpoint } from "./endpoint.js";
+import { QueueCollection as BaseQueueCollection } from '../../core/queue_collection.js';
 
 
-export class QueueCollection<T = any> extends UpdatableCollection<T> {
+export class QueueCollection<T = any> extends BaseQueueCollection<T> {
     protected static instanceCount = 0;
 
 
@@ -67,11 +65,28 @@ export class QueueCollection<T = any> extends UpdatableCollection<T> {
         return observable;
     }
 
-    public async insert(value: T) {
-        await super.insert(value);
+
+    public async get(): Promise<T> {
+        if (!this._queue.length) await this.activateSignal.wait();
+        const value = this._queue.shift();
+        this.sendGetEvent(value);
+        return value;
+    }
+
+
+    public async insert(value: T): Promise<void> {
+        this.sendInsertEvent(value);
         this.queue.push(value);
         this.activateSignal.notify();
     }
+    
+    public async delete(): Promise<boolean> {
+        this.sendDeleteEvent();
+        let exists = this.queue.length > 0;
+        this._queue = [];
+        return exists;
+    }
+    
 
     public stop() {
         this.started = false;

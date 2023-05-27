@@ -20,7 +20,7 @@ export function push<S, T=S>(collection: UpdatableCollection<T>, options?: PushO
     const f = async (v: S) => {
         // No wait
         let vv: T = await getValue<S, T>(v, options);
-        await collection.insert(vv);
+        collection.insert(vv);
         return v;
     }
     const observable = (v: S) => from(f(v));
@@ -43,21 +43,21 @@ export function pushAndLog<S, T=S>(collection: UpdatableCollection<T>, options?:
     return mergeMap((v: S)=> observable(v)); 
 }
 
-/**
- * Performs collection.insert, wait for result and return the result to the next pipe step as the stream value.
- * @param collection  Destination collection.
- * @param options  Some options to specify the value to insert.
- */
-export function pushAndGet<S, T, R>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R> {
-    const f = async (v: S): Promise<R> => {
-        let vv: T = await getValue<S, T>(v, options);
-        const res: R = await collection.insert(vv);
-        return getOperatorResult(v, options.toProperty, res);
-    }
+// /**
+//  * Performs collection.insert, wait for result and return the result to the next pipe step as the stream value.
+//  * @param collection  Destination collection.
+//  * @param options  Some options to specify the value to insert.
+//  */
+// export function pushAndGet<S, T, R>(collection: UpdatableCollection<T>, options?: PushOptions<S, T> & {toProperty: string} | null): OperatorFunction<S, R> {
+//     const f = async (v: S): Promise<R> => {
+//         let vv: T = await getValue<S, T>(v, options);
+//         const res: R = await collection.upsert(vv);
+//         return getOperatorResult(v, options.toProperty, res);
+//     }
 
-    const observable: (value: S) => Observable<R> = (v: S) => from(f(v));
-    return mergeMap<S, Observable<R>>((v: S)=> observable(v)); 
-}
+//     const observable: (value: S) => Observable<R> = (v: S) => from(f(v));
+//     return mergeMap<S, Observable<R>>((v: S)=> observable(v)); 
+// }
 
 /**
  * Performs collection.insert, wait for result, but skip the result value and go to the next pipe step.

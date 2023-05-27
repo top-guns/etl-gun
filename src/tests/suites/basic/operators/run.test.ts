@@ -1,6 +1,8 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { Memory } from '../../lib/endpoints/index.js'
+import * as etl from '../../../../lib/index.js';
+import { Memory } from '../../../../lib/endpoints/index.js'
 
 describe('Operator run()', () => {
     test('wait for two streams and check calls order', async () => {
@@ -21,6 +23,6 @@ describe('Operator run()', () => {
 
         await etl.run(stream1$, stream2$);
 
-        expect(res).toEqual([10, 11, 1, 2]);
+        assert.deepStrictEqual(res, [10, 11, 1, 2]);
     });
 });

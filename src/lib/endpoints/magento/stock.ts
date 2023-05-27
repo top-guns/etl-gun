@@ -1,7 +1,7 @@
+import { CollectionOptions } from '../../core/base_collection.js';
 import { BaseObservable } from '../../core/observable.js';
-import { CollectionOptions } from '../../core/readonly_collection.js';
-import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { Endpoint } from './endpoint.js';
+import { MagentoCollection } from './magento_collection.js';
 import { Product, ProductCollection } from "./products.js";
 
 export type StockItem = {
@@ -33,30 +33,30 @@ export type StockItem = {
     "stock_status_changed_auto": number;
 }
 
-export class StockCollection extends UpdatableCollection<StockItem> {
+export class StockCollection extends MagentoCollection<Partial<StockItem>> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<StockItem> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<StockItem>> = {}) {
         StockCollection.instanceNo++;
-        super(endpoint, collectionName, options);
+        super(endpoint, collectionName, 'stockItem', 'stockItems', options);
     }
 
-    public select(): BaseObservable<StockItem>;
-    public select(sku: string): BaseObservable<StockItem>;
-    public select(product: Partial<Product>): BaseObservable<StockItem>;
-    public select(param?: Partial<Product> | string | any): BaseObservable<StockItem> {
-        const observable = new BaseObservable<StockItem>(this, (subscriber) => {
+    public select(): BaseObservable<Partial<StockItem>>;
+    public select(sku: string): BaseObservable<Partial<StockItem>>;
+    public select(product: Partial<Product>): BaseObservable<Partial<StockItem>>;
+    public select(param?: Partial<Product> | string | any): BaseObservable<Partial<StockItem>> {
+        const observable = new BaseObservable<Partial<StockItem>>(this, (subscriber) => {
             (async () => {
                 try {
                     if (param && typeof param !== 'string') param = {sku: param};
                     
-                    const products = await ProductCollection.getProducts(this.endpoint, param, ['sku']);
+                    const products = await ProductCollection._findWithoutEvent(this.endpoint, param); //, ['sku']
 
                     this.sendStartEvent();
                     for (const p of products) {
                         if (subscriber.closed) break;
                         await this.waitWhilePaused();
-                        const result: any = await this.endpoint.get('/rest/V1/stockItems/' + p.sku);
+                        const result: any = await this.endpoint.fetchJson(this.getResourceUrl(p.sku));
                         this.sendReciveEvent(result);
                         subscriber.next(result);
                     }
@@ -76,14 +76,14 @@ export class StockCollection extends UpdatableCollection<StockItem> {
     public async getStockItem(sku: string): Promise<StockItem>;
     public async getStockItem(product: {sku: string} | string): Promise<StockItem> {
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.get(`/rest/V1/stockItems/${product}`) as StockItem;
+        return await this.endpoint.fetchJson(this.getResourceUrl(product)) as StockItem;
     }
 
     public async updateStockQuantity(product: {sku: string}, quantity: number);
     public async updateStockQuantity(sku: string, quantity: number);
     public async updateStockQuantity(product: {sku: string} | string, quantity: number) {
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.put(`/rest/V1/products/${product}/stockItems/1`, { stockItem: { qty: quantity, is_in_stock: quantity > 0 } }) as Partial<Product>;
+        return await this.endpoint.fetchJson(`products/${product}/${this.resourceNameS}/1`, 'PUT', {body: { stockItem: { qty: quantity, is_in_stock: quantity > 0 } }}) as Partial<Product>;
     }
 
     get endpoint(): Endpoint {

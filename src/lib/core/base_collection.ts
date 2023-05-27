@@ -1,9 +1,7 @@
-import { Observable, Subscriber, tap } from "rxjs";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
-import { Errors, Memory } from "../index.js";
-import { push, run } from "../operators/index.js";
-import { ErrorsQueue, EtlError, EtlErrorData } from "../endpoints/errors.js";
+import { Errors } from "../index.js";
+import { EtlError } from "../endpoints/errors.js";
 import { BaseObservable } from "./observable.js";
 
 export type CollectionOptions<T> = {
@@ -12,7 +10,7 @@ export type CollectionOptions<T> = {
     disableErrorsCollectionCreation?: boolean;
 }
 
-export type CollectionEvent = 
+export type BaseCollectionEvent = 
     "select.start" |
     "select.end" |
     "select.sleep" |
@@ -23,31 +21,16 @@ export type CollectionEvent =
     "select.down" |
     "pipe.start" |
     "pipe.end" |
-    "insert" |
-    "update" |
-    "upsert" |
-    "delete";
+    string;
 
 
-type EventListener = (...data: any[]) => void;
+export type CollectionEventListener = (...data: any[]) => void;
 
-export class ReadonlyCollection<T> {
-    protected listeners: Record<CollectionEvent, EventListener[]> = {
-        "insert": [],
-        "update": [],
-        "upsert": [],
-        "delete": [],
-        "pipe.start": [],
-        "pipe.end": [],
-        "select.start": [],
-        "select.end": [],
-        "select.sleep": [],
-        "select.recive": [],
-        "select.error": [],
-        "select.skip": [],
-        "select.up": [],
-        "select.down": []
-    };
+export abstract class BaseCollection<T> {
+    protected _listeners: Record<BaseCollectionEvent, CollectionEventListener[]>;
+    protected get listeners(): Record<BaseCollectionEvent, CollectionEventListener[]> {
+        return this._listeners;
+    }
 
     protected _endpoint: BaseEndpoint;
     get endpoint(): BaseEndpoint {
@@ -63,6 +46,20 @@ export class ReadonlyCollection<T> {
     constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
         this._endpoint = endpoint;
         this.options = options;
+
+        this._listeners = {
+            "pipe.start": [],
+            "pipe.end": [],
+            "select.start": [],
+            "select.end": [],
+            "select.sleep": [],
+            "select.recive": [],
+            "select.error": [],
+            "select.skip": [],
+            "select.up": [],
+            "select.down": []
+        };
+
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, options);
         if (!options.disableErrorsCollectionCreation && this.constructor.name != 'ErrorsQueue') {
             this.errors = Errors.Endpoint.instance.getCollection(`${collectionName}`, {disableErrorsCollectionCreation: true});
@@ -108,9 +105,7 @@ export class ReadonlyCollection<T> {
         return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
-    public select(...params: any[]): BaseObservable<T> {
-        throw new Error("Method not implemented.");
-    }
+    public abstract select(...params: any[]): BaseObservable<T>;
 
     public selectErrors(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
         if (!this.errors) throw new Error("Errors collection is not specified.");
@@ -135,14 +130,14 @@ export class ReadonlyCollection<T> {
         throw new Error("Method not implemented.");
     }
   
-    public on(event: CollectionEvent, listener: EventListener): ReadonlyCollection<T> {
+    public on(event: BaseCollectionEvent, listener: CollectionEventListener): BaseCollection<T> {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].push(listener); 
         return this;
     }
 
    
-    public sendEvent(event: CollectionEvent, ...data: any[]) {
+    public sendEvent(event: BaseCollectionEvent, ...data: any[]) {
         if (!this.listeners[event]) this.listeners[event] = [];
         this.listeners[event].forEach(listener => listener(...data));
     }

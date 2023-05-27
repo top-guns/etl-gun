@@ -1,6 +1,8 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import { tap } from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { Memory } from '../../lib/endpoints/index.js'
+import * as etl from '../../../../lib/index.js';
+import { Memory } from '../../../../lib/endpoints/index.js'
 
 describe('Operator where()', () => {
     test('function-style criteria', async () => {
@@ -14,7 +16,7 @@ describe('Operator where()', () => {
         );
         await etl.run(stream$);
 
-        expect(res).toEqual([2,3]);
+        assert.deepStrictEqual(res, [2,3]);
     });
 
     test('object-style criteria', async () => {
@@ -28,6 +30,6 @@ describe('Operator where()', () => {
         );
         await etl.run(stream$);
 
-        expect(res).toEqual({f1: 3, f2: 4});
+        assert.deepStrictEqual(res, {f1: 3, f2: 4});
     });
 });

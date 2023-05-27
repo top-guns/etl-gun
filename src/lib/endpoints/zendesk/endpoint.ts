@@ -1,57 +1,21 @@
 import fetch, { RequestInit } from 'node-fetch';
 import https from 'node:https';
-import { BaseEndpoint} from "../../core/endpoint.js";
-import { CollectionOptions } from '../../core/readonly_collection.js';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { pathJoin } from '../../utils/index.js';
+import { BasicAuthEndpoint } from '../rest/basic_auth_endpoint.js';
 import { Ticket, TicketsCollection } from './ticket.js';
 import { Field, TicketFieldsCollection } from './ticket_field.js';
 
 
-export class Endpoint extends BaseEndpoint {
-    protected apiUrl: string;
-    protected username: string;
-    protected token: string;
-    protected agent: https.Agent;
-
+export class Endpoint extends BasicAuthEndpoint {
     constructor(zendeskUrl: string, username: string, token: string, rejectUnauthorized: boolean = true) {
-        super();
-
-        this.apiUrl = zendeskUrl;
-        if (!this.apiUrl.endsWith('/v2')) {
-            if (!this.apiUrl.endsWith('/api')) this.apiUrl = pathJoin([this.apiUrl, 'api']);
-            this.apiUrl = pathJoin([this.apiUrl, 'v2']);
+        let apiUrl = zendeskUrl;
+        if (!apiUrl.endsWith('/v2')) {
+            if (!apiUrl.endsWith('/api')) apiUrl = pathJoin([apiUrl, 'api']);
+            apiUrl = pathJoin([apiUrl, 'v2']);
         }
 
-        this.username = username.endsWith('/token') ? username : pathJoin([username, 'token']);
-        this.token = token;
-
-        this.agent = rejectUnauthorized ? null : new https.Agent({
-            rejectUnauthorized
-        });
-    }
-
-    async fetchJson<T = any>(url: string, params: {} = {}, method: 'GET' | 'PUT' | 'POST' = 'GET', body?: any): Promise<T> {
-        const init: RequestInit = {
-            method,
-            agent: this.agent,
-            headers: {
-                "Content-Type": "application/json",
-                'Authorization': 'Basic ' + Buffer.from(this.username + ":" + this.token).toString('base64')
-            }
-        }
-        if (body) init.body = JSON.stringify(body);
-
-        const  getParams = new URLSearchParams(params).toString();
-
-        let fullUrl = url.startsWith('http') ? url : pathJoin([this.apiUrl, url], '/');
-        fullUrl += `${getParams ? '?' + getParams : ''}`;
-        //console.log(fullUrl)
-        const res = await fetch(fullUrl, init);
-        //console.log(res)
-        const jsonRes = await res.json();
-        //console.log(jsonRes);
-        //for (let key in jsonRes) console.log(key)
-        return jsonRes as T;
+        super(apiUrl, username, token, rejectUnauthorized);
     }
 
     getTickets(collectionName: string = 'Tickets', options: CollectionOptions<Partial<Ticket>> = {}): TicketsCollection {

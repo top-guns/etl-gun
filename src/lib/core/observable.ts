@@ -1,13 +1,13 @@
 import { identity, MonoTypeOperatorFunction, Observable, OperatorFunction, Subscriber, tap, TeardownLogic, UnaryFunction } from "rxjs";
-import { ReadonlyCollection } from "./readonly_collection.js";
+import { BaseCollection } from "./base_collection.js";
 
 export class BaseObservable<T> extends Observable<T> {
-  protected _collection: ReadonlyCollection<T>;
-  get collection(): ReadonlyCollection<T> {
+  protected _collection: BaseCollection<T>;
+  get collection(): BaseCollection<T> {
     return this._collection;
   }
 
-  constructor(collection: ReadonlyCollection<T>, subscribe?: (this: Observable<T>, subscriber: Subscriber<T>) => TeardownLogic) {
+  constructor(collection: BaseCollection<T>, subscribe?: (this: Observable<T>, subscriber: Subscriber<T>) => TeardownLogic) {
     super(subscribe);
     this._collection = collection;
   }
@@ -129,14 +129,14 @@ function pipeFromArray<T, R>(fns: Array<UnaryFunction<T, R>>): UnaryFunction<T, 
 //   return res;
 // }
 
-function startOperator<T>(collection: ReadonlyCollection<T>): MonoTypeOperatorFunction<T> {
+function startOperator<T>(collection: BaseCollection<T>): MonoTypeOperatorFunction<T> {
   return tap<T>(value => collection.sendPipeStartEvent(value)); 
 }
 
 export interface EndOperatorFunction<T> extends UnaryFunction<Observable<T>, BaseObservable<T>> {}
 
 
-function endOperator<T>(collection: ReadonlyCollection<T>): EndOperatorFunction<T> {
+function endOperator<T>(collection: BaseCollection<T>): EndOperatorFunction<T> {
   return (observable: Observable<T>): BaseObservable<T> => (
     new BaseObservable<T>(collection, (subscriber) => {
       // this function will be called each time this Observable is subscribed to.

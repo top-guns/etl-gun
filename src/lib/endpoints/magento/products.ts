@@ -1,10 +1,8 @@
-import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
-import { BaseObservable } from '../../core/observable.js';
-import { CollectionOptions } from '../../core/readonly_collection.js';
-import { UpdatableCollection } from '../../core/updatable_collection.js';
+import { CollectionOptions } from '../../core/base_collection.js';
 import { mapAsync } from '../../index.js';
 import { Endpoint } from './endpoint.js';
+import { MagentoCollection } from './magento_collection.js';
 
 export type CustomAttributeCodes = 'release_date' | 'options_container' | 'gift_message_available' | 'msrp_display_actual_price_type' | 'url_key' | 'required_options' | 'has_options' | 'tax_class_id' | 'category_ids' | 'description' | string;
 
@@ -30,63 +28,12 @@ export type Product = {
     custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[];
 }
 
-export class ProductCollection extends UpdatableCollection<Partial<Product>> {
+export class ProductCollection extends MagentoCollection<Partial<Product>> {
     protected static instanceNo = 0;
 
     constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Product>> = {}) {
         ProductCollection.instanceNo++;
-        super(endpoint, collectionName, options);
-    }
-
-    public select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObservable<Partial<Product>> {
-        const observable = new BaseObservable<Partial<Product>>(this, (subscriber) => {
-            (async () => {
-                try {
-                    const products = await ProductCollection.getProducts(this.endpoint, where, fields);
-
-                    this.sendStartEvent();
-                    for (const p of products) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(p);
-                        subscriber.next(p);
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    public async insert(value: Omit<Partial<Product>, 'id'>) {
-        await super.insert(value as Partial<Product>);
-        return await this.endpoint.post('/rest/V1/products', {product: value}) as Partial<Product>;
-    }
-
-    public static async getProducts(endpoint: Endpoint, where: Partial<Product> = {}, fields: (keyof Product)[] = null): Promise<Partial<Product>[]> {
-        let getParams = '';
-        if (!where) where = {};
-
-        let n = 0;
-        for (let key in where) {
-            if (!where.hasOwnProperty(key)) continue;
-            if (getParams) getParams += '&';
-            getParams += `searchCriteria[filterGroups][${n}][filters][0][field]=${key}&`;
-            getParams += `searchCriteria[filterGroups][${n}][filters][0][value]=${where[key]}`;
-            n++;
-        }
-        if (!getParams) getParams += 'searchCriteria';
-
-        if (fields) getParams += `&fields=items[${fields.join(',')}]`;
-
-        const products = await endpoint.get('/rest/V1/products?' + getParams);
-        if (products.items) return products.items;
-        return [products];
+        super(endpoint, collectionName, 'product', 'products', options);
     }
 
     // "product": {
@@ -131,7 +78,7 @@ export class ProductCollection extends UpdatableCollection<Partial<Product>> {
             }
         }
         if (typeof product !== 'string') product = product.sku;
-        return await this.endpoint.post(`/rest/V1/products/${product}/media`, body);
+        return await this.endpoint.fetchJson(`${this.resourceNameS}/${product}/media`, 'POST', { body });
     }
 
     uploadImageOperator<T>(func: (value: T) => {product: {sku: string} | string, imageContents: Blob, filename: string, label: string, type: "image/png" | "image/jpeg" | string}): OperatorFunction<T, T> {
@@ -143,7 +90,11 @@ export class ProductCollection extends UpdatableCollection<Partial<Product>> {
         return mapAsync( p => f(p)); 
     }
 
-    get endpoint(): Endpoint {
-        return super.endpoint as Endpoint;
+    static async _findWithoutEvent<TT = any>(endpoint: Endpoint, where?: Partial<TT>): Promise<TT[]> {
+        const searchParams = ProductCollection.convertWhereToQueryParams(where);
+        let url = endpoint.makeUrl(['products'], [searchParams])
+        
+        const res = await endpoint.fetchJson(url);
+        return res ? (typeof res.items === 'undefined' ? res : res.items) : null;
     }
 }

@@ -1,12 +1,12 @@
 import * as fs from "fs";
-import { Observable, Subscriber } from 'rxjs';
+import { Subscriber } from 'rxjs';
 import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
-import { CollectionOptions } from "../core/readonly_collection.js";
+import { CollectionOptions } from "../core/base_collection.js";
 
 export type ReadOptions = {
     // foundedOnly is default
@@ -73,7 +73,7 @@ export class Collection extends UpdatableCollection<any> {
                 try {
                     this.sendStartEvent();
                     path = path.trim();
-                    let result: any = this.get(path);
+                    let result: any = await this.find(path);
                     if (result) {
                         if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
                             if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
@@ -214,13 +214,11 @@ export class Collection extends UpdatableCollection<any> {
         }
     }
 
-    // Uses simple path syntax from lodash.get function
-    // path example: 'store.book[5].author'
-    // use path '' for the root object
-    public get(path: string = ''): any {
+    public async get(path: string = ''): Promise<any> {
         if (this.autoload) this.load();
         path = path.trim();
         let result: any = path ? _.get(this.json, path) : this.json;
+        this.sendGetEvent(result, path);
         return result;
     }
 
@@ -233,15 +231,26 @@ export class Collection extends UpdatableCollection<any> {
     public getByJsonPath(jsonPath: any = ''): any {
         if (this.autoload) this.load();
         let result: any = JSONPath({path: jsonPath, json: this.json, wrap: true});
+        this.sendGetEvent(result, jsonPath);
+        return result;
+    }
+
+    // Uses simple path syntax from lodash.get function
+    // path example: 'store.book[5].author'
+    // use path '' for the root object
+    public async find(path: string = ''): Promise<any> {
+        if (this.autoload) this.load();
+        path = path.trim();
+        let result: any = path ? _.get(this.json, path) : this.json;
         return result;
     }
 
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
     public async insert(value: any, path: string = '', fieldname: string = '') {
-        await super.insert(value);
+        this.sendInsertEvent(value, { path, fieldname });
 
-        const obj = this.get(path);
+        const obj = await this.find(path);
 
         if (fieldname) obj[fieldname] = value;
         else obj.push(value);
@@ -249,10 +258,36 @@ export class Collection extends UpdatableCollection<any> {
         if (this.autosave) this.save();
     }
 
-    public async delete() {
-        await super.delete();
-        this.json = {};
+    public async update(value: any, path: string, fieldname: string): Promise<void> {
+        this.sendUpdateEvent(value, { path, fieldname });
+        const obj = await this.find(path);
+        obj[fieldname] = value;
         if (this.autosave) this.save();
+    }
+    public async upsert(value: any, path: string, fieldname: string): Promise<boolean> {  
+        const obj = await this.find(path);
+        const exists = typeof obj[fieldname] !== 'undefined';
+        if (!exists) this.sendInsertEvent(value, { path, fieldname });
+        else this.sendUpdateEvent(value, { path, fieldname });
+        obj[fieldname] = value;
+        if (this.autosave) this.save();
+        return exists;
+    }
+
+    public async delete(path: string = '', fieldname?: string): Promise<boolean> {
+        this.sendDeleteEvent({ path, fieldname });
+        let exists = false;
+        if (!path && !fieldname) {
+            exists = this.json && !!Object.keys(this.json).length;
+            this.json = {};
+        }
+        else {
+            const obj = await this.find(path);
+            exists = typeof obj[fieldname] !== 'undefined';
+            delete obj[fieldname];
+        }
+        if (this.autosave) this.save();
+        return exists;
     }
 
     public load() {

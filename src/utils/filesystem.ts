@@ -5,8 +5,7 @@ import path from "path";
 export function deleteFileIfExists(path: string) {
     if (!fs.existsSync(path)) return;
     const isFolder = fs.lstatSync(path).isDirectory();
-    if (isFolder) fs.rmdirSync(path, {recursive: true});
-    else fs.rmSync(path);
+    fs.rmSync(path, { recursive: true, force: true });
 };
 
 export function loadFileContent(path: string) {

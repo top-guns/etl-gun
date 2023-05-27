@@ -1,6 +1,8 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { Memory } from '../../lib/endpoints/index.js'
+import * as etl from '../../../../lib/index.js';
+import { Memory } from '../../../../lib/endpoints/index.js'
 
 describe('Operator join()', () => {
     test('join arrays', async () => {
@@ -17,7 +19,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 11], [2, 10], [2, 11]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
 
     test('join objects', async () => {
@@ -34,7 +36,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
+        assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
     });
 
     test('join scalars', async () => {
@@ -51,7 +53,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 11], [2, 10], [2, 11]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
 
 
@@ -69,7 +71,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
+        assert.deepStrictEqual(res, [[1, 1], [1, 2], [2, 1], [2, 2]]);
     });
 
     test('join object and array', async () => {
@@ -86,7 +88,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 1], [1, 2], [2, 1], [2, 2]]);
+        assert.deepStrictEqual(res, [[1, 1], [1, 2], [2, 1], [2, 2]]);
     });
 
 
@@ -104,7 +106,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 20], [2, 10], [2, 20]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
 
     test('join scalar and array', async () => {
@@ -121,7 +123,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[10, 1], [10, 2], [20, 1], [20, 2]]);
+        assert.deepStrictEqual(res, [[10, 1], [10, 2], [20, 1], [20, 2]]);
     });
 
 
@@ -139,7 +141,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
+        assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
     });
 
     test('join object and scalar without field name parameter', async () => {
@@ -156,7 +158,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 20], [2, 10], [2, 20]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
 
 
@@ -174,7 +176,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
+        assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
     });
 
     test('join scalar and object without field name parameter', async () => {
@@ -190,7 +192,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 20], [2, 10], [2, 20]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
 
 
@@ -208,7 +210,7 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([[1, 10], [1, 11], [2, 10], [2, 11]]);
+        assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
 
     test('joinObjects operator', async () => {
@@ -225,6 +227,6 @@ describe('Operator join()', () => {
 
         await etl.run(stream$);
 
-        expect(res).toEqual([{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
+        assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
     });
 });

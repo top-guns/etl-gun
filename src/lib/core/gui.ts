@@ -1,8 +1,9 @@
 import { ForegroundColor } from 'chalk';
 import { ConsoleManager, OptionPopup, InputPopup, PageBuilder, ButtonPopup, ConfirmPopup } from 'console-gui-tools';
 import { SimplifiedStyledElement } from 'console-gui-tools';
+import { BaseCollection, CollectionOptions } from './base_collection.js';
 import { BaseEndpoint } from './endpoint.js';
-import { CollectionOptions, ReadonlyCollection } from './readonly_collection.js';
+
 
 type EndpointDesc = {
     endpoint: BaseEndpoint;
@@ -10,7 +11,7 @@ type EndpointDesc = {
 }
 
 type CollectionDesc = {
-    collection: ReadonlyCollection<any>;
+    collection: BaseCollection<any>;
     displayName: string;
     status: 'waiting' | 'running' | 'finished' | 'error' | 'sleep' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
     value: any;
@@ -73,7 +74,7 @@ export class GuiManager {
 
     protected constructor(title = '', startPaused = false, logPageSize = 8) {
         this.consoleManager = new ConsoleManager({
-            title: title || 'RxJs-ETL-Kit',
+            title: title || 'ETL-Gun',
             enableMouse: false,
             overrideConsole: true,
             logPageSize,            // Number of lines to show in logs page
@@ -287,13 +288,13 @@ export class GuiManager {
         return null;
     }
 
-    public registerCollection(collection: ReadonlyCollection<any>, guiOptions: CollectionOptions<any> = {}) {
+    public registerCollection(collection: BaseCollection<any>, options: CollectionOptions<any> = {}) {
         const endpoint = collection.endpoint;
         const endpointdesc = this.getEndpointDesc(endpoint);
         if (!endpointdesc) throw new Error(`Endpoint ${endpoint.displayName} is not registered in the GuiManager`);
 
-        const displayName = guiOptions.displayName ? guiOptions.displayName : `Collection ${endpointdesc.collections.length}`;
-        const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions, counters: {
+        const displayName = options.displayName ? options.displayName : `Collection ${endpointdesc.collections.length}`;
+        const desc: CollectionDesc = {collection, displayName, status: 'waiting', value: '', guiOptions: options, counters: {
             recived: 0,
             inserted: 0,
             updated: 0,
@@ -306,13 +307,14 @@ export class GuiManager {
         collection.on('select.start', () => { desc.status = 'running'; this.updateConsole(); });
         collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
         collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
+        collection.on('get', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
+        collection.on('find', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
 
         collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); desc.counters.errors++; this.updateConsole(); });
         collection.on('select.sleep', v => { desc.status = 'sleep'; desc.value = v.where; desc.counters.deleted++; this.updateConsole(); });
 
         collection.on('insert', v => { desc.status = 'inserted'; desc.value = v.value; desc.counters.inserted++; this.updateConsole(); });
         collection.on('update', v => { desc.status = 'updated'; desc.value = v.value; desc.counters.updated++; this.updateConsole(); });
-        collection.on('upsert', v => { desc.status = 'upserted'; desc.value = v.value; desc.counters.upserted++; this.updateConsole(); }); // ???
         collection.on('delete', v => { desc.status = 'deleted'; desc.value = v.where; desc.counters.deleted++; this.updateConsole(); });
 
         this.updateConsole();

@@ -1,9 +1,11 @@
+import { describe, test } from 'node:test';
+import assert from 'node:assert';
 import path from 'path';
 import * as fs from "fs";
 import * as rx from 'rxjs';
-import * as etl from '../../lib/index.js';
-import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../utils/filesystem.js';
-import { Endpoint as FilesystemEndpoint } from '../../lib/endpoints/filesystems/local.js'
+import * as etl from '../../../../lib/index.js';
+import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../../../utils/filesystem.js';
+import { Endpoint as FilesystemEndpoint } from '../../../../lib/endpoints/filesystems/local.js'
 
 describe('FilesystemEndpoint', () => {
     test('push method with simple parameters to create file', async () => {
@@ -15,10 +17,10 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME, 'test', false);
+            await src.insert(OUT_FILE_NAME, 'test');
 
             const res = loadFileContent(OUT_FILE_FULL_PATH);
-            expect(res).toEqual('test');
+            assert.strictEqual(res, 'test');
         }
         finally {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
@@ -34,10 +36,10 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FOLDER_NAME, '', true);
+            await src.insert(OUT_FOLDER_NAME);
 
             const res = fs.existsSync(OUT_FOLDER_FULL_PATH);
-            expect(res).toBe(true);
+            assert.strictEqual(res, true);
         }
         finally {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
@@ -53,20 +55,20 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME, 'test', false);
+            await src.insert(OUT_FILE_NAME, 'test');
 
             let res = fs.existsSync(OUT_FILE_FULL_PATH);
-            expect(res).toBe(true);
+            assert.strictEqual(res, true);
             
             await src.delete();
 
             res = fs.existsSync(OUT_FILE_FULL_PATH);
-            expect(res).toBe(false);
+            assert.strictEqual(res, false);
 
             await src.delete('*', {includeRootDir: true});
 
             res = fs.existsSync(ROOT_FOLDER);
-            expect(res).toBe(false);
+            assert.strictEqual(res, false);
         }
         finally {
             deleteFileIfExists(ROOT_FOLDER);
@@ -82,8 +84,8 @@ describe('FilesystemEndpoint', () => {
 
             const ep = new FilesystemEndpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
-            await src.insert(OUT_FILE_NAME1, 'test1', false);
-            await src.insert(OUT_FILE_NAME2, 'test2', false);
+            await src.insert(OUT_FILE_NAME1, 'test1');
+            await src.insert(OUT_FILE_NAME2, 'test2');
 
             const res: string[] = [];
             let stream$ = src.select().pipe(
@@ -91,7 +93,8 @@ describe('FilesystemEndpoint', () => {
             );
             await etl.run(stream$);
 
-            expect(res).toEqual([ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
+            res.sort((a, b) => (a > b) ? 1 : -1)
+            assert.deepStrictEqual(res, [ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
         }
         finally {
             deleteFileIfExists(ROOT_FOLDER);

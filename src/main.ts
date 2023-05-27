@@ -4,7 +4,6 @@ It is not contains any usefull code, is not a part of library and is not an exam
 ************************************************************************************************************************************/
 
 import * as rx from "rxjs";
-import * as dotenv from 'dotenv';
 import fetch, { RequestInit } from 'node-fetch';
 import { Rools, Rule } from 'rools';
 import * as etl from './lib/index.js';
@@ -13,7 +12,6 @@ import { CsvCellType } from "./lib/endpoints/csv.js";
 import { sqlvalue } from "./lib/endpoints/databases/condition.js";
 //import { DiscordHelper } from "./lib/index.js";
 
-dotenv.config()
 
 const START = new Date;
 //GuiManager.startGui(true, 20);
@@ -484,39 +482,59 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 // )
 // await etl.run(PrintFolder$);
 
-const ruleSkipCheapProducts = new Rule({
-    name: 'skip products with price <= 1000',
-    when: (product: DbProduct) => product.price! <= 1000,
-    then: (product: DbProduct & EtlRoolsResult) => {
-        product.etl = {skip: true};
-    },
-});
 
-const ruleSetProductTaxClass = new Rule({
-    name: 'update product tax class',
-    when: (product: DbProduct) => product.price! > 1000,
-    then: (product: DbProduct & EtlRoolsResult) => {
-        product.tax_class_id = '10';
-    },
-});
 
-const rools = new Rools();
-await rools.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);
 
-//const magento = new Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
-//const magento = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
-//const magentoStageProducts = magento.getProducts();
+// const ruleSkipCheapProducts = new Rule({
+//     name: 'skip products with price <= 1000',
+//     when: (product: DbProduct) => product.price! <= 1000,
+//     then: (product: DbProduct & EtlRoolsResult) => {
+//         product.etl = {skip: true};
+//     },
+// });
 
-const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
-const table = db.getTable<DbProduct>('test1');
+// const ruleSetProductTaxClass = new Rule({
+//     name: 'update product tax class',
+//     when: (product: DbProduct) => product.price! > 1000,
+//     then: (product: DbProduct & EtlRoolsResult) => {
+//         product.tax_class_id = '10';
+//     },
+// });
 
-const PrintStageCategories$ = table.select().pipe(
-    rx.take(10),
-    etl.rools(rools),
+
+
+
+// const rools = new Rools();
+// await rools.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);
+
+// //const magento = new Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!, false);
+// //const magento = new Magento.Endpoint(process.env.MAGENTO_STAGE!, process.env.MAGENTO_STAGE_LOGIN!, process.env.MAGENTO_STAGE_PASSWORD!);
+// //const magentoStageProducts = magento.getProducts();
+
+// const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
+// const table = db.getTable<DbProduct>('test1');
+
+// const PrintStageCategories$ = table.select().pipe(
+//     rx.take(10),
+//     etl.rools(rools),
+//     etl.log(),
+// )
+
+// await etl.run(PrintStageCategories$);
+
+
+const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER_NAME, password: process.env.FTP_USER_PASS});
+const folder = ftp.getFolder('ftp');
+
+
+
+const res: any[] = [];
+
+let stream$ = folder.select().pipe(
     etl.log(),
-)
-
-await etl.run(PrintStageCategories$);
+    rx.tap(v => res.push(v))
+);
+await etl.run(stream$);
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();

@@ -1,8 +1,7 @@
 import { Observable, OperatorFunction } from "rxjs";
+import { BaseCollection_I } from "../core/base_collection_i.js";
 import { BaseObservable } from "../core/observable.js";
-import { ReadonlyCollection } from "../core/readonly_collection.js";
-import { UpdatableCollection } from "../core/updatable_collection.js";
-import { EtlError, EtlErrorData } from "../endpoints/errors.js";
+import { ErrorsQueue, EtlError, EtlErrorData } from "../endpoints/errors.js";
 import { Condition, findDifference } from "../index.js";
 
 type EtlErrorDataUnexpected<T> = EtlErrorData & {
@@ -10,7 +9,7 @@ type EtlErrorDataUnexpected<T> = EtlErrorData & {
 }
 
 // assertion
-export function expect<T>(name: string, condition: Condition<T>, errorsCollection?: UpdatableCollection<EtlError> | null): OperatorFunction<T, T> { 
+export function expect<T>(name: string, condition: Condition<T>, errorsCollection?: ErrorsQueue | null): OperatorFunction<T, T> { 
     const getError = (data: T): EtlErrorDataUnexpected<T> => {
         let diff = findDifference<T>(data, condition);
         if (diff) return { name, message: `Unexpected value: ${diff}`, data, condition } as EtlErrorDataUnexpected<T>;
@@ -20,7 +19,7 @@ export function expect<T>(name: string, condition: Condition<T>, errorsCollectio
 
     return (function doObserve(observable: Observable<T>): Observable<T> {
         const pipeObservable: BaseObservable<T> = this;
-        const collection = pipeObservable && (pipeObservable.collection as ReadonlyCollection<T>);
+        const collection = pipeObservable && (pipeObservable.collection as BaseCollection_I<T>);
 
         return new Observable<T>((subscriber) => {
             // this function will be called each time this Observable is subscribed to.
@@ -32,7 +31,7 @@ export function expect<T>(name: string, condition: Condition<T>, errorsCollectio
                         return;
                     }
 
-                    if (typeof errorsCollection === 'undefined' && collection) errorsCollection = collection.errors;
+                    if (!errorsCollection && collection) errorsCollection = collection.errors;
 
                     // Insert error without waiting
                     if (errorsCollection) errorsCollection.insert(err);

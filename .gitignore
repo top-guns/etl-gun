@@ -1,11 +1,13 @@
 # Data
-data
+/data
+/src/tests/tmp
 
 # Dependency directories
 node_modules
 
 # dotenv environment variables file
-.env
+*.env
+!/src/tests/suites/docker/docker.env
 
 # Build / generate output
 dist
