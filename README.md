@@ -3,7 +3,7 @@
     <img src="./static/gun-02.png" height="40px" style="margin-left: 10px; vertical-align: middle"/>
 </h1>
 
-<img src="https://github.com/top-guns/etl-gun/raw/main/static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
+<img src="./static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
 
 ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering, error handling and many useful features.
 
