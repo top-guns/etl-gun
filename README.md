@@ -17,7 +17,6 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
 
 [//]: # (https://img.shields.io/codecov/c/github/top-guns/etl-gun/.svg   https://codecov.io/gh/top-guns/etl-gun)
 
-
 [npm-image]: https://img.shields.io/npm/v/etl-gun.svg
 [npm-url]: https://npmjs.org/package/etl-gun
 [downloads-image]: https://img.shields.io/npm/dm/etl-gun.svg
