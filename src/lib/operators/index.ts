@@ -8,6 +8,6 @@ export * from './addColumn.js';
 export * from './join.js';
 export * from './expect.js';
 export * from './mapAsync.js';
-export * from './sleep.js';
+export * from './wait.js';
 export * from './toProperty.js';
 export * from './rools.js';
