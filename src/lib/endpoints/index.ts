@@ -10,6 +10,8 @@ import * as Zendesk from './zendesk/index.js'
 import * as Telegram from './telegram.js'
 import * as databases from './databases/index.js'
 import * as filesystems from './filesystems/index.js'
+//import * as sms from './sms/index.js'
+//import * as OpenAI from './open-ai/index.js'
 
 export {
     Errors,
@@ -24,4 +26,7 @@ export {
     Telegram,
     databases,
     filesystems
+
+    //sms
+    //OpenAI,
 }

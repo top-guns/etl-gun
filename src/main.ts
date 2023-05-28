@@ -522,19 +522,51 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 // await etl.run(PrintStageCategories$);
 
+// const sms = new etl.sms.SmsGatewayEndpoint();
+// const err = await sms.sendSms('hello', process.env.SMS_RU_MY_PHONE!, process.env.SMS_RU_MY_PHONE!);
+// console.log(err);
 
-const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER_NAME, password: process.env.FTP_USER_PASS});
-const folder = ftp.getFolder('ftp');
+
+//import textbelt from 'textbelt';
 
 
+const init: RequestInit = {
+    method: 'POST',
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        phone: process.env.SMS_RU_MY_PHONE!,
+        message: 'Hello world',
+        key: 'textbelt'
+    })
+}
 
-const res: any[] = [];
+const response = await fetch('https://textbelt.com/text', init);
+const result = await response.json();
+console.log(result);
 
-let stream$ = folder.select().pipe(
-    etl.log(),
-    rx.tap(v => res.push(v))
-);
-await etl.run(stream$);
+// const res = await fetch('https://textbelt.com/text', {
+//   phone: process.env.SMS_RU_MY_PHONE!,
+//   message: 'Hello world',
+//   key: 'textbelt'
+// })
+// res.
+// console.log(res);
+
+//console.log(textbelt)
+
+
+// // Canada
+// textbelt.sendText(process.env.SMS_RU_MY_PHONE!, 'A sample text message!', 'russia', function(err) {
+//     console.log(err)
+// });
+
+// // International
+// textbelt.sendText(process.env.SMS_RU_MY_PHONE!, 'Bonjour!', 'intl', function(err) {
+//     console.log(err)
+// });
+
 
 //mysql.releaseEndpoint();
 //if (etl.GuiManager.isGuiStarted()) etl.GuiManager.stopGui();
