@@ -267,11 +267,7 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
                 try {
                     this.sendStartEvent();
 
-                    const myArray = [1,2,3]
-                    this.endpoint.database.raw('select * from users where id in (' + myArray.map(_ => '?').join(',') + ')', [...myArray]);
-
-
-                    const result: any[] = await this.endpoint.database.raw('select * from users where id = ?', params);
+                    const result: any[] = await this.endpoint.database.raw(this.query, params);
                     
                     for (const row of result) {
                         if (subscriber.closed) break;
