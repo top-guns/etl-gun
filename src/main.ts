@@ -530,21 +530,43 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 //import textbelt from 'textbelt';
 
 
-const init: RequestInit = {
-    method: 'POST',
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        phone: process.env.SMS_RU_MY_PHONE!,
-        message: 'Hello world',
-        key: 'textbelt'
-    })
-}
+// const init: RequestInit = {
+//     method: 'POST',
+//     headers: {
+//         "Content-Type": "application/json"
+//     },
+//     body: JSON.stringify({
+//         phone: process.env.SMS_RU_MY_PHONE!,
+//         message: 'Hello world',
+//         key: 'textbelt'
+//     })
+// }
 
-const response = await fetch('https://textbelt.com/text', init);
-const result = await response.json();
-console.log(result);
+// const response = await fetch('https://textbelt.com/text', init);
+// const result = await response.json();
+// console.log(result);
+
+
+const sql2 = `
+    SELECT * FROM public.bookings
+    ORDER BY id ASC LIMIT 100
+`;
+
+
+const db = new etl.databases.Postgres.Endpoint(process.env.POSTGRES_PROD_CONNECTION!);
+const table = db.getTable('bookings');
+const query = db.getQuery('src', sql2);
+
+
+const pipeline$ = query.select().pipe(
+    rx.take(10),
+    etl.log()
+);
+
+
+await etl.run(pipeline$);
+
+db.releaseEndpoint()
 
 // const res = await fetch('https://textbelt.com/text', {
 //   phone: process.env.SMS_RU_MY_PHONE!,

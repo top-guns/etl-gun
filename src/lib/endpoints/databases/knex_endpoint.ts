@@ -267,13 +267,15 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
                 try {
                     this.sendStartEvent();
 
-                    const result: any[] = await this.endpoint.database.raw(this.query, params);
+                    const result = await this.endpoint.database.raw(this.query, params);
                     
-                    for (const row of result) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(row);
-                        subscriber.next(row);
+                    if (result.rows) {
+                        for (const row of result.rows) {
+                            if (subscriber.closed) break;
+                            await this.waitWhilePaused();
+                            this.sendReciveEvent(row);
+                            subscriber.next(row);
+                        }
                     }
 
                     subscriber.complete();
