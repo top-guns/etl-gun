@@ -1,9 +1,9 @@
 import { Subscriber } from "rxjs";
-import { BaseEndpoint} from "../core/endpoint.js";
+import { BaseEndpoint} from "../../core/endpoint.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
-import { BaseObservable } from '../core/observable.js';
-import { BaseCollection_I } from '../core/base_collection_i.js';
-import { CollectionOptions } from '../core/base_collection.js';
+import { BaseObservable } from '../../core/observable.js';
+import { BaseCollection_I } from '../../core/base_collection_i.js';
+import { CollectionOptions } from '../../core/base_collection.js';
 
 export type InputMessage = {
     chatId: string;
