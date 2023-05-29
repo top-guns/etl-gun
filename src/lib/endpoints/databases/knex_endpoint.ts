@@ -6,7 +6,7 @@ import { BaseEndpoint} from "../../core/endpoint.js";
 import { BaseObservable } from '../../core/observable.js';
 import { conditionToSql, SqlCondition } from './condition.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
-import { CollectionOptions } from '../../core/base_collection.js';
+import { BaseCollection, CollectionOptions } from '../../core/base_collection.js';
 
 
 type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
@@ -66,6 +66,12 @@ export class KnexEndpoint extends BaseEndpoint {
         options.displayName ??= `${table}`;
         const c = this._addCollection(table, new KnexTableCollection(this, table, table, options));
         return c as unknown as KnexTableCollection<T>;
+    }
+
+    getQuery<T = Record<string, any>>(collectionName: string, sqlQuery: string, options: CollectionOptions<string[]> = {}): KnexQueryCollection<T> {
+        options.displayName ??= `${collectionName}`;
+        const c = this._addCollection(collectionName, new KnexQueryCollection(this, collectionName, sqlQuery, options));
+        return c as unknown as KnexQueryCollection<T>;
     }
 
     releaseCollection(collectionName: string) {
@@ -242,3 +248,52 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
     }
 
 }
+
+
+export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection<T> {
+    protected static instanceNo = 0;
+
+    protected query: string;
+
+    constructor(endpoint: KnexEndpoint, collectionName: string, sqlQuery: string, options: CollectionOptions<T> = {}) {
+        KnexQueryCollection.instanceNo++;
+        super(endpoint, collectionName, options);
+        this.query = sqlQuery;
+    }
+
+    public select(params?: any[]): BaseObservable<T> {
+        const observable = new BaseObservable<T>(this, (subscriber) => {
+            (async () => {
+                try {
+                    this.sendStartEvent();
+
+                    const myArray = [1,2,3]
+                    this.endpoint.database.raw('select * from users where id in (' + myArray.map(_ => '?').join(',') + ')', [...myArray]);
+
+
+                    const result: any[] = await this.endpoint.database.raw('select * from users where id = ?', params);
+                    
+                    for (const row of result) {
+                        if (subscriber.closed) break;
+                        await this.waitWhilePaused();
+                        this.sendReciveEvent(row);
+                        subscriber.next(row);
+                    }
+
+                    subscriber.complete();
+                    this.sendEndEvent();
+                }
+                catch(err) {
+                    this.sendErrorEvent(err);
+                    subscriber.error(err);
+                }
+            })();
+        });
+        return observable;
+    }
+
+    get endpoint(): KnexEndpoint {
+        return super.endpoint as KnexEndpoint;
+    }
+}
+
