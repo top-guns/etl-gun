@@ -1,6 +1,52 @@
-import { SmsError, SmsService } from './sms-service.js';
 import { HttpClientHelper } from '../../index.js';
 import { BaseEndpoint } from '../../core/endpoint.js';
+import { MessangerService, SendError } from './messanger-service.js';
+
+export class SmsRu extends BaseEndpoint implements MessangerService {
+    protected apiUrl = 'https://sms.ru/sms';
+    protected apiId: string;
+    
+    constructor(apiId: string) {
+        super();
+        this.apiId = apiId;
+    }
+
+    async send(message: string, toPhone: string, from?: string): Promise<SendError | undefined>;
+    async send(message: string, toPhones: string[], from?: string): Promise<SendError | undefined>;
+    async send(message: string, toPhone: string | string[], from?: string): Promise<SendError | undefined> {
+        const httpHelper = new HttpClientHelper(this.apiUrl);
+        const url = `${this.apiUrl}/send?api_id=${this.apiId}${from ? '&from=' + from : ''}&to=${typeof toPhone === 'string' ? toPhone : toPhone.join(',')}&msg=${message}&json=1`;
+        console.log(url);
+        const res: SendResult = await httpHelper.getJson(url);
+        console.log(res);
+        if (res.status == "OK") return undefined;
+        return SendResultCodeMessages[res.status_code];
+    }
+
+    get displayName(): string {
+        return `sms.ru`;
+    }
+}
+
+type MessangerError = {
+    code: string;
+    error: string;
+}
+
+type SendPhoneResult = {
+    status: "OK" | "ERROR"; // Возможные варианты: OK или ERROR.
+    status_code: SendResultCode; // 100 Успешный код выполнения, сообщение принято на отправку
+    sms_id?: string; // ID сообщения
+    status_text?: string; // Описание ошибки
+}
+
+type SendResult = {
+    status: "OK" | "ERROR", // Запрос выполнен успешно (нет ошибок в авторизации, проблем с отправителем, итд...)
+    status_code: SendResultCode, // 100 Успешный код выполнения
+    sms: Record<string, SendPhoneResult>,
+    balance: number // Ваш баланс после отправки
+}
+
 
 enum SendResultCode {
     "Сообщение не найдено" = 1,
@@ -104,47 +150,4 @@ const SendResultCodeMessages = {
     "507": "IP адрес пользователя указан неверно, либо идет из частный подсети (192.*, 10.*, итд).",
     "901": "Callback: URL неверный (не начинается на http://)",
     "902": "Callback: Обработчик не найден (возможно был удален ранее)"
-}
-
-type SendPhoneResult = {
-    status: "OK" | "ERROR"; // Возможные варианты: OK или ERROR.
-    status_code: SendResultCode; // 100 Успешный код выполнения, сообщение принято на отправку
-    sms_id?: string; // ID сообщения
-    status_text?: string; // Описание ошибки
-}
-
-type SendResult = {
-    status: "OK" | "ERROR", // Запрос выполнен успешно (нет ошибок в авторизации, проблем с отправителем, итд...)
-    status_code: SendResultCode, // 100 Успешный код выполнения
-    sms: Record<string, SendPhoneResult>,
-    balance: number // Ваш баланс после отправки
-}
-
-
-export class SmsRuEndpoint extends BaseEndpoint implements SmsService {
-    protected apiUrl = 'https://sms.ru/sms';
-    protected apiId: string;
-    constructor(apiId: string) {
-        super();
-        this.apiId = apiId;
-    }
-
-    async sendSms(message: string, toPhone: string, from?: string): Promise<SmsError | undefined>;
-    async sendSms(message: string, toPhones: string[], from?: string): Promise<SmsError | undefined>;
-    async sendSms(message: string, toPhone: string | string[], from?: string): Promise<SmsError | undefined> {
-        const httpHelper = new HttpClientHelper(this.apiUrl);
-        const url = `${this.apiUrl}/send?api_id=${this.apiId}${from ? '&from=' + from : ''}&to=${typeof toPhone === 'string' ? toPhone : toPhone.join(',')}&msg=${message}&json=1`;
-        console.log(url);
-        const res: SendResult = await httpHelper.getJson(url);
-        console.log(res);
-        if (res.status == "OK") return undefined;
-        return {
-            code: res.status_code.toString(),
-            message: SendResultCodeMessages[res.status_code]
-        }
-    }
-
-    get displayName(): string {
-        return `Service sms.ru`;
-    }
 }

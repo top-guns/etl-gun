@@ -4,8 +4,9 @@ It is not contains any usefull code, is not a part of library and is not an exam
 ************************************************************************************************************************************/
 
 import * as rx from "rxjs";
-import fetch, { RequestInit } from 'node-fetch';
+import fetch from 'node-fetch';
 import { Rools, Rule } from 'rools';
+import * as nodemailer from "nodemailer";
 import * as etl from './lib/index.js';
 import { EtlRoolsResult, GuiManager, Magento } from "./lib/index.js";
 import { CsvCellType } from "./lib/endpoints/csv.js";
@@ -547,26 +548,83 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 // console.log(result);
 
 
-const sql2 = `
-    SELECT * FROM public.bookings
-    ORDER BY id ASC LIMIT 100
-`;
+// let transporter1 = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: false, // true for 465, false for other ports
+//     auth: {
+//         user: process.env.GMAIL_USER, // generated ethereal user
+//         pass: process.env.GMAIL_PASSWORD, // generated ethereal password
+//     },
+//     logger: true
+// });
 
+const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
+const inbox = gmail.getInbox();
 
-const db = new etl.databases.Postgres.Endpoint(process.env.POSTGRES_PROD_CONNECTION!);
-const table = db.getTable('bookings');
-const query = db.getQuery('src', sql2);
-
-
-const pipeline$ = query.select().pipe(
-    rx.take(10),
+const PrintMails$ = inbox.select({seen: false}).pipe(
+    rx.take(2),
     etl.log()
-);
+)
+
+//await etl.run(PrintMails$);
+
+console.log(await inbox.get(1463));
 
 
-await etl.run(pipeline$);
 
-db.releaseEndpoint()
+
+// const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     host: "smtp.gmail.com",
+//     //port: 587,
+//     //secure: false,
+//     port: 465,
+//     secure: true,
+//     auth: {
+//       user: process.env.GMAIL_USER,
+//       pass: process.env.GMAIL_PASSWORD,
+//     },
+//     logger: true
+// });
+
+
+// const message = "Hi there, you were emailed me through nodemailer";
+// const options = {
+//     from: `bia <${process.env.GMAIL_USER}>`, // sender address
+//     to: process.env.GMAIL_USER, // receiver email
+//     subject: "Send email in Node.JS with Nodemailer using Gmail account", // Subject line
+//     text: message,
+//     html: `<b>${message}</b>`
+// }
+
+//const info = await transporter.sendMail(options);
+
+//console.log(info)
+
+
+
+// const SENDMAIL = async (mailDetails, callback) => {
+//     try {
+//         const info = await transporter.sendMail(mailDetails)
+//         callback(info);
+//     } catch (error) {
+//         console.log(error);
+//     } 
+// };
+
+
+
+// // send mail with defined transport object
+// let info = await transporter.sendMail({
+//     from: 'igor.127@gmail.com', // sender address
+//     to: "igor.127@gmail.com", // list of receivers
+//     subject: "test", // Subject line
+//     text: "test", // plain text body
+//     html: "<b>test</b>", // html body
+// });
+
+// console.log(info)
 
 // const res = await fetch('https://textbelt.com/text', {
 //   phone: process.env.SMS_RU_MY_PHONE!,

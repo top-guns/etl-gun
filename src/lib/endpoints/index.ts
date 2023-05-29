@@ -7,7 +7,7 @@ import * as Json from './json.js'
 import * as Magento from './magento/index.js'
 import * as Trello from './trello/index.js'
 import * as Zendesk from './zendesk/index.js'
-import * as Telegram from './telegram.js'
+import * as messangers from './messangers/index.js'
 import * as databases from './databases/index.js'
 import * as filesystems from './filesystems/index.js'
 //import * as sms from './sms/index.js'
@@ -23,7 +23,7 @@ export {
     Magento,
     Trello,
     Zendesk,
-    Telegram,
+    messangers,
     databases,
     filesystems
 

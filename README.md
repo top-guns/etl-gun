@@ -64,13 +64,16 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
             * [PostgreSQL](#postgres)
             * [Amazone Redshift](#amazone-redshift)
             * [SQLite](#sqlite)
+        * [Messangers]()
+            * [GeneralEmail](#generalemail) - any smtp + imap email server can be used
+            * [Gmail](#gmail)
+            * [SMS.RU](#smsru)
+            * [Telegram](#telegram)
         * [CMS]()
             * [Magento](#magento)
         * [Task tracking systems]()
             * [Trello](#trello)
             * [Zendesk](#zendesk)
-        * [Messangers]()
-            * [Telegram](#telegram)
     * [Operators](#operators)
         * [run](#run)
         * [log](#log)
@@ -1271,6 +1274,164 @@ const logUsers$ = table.select().pipe(
 );
 
 etl.run(logUsers$)
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### GeneralEmail
+
+Endpoint to send and recive emails. Implements SMTP protocol and based on [nodemailer](https://nodemailer.com/) library.
+
+#### Endpoint
+
+Methods:
+
+```typescript
+constructor(connectionOptions: ConnectionOptions);
+async releaseEndpoint();
+
+async send(to: string[] | string, subject: string, body: string, cc?: string[] | string, bcc?: string[] | string, from?: string): Promise<SendError | undefined>;
+async send(value: EMail): Promise<SendError | undefined>;
+
+getInbox(options: CollectionOptions<EMail> = {}): Collection;
+releaseInbox();
+getMailbox(mailBox: string, options: CollectionOptions<EMail> = {}): Collection;
+releaseMailbox(mailBox: string);
+```
+
+#### Collection
+
+Presents emails mailbox. 
+
+Methods:
+
+```typescript
+// Create the observable object and send product data from the Magento to it
+select(): BaseObservable<EMail>;
+select(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
+select(range: string, markSeen?: boolean): BaseObservable<EMail>;
+select(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
+
+async get(UID: string | number, markSeen: boolean = false): Promise<EMail>;
+```
+
+Example:
+
+```typescript
+import * as etl from "etl-gun";
+
+const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
+const inbox = gmail.getInbox();
+
+const PrintMails$ = inbox.select({seen: false}).pipe(
+    rx.take(10),
+    etl.log()
+)
+
+await etl.run(PrintMails$);
+
+const mail = await inbox.get(1463);
+console.log(mail);
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### Gmail
+
+Endpoint to work with Gmail service. Based on [GeneralEmail](#generalemail) endpoint.
+
+You should to get the application password from Gmail service to use this endpoint. 
+Follow this steps to get it:
+
+1. Login to you Gmail account
+2. Open this link https://myaccount.google.com/security
+3. Enable 2 factor authentication
+4. Go to https://myaccount.google.com/apppasswords
+5. From Select App options select Other and write your app name (it could be any name like mycustomapp)
+6. It will generate you the password - copy the password from the popup
+7. Use that copied password in the application password parameter in the Gmail endpoint constructor.
+
+[![Gmail security](/static/gmail-security.png)](/static/gmail-security.png)
+
+#### Endpoint
+
+Methods:
+
+```typescript
+constructor(userEmail: string, appPassword: string);
+async releaseEndpoint();
+
+async send(to: string[] | string, subject: string, body: string, cc?: string[] | string, bcc?: string[] | string, from?: string): Promise<SendError | undefined>;
+async send(value: EMail): Promise<SendError | undefined>;
+
+getInbox(options: CollectionOptions<EMail> = {}): Collection;
+releaseInbox();
+getMailbox(mailBox: string, options: CollectionOptions<EMail> = {}): Collection;
+releaseMailbox(mailBox: string);
+```
+
+#### Collection
+
+Presents emails mailbox. 
+
+Methods:
+
+```typescript
+// Create the observable object and send product data from the Magento to it
+select(): BaseObservable<EMail>;
+select(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
+select(range: string, markSeen?: boolean): BaseObservable<EMail>;
+select(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
+
+async get(UID: string | number, markSeen: boolean = false): Promise<EMail>;
+```
+
+Example:
+
+```typescript
+import * as etl from "etl-gun";
+
+const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
+const inbox = gmail.getInbox();
+
+const PrintMails$ = inbox.select({seen: false}).pipe(
+    rx.take(10),
+    etl.log()
+)
+
+await etl.run(PrintMails$);
+
+const mail = await inbox.get(1463);
+console.log(mail);
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### SMS.RU
+
+Endpoint to work with http://sms.ru service. 
+
+You should have the account on this service to use it. 
+
+#### Endpoint
+
+Methods:
+
+```typescript
+constructor(apiId: string);
+
+async send(message: string, toPhone: string, from?: string): Promise<SendError | undefined>;
+async send(message: string, toPhones: string[], from?: string): Promise<SendError | undefined>;
+```
+
+Example:
+
+```typescript
+import * as etl from "etl-gun";
+
+const sms = new etl.messangers.SmsRu();
+const err = await sms.sendSms('hello', '123-45-67');
+if (err) console.log(err); // log error if any
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
