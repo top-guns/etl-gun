@@ -25,7 +25,11 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
 
 <img src="./static/ETL.png" alt="Diagram" title="Logo" style="max-width: 100%;">
 
+<div style="text-align: right">
+
 [![TOP Guns][logo]][top-guns-url]
+
+</div>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
