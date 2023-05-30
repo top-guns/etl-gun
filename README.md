@@ -3,8 +3,6 @@ ETL-Gun
 <img src="./static/gun-02.png" height="40px" style="margin-left: 10px; vertical-align: middle"/>
 </h1>
 
-<img src="https://github.com/top-guns/etl-gun/raw/main/static/gun-02.png" alt="etl-gun" title="etl-gun" width="30"/>
-
 [![TOP Guns][logo]][top-guns-url]
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
