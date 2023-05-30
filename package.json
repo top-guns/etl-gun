@@ -64,6 +64,8 @@
     "trello",
     "zendesk",
     "telegram",
+    "email",
+    "sms",
     "csv",
     "json",
     "jsonpath",
