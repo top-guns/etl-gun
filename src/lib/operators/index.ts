@@ -11,3 +11,4 @@ export * from './mapAsync.js';
 export * from './waiting.js';
 export * from './toProperty.js';
 export * from './rools.js';
+export * from './collect.js';

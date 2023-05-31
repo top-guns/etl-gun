@@ -559,18 +559,25 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 //     logger: true
 // });
 
-const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
-const inbox = gmail.getInbox();
+// const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
+// const inbox = gmail.getInbox();
 
-const PrintMails$ = inbox.select({seen: false}).pipe(
-    rx.take(2),
-    etl.log()
-)
+// const PrintMails$ = inbox.select({seen: false}).pipe(
+//     rx.take(2),
+//     etl.log()
+// )
 
 //await etl.run(PrintMails$);
 
-console.log(await inbox.get(1463));
+//console.log(await inbox.get(1463));
 
+
+const src = rx.of(1,2,3,4,5,6,7,8,9,10);
+const p$ = src.pipe(
+    etl.collect(v => v % 3 == 1 ),
+    etl.log()
+)
+etl.run(p$);
 
 
 

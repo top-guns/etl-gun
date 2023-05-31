@@ -86,6 +86,7 @@ ETL-Gun is a platform that employs RxJs observables, allowing developers to buil
         * [log](#log)
         * [expect](#expect) - as expect() in unit test engines, used for data validation
         * [where](#where) - similar to rxjs filter() operator, but more useful to data processing
+        * [collect](#collect) - analog of rxjs buffer operators, but with improvements for data processing
         * [push](#push)
         * [rools](#rools) - integration with business rules engine
         * [move](#move)
@@ -1012,6 +1013,12 @@ Methods:
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
 select(params?: any[]): BaseObservable<T>;
+
+// Execute query with specified parameters and return the first founded record or null
+async get(params?: any[]): Promise<T> {
+
+// Execute query with specified parameters and return founded records
+async find(params?: any[]): Promise<T[]>
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2067,6 +2074,31 @@ let stream$ = rx.interval(1000).pipe(
     etl.log()
 );
 etl.run(stream$);
+```
+
+### collect
+
+Variants:
+
+```typescript
+function collect<T>(maxLength: number): rx.OperatorFunction<T, T[]>;
+function collect<T>(startNewBuf: (value: T, buffer: T[]) => boolean): rx.OperatorFunction<T, T[]>;
+```
+
+This operator is analog of **buffer** operators from the **RxJS** library - but with improvements. It cat start new buffer by condition, or by buffer length.
+
+Example:
+
+```typescript
+import * as etl from "etl-gun";
+import * as rx from "rxjs";
+
+const src = rx.of(1,2,3,4,5,6,7,8,9,10);
+const p$ = src.pipe(
+    etl.collect(v => v % 3 == 1 ),
+    etl.log()
+)
+etl.run(p$);
 ```
 
 ### push
