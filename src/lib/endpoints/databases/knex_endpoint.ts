@@ -7,6 +7,7 @@ import { BaseObservable } from '../../core/observable.js';
 import { conditionToSql, SqlCondition } from './condition.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { BaseCollection, CollectionOptions } from '../../core/base_collection.js';
+import { BaseCollection_GF } from '../../core/base_collection_gf.js';
 
 
 type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
@@ -250,7 +251,7 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
 }
 
 
-export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection<T> {
+export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection_GF<T> {
     protected static instanceNo = 0;
 
     protected query: string;
@@ -267,10 +268,10 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
                 try {
                     this.sendStartEvent();
 
-                    const result = await this.endpoint.database.raw(this.query, params);
+                    const result = await this._find(params);
                     
-                    if (result.rows) {
-                        for (const row of result.rows) {
+                    if (result) {
+                        for (const row of result) {
                             if (subscriber.closed) break;
                             await this.waitWhilePaused();
                             this.sendReciveEvent(row);
@@ -288,6 +289,23 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
             })();
         });
         return observable;
+    }
+
+    public async get(params?: any[]): Promise<T> {
+        const result = await this._find(params);
+        const value = (result && result.length) ? result[0] : null;
+        this.sendGetEvent(value, params);
+        return value;
+    }
+    public async find(params?: any[]): Promise<T[]> {
+        const result = await this._find(params);
+        this.sendListEvent(result, params);
+        return result;
+    }
+
+    protected async _find(params?: any[]): Promise<T[]> {
+        const result = await this.endpoint.database.raw(this.query, params);
+        return result.rows;
     }
 
     get endpoint(): KnexEndpoint {
