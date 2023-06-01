@@ -5,34 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "pwa-node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/dist/index.js",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
-        },
-        {
             "type": "node",
             "request": "launch",
-            "name": "Run selected Jest test",
-            "runtimeExecutable": "npm",
+            "name": "Run selected node:test",
+            "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "run-script",
-                "test"
+                "test:",
             ],
             "args": [
-                "--",
-                "-i",
-                "${relativeFile}",
-                "-t",
-                "${selectedText}"
+                "${relativeFile}"
             ],
-            "console": "integratedTerminal",
+            "console": "integratedTerminal"
         }
     ]
 }
