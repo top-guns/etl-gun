@@ -4,18 +4,19 @@ import path from 'path';
 import * as fs from "fs";
 import * as rx from 'rxjs';
 import * as etl from '../../../../lib/index.js';
-import { deleteFileIfExists, getTempFolder, getTempPath, loadFileContent } from '../../../../utils/filesystem.js';
-import { Endpoint as FilesystemEndpoint } from '../../../../lib/endpoints/filesystems/local.js'
+import { deleteFileIfExists, loadFileContent } from '../../../../utils/filesystem.js';
 
-describe('FilesystemEndpoint', () => {
+const TEMP_FOLDER = "./src/tests/tmp/";
+
+describe('Etl.filesystems.Local.Endpoint', () => {
     test('push method with simple parameters to create file', async () => {
         const OUT_FILE_NAME = 'test_output.tmp';
-        const ROOT_FOLDER = getTempFolder();
+        const ROOT_FOLDER = TEMP_FOLDER;
         const OUT_FILE_FULL_PATH = path.join(ROOT_FOLDER, OUT_FILE_NAME);
         try {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
 
-            const ep = new FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME, 'test');
 
@@ -29,12 +30,12 @@ describe('FilesystemEndpoint', () => {
 
     test('push method with simple parameters to create folder', async () => {
         const OUT_FOLDER_NAME = 'test_output';
-        const ROOT_FOLDER = getTempFolder();
+        const ROOT_FOLDER = TEMP_FOLDER;
         const OUT_FOLDER_FULL_PATH = path.join(ROOT_FOLDER, OUT_FOLDER_NAME);
         try {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
 
-            const ep = new FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FOLDER_NAME);
 
@@ -47,13 +48,13 @@ describe('FilesystemEndpoint', () => {
     });
 
     test('clear method', async () => {
-        const ROOT_FOLDER = getTempFolder("temp_out_dir");
+        const ROOT_FOLDER = TEMP_FOLDER + "temp_out_dir";
         const OUT_FILE_NAME = 'test_output.tmp';
         const OUT_FILE_FULL_PATH = path.join(ROOT_FOLDER, OUT_FILE_NAME);
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME, 'test');
 
@@ -76,13 +77,13 @@ describe('FilesystemEndpoint', () => {
     });
 
     test('read method', async () => {
-        const ROOT_FOLDER = getTempFolder("temp_out_dir");
+        const ROOT_FOLDER = TEMP_FOLDER + "temp_out_dir";
         const OUT_FILE_NAME1 = 'test_output1.tmp';
         const OUT_FILE_NAME2 = 'test_output2.tmp';
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new FilesystemEndpoint(ROOT_FOLDER);
+            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');
