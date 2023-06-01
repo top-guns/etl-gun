@@ -10,7 +10,7 @@
             "name": "Run selected node:test",
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "test:",
+                "test:one",
             ],
             "args": [
                 "${relativeFile}"

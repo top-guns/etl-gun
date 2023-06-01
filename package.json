@@ -30,6 +30,7 @@
     "build": "tsc",
     "--test:node2": "node --test --require ts-node/register ./src/tests/**/*.test.ts",
     "test:": "dotenv -e ./src/tests/suites/docker/docker.env -- node --test --loader ts-node/esm",
+    "test:one": "yarn test:",
     "test:basic": "yarn test: `./get-test-path basic`",
     "test:docker": "yarn test:docker:up && yarn test:docker:exec ; yarn test:docker:down",
     "test:docker:exec": "yarn test: `./get-test-path docker`",
