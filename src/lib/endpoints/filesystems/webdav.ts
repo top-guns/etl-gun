@@ -126,11 +126,7 @@ export class Collection extends RemoteFilesystemCollection<webdav.FileStat> {
 
     // Insert
 
-    public async insert(folderPath: string): Promise<void>;
-    public async insert(filePath: string, fileContents: string): Promise<void>;
-    public async insert(filePath: string, sourceStream: Readable): Promise<void>;
-    public async insert(path: string, fileContents?: string | Readable): Promise<void> {
-        this.sendInsertEvent(path, fileContents);
+    protected async _insert(path: string, fileContents?: string | Readable): Promise<void> {
         if (await this.isExists(path)) throw new Error(`Path ${path} already exists`);
 
         if (typeof fileContents === 'undefined') {

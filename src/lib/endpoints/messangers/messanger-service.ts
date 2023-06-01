@@ -1,5 +1,5 @@
 export type SendError = string;
 
 export interface MessangerService {
-    send(message: string | any, to: string | any, from?: string): Promise<SendError | undefined>;
+    send(message: string, to: string | string[], from?: string): Promise<SendError | undefined>;
 }

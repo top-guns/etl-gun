@@ -11,6 +11,12 @@ import { UpdatableCollection } from "../../core/updatable_collection.js";
 
 export type AlreadyExistsAction = 'update' | 'append' | 'skip' | 'error';
 
+
+export type FilesystemItem = {
+    path: string;
+    fileContents?: string | Readable;
+}
+
 export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     // protected get listeners(): Record<UpdatableCollectionEvent, CollectionEventListener[]> {
     //     return this._listeners as Record<UpdatableCollectionEvent, CollectionEventListener[]>;
@@ -30,7 +36,27 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     public abstract find(folderPath?: string, ...params: any[]): Promise<T[]>;
     public abstract get(filePath: string): Promise<string>;
 
-    public abstract insert(path: string, fileContents?: string | Readable): Promise<void>;
+    public async insert(folderPath: string): Promise<void>;
+    public async insert(filePath: string, fileContents: string): Promise<void>;
+    public async insert(filePath: string, sourceStream: Readable): Promise<void>;
+    public async insert(item: FilesystemItem): Promise<void>;
+    public async insert(p1: string | FilesystemItem, fileContents?: string | Readable): Promise<void> {
+        if (typeof p1 === 'string') {
+            this.sendInsertEvent(p1, fileContents);
+            await this._insert(p1, fileContents);
+            return;
+        }
+        this.sendInsertEvent(p1.path, p1.fileContents);
+        await this._insert(p1.path, p1.fileContents);
+    }
+
+    public async insertBatch(items: FilesystemItem[]): Promise<void> {
+        this.sendInsertBatchEvent(items);
+        for (const item of items) this._insert(item.path, item.fileContents);
+    }
+
+    protected abstract _insert(path: string, fileContents?: string | Readable): Promise<void>;
+
     public abstract update(filePath: string, fileContents: string | Readable): Promise<void>;
     public abstract upsert(filePath: string, fileContents: string | Readable): Promise<boolean>;
     public abstract delete(path: string): Promise<boolean>;
@@ -78,6 +104,10 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
                 fileContents: typeof fileContents === undefined ? undefined : typeof fileContents === 'string' ? fileContents : '[readable stream]' 
             }, 
             { ...params, operation });
+    }
+
+    public sendInsertBatchEvent(items: FilesystemItem[], operation: string = 'insertBatch', params?: {}) {
+        super.sendInsertBatchEvent(items, { ...params, operation });
     }
 
     public sendUpdateEvent(filePath: string, fileContents: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Readable, operation: string = 'update', params?: {}) {

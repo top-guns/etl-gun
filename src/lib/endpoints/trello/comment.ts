@@ -78,8 +78,8 @@ export class CommentsCollection extends TrelloCollection<Comment> {
         return `cards/${this.cardId}/actions?filter=${this.resourceName}`;
     }
 
-    public async insert(text: string) {
-        return await super.insert({ text });
+    protected async _insert(text: string) {
+        return await super._insert({ text });
         //return await this.endpoint.fetchJson(`/1/cards/${this.cardId}/actions/comments`, {text}, 'POST');
     }
 

@@ -171,16 +171,10 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return res;
     }
 
-    public async insert(folderPathDetails: PathDetails): Promise<void>;
-    public async insert(pathDetails: PathDetails, fileContents: string): Promise<void>;
-    public async insert(pathDetails: PathDetails, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
-    public async insert(folderPath: string): Promise<void>;
-    public async insert(filePath: string, fileContents: string): Promise<void>;
-    public async insert(filePath: string, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
-    public async insert(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
+    protected async _insert(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
         let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
         const fullPath = this.getFullPath(path);
-        this.sendInsertEvent(path, data);
+        console.log("fullPath:", fullPath)
         
         if (await this.isExists(path)) throw new Error(`Path ${path} already exists`);
 
@@ -191,6 +185,19 @@ export class Collection extends FilesystemCollection<PathDetails> {
 
         await this.ensureParentDir(path);
         await fs.promises.writeFile(fullPath, data);
+    }
+
+    public async insertExt(folderPathDetails: PathDetails): Promise<void>;
+    public async insertExt(pathDetails: PathDetails, fileContents: string): Promise<void>;
+    public async insertExt(pathDetails: PathDetails, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
+    public async insertExt(folderPath: string): Promise<void>;
+    public async insertExt(filePath: string, fileContents: string): Promise<void>;
+    public async insertExt(filePath: string, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
+    public async insertExt(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
+        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+        const fullPath = this.getFullPath(path);
+        this.sendInsertEvent(path, data);
+        return await this._insert(pathDetails, data);
     }
 
     public async update(pathDetails: PathDetails, fileContents: string): Promise<void>;
@@ -223,7 +230,7 @@ export class Collection extends FilesystemCollection<PathDetails> {
         await this.ensureParentDir(path);
 
         if (exists) await this.update(path, data);
-        else await this.insert(path, data);
+        else await this._insert(path, data);
         return exists;
     }
 

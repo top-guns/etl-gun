@@ -192,11 +192,17 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
         return result;
     }
 
+    protected async _insert(value: T): Promise<void>;
+    protected async _insert(values: T[]): Promise<void>;
+    protected async _insert(value: T | T[]): Promise<void>{
+        await this.endpoint.database(this.table).insert(value);
+    }
+
     public async insert(value: T): Promise<void>;
     public async insert(values: T[]): Promise<void>;
     public async insert(value: T | T[]): Promise<void>{
         this.sendInsertEvent(value);
-        await this.endpoint.database(this.table).insert(value);
+        await this._insert(value as any);
     }
 
     public async update(value: T, where: SqlCondition<T>): Promise<void>;

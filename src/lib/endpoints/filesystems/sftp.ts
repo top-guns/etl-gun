@@ -131,11 +131,7 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
 
     // Insert
 
-    public async insert(folderPath: string): Promise<void>;
-    public async insert(filePath: string, fileContents: string): Promise<void>;
-    public async insert(filePath: string, sourceStream: Readable): Promise<void>;
-    public async insert(remotePath: string, fileContents?: string | Readable): Promise<void> {
-        this.sendInsertEvent(remotePath, fileContents);
+    protected async _insert(remotePath: string, fileContents?: string | Readable): Promise<void> {
         const path = this.getFullPath(remotePath);
         if (await this.isExists(remotePath)) throw new Error(`Path ${path} already exists`);
         const connection = await this.endpoint.getConnection();

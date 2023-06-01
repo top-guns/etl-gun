@@ -247,9 +247,7 @@ export class Collection extends UpdatableCollection<any> {
 
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
-    public async insert(value: any, path: string = '', fieldname: string = '') {
-        this.sendInsertEvent(value, { path, fieldname });
-
+    protected async _insert(value: any, path: string = '', fieldname: string = '') {
         const obj = await this.find(path);
 
         if (fieldname) obj[fieldname] = value;

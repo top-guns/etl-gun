@@ -19,7 +19,18 @@ export abstract class BaseCollection_GF_ID<T> extends BaseCollection_GF<T> {
         this.listeners.delete = [];
     }
 
-    public abstract insert(value: T | any, ...params: any[]): Promise<void>;
+    public async insert(value: T | any, ...params: any[]): Promise<void> {
+        this.sendInsertEvent(value, params);
+        await this._insert(value, params);
+    }
+
+    public async insertBatch(values: (T | any)[], ...params: any[]): Promise<void> {
+        this.sendInsertEvent(values, params);
+        for (const value of values) await this._insert(value, params);
+    }
+
+    protected abstract _insert(value: T | any, ...params: any[]): Promise<void>;
+
     public abstract delete(where?: any, ...params: any[]): Promise<boolean>;
 
     public on(event: BaseCollection_GF_ID_Event, listener: CollectionEventListener): BaseCollection_GF_ID<T> {
@@ -35,6 +46,10 @@ export abstract class BaseCollection_GF_ID<T> extends BaseCollection_GF<T> {
 
     public sendInsertEvent(value: T | any, ...params: any[]) {
         this.sendEvent("insert", { value, params });
+    }
+
+    public sendInsertBatchEvent(values: (T | any)[], ...params: any[]) {
+        this.sendEvent("insert", { values, params });
     }
 
     public sendDeleteEvent(where?: any, ...params: any[]) {

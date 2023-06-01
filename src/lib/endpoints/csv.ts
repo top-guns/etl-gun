@@ -112,8 +112,7 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
         throw new Error("Method not implemented.");
     }
 
-    public async insert(value: CsvCellType[], nullValue: string = ''): Promise<void> {
-        this.sendInsertEvent(value);
+    protected async _insert(value: CsvCellType[], nullValue: string = ''): Promise<void> {
         const strVal = this.getCsvStrFromArr(value) + "\n";
         // await fs.appendFile(this.filename, strVal, function (err) {
         //     if (err) throw err;

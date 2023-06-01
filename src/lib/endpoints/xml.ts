@@ -187,9 +187,7 @@ export class Collection extends BaseCollection_GF_ID<any> {
 
     // Pushes value to the array specified by xpath
     // or update attribute of object specified by xpath and attribute parameter
-    public async insert(value: any, xpath: string = '', attribute: string = ''): Promise<void> {
-        this.sendInsertEvent(value, { xpath, attribute });
-        
+    protected async _insert(value: any, xpath: string = '', attribute: string = ''): Promise<void> {
         const selectedValue = await this.get(xpath);
         let node: Node = (selectedValue as any).nodeType ? selectedValue as Node : undefined;
         if (!node) throw new Error('Unexpected result of xpath in push method. Should by Node, but we have: ' + selectedValue.toString());

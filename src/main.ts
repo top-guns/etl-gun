@@ -11,6 +11,7 @@ import * as etl from './lib/index.js';
 import { EtlRoolsResult, GuiManager, Magento } from "./lib/index.js";
 import { CsvCellType } from "./lib/endpoints/csv.js";
 import { sqlvalue } from "./lib/endpoints/databases/condition.js";
+import { deleteFileIfExists } from "./utils/filesystem.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 
@@ -571,13 +572,30 @@ const PrintPuma1$ = csvPuma.select(true).pipe(
 
 //console.log(await inbox.get(1463));
 
+import path from 'path';
+const TEMP_FOLDER = "./tests/tmp/";
+const OUT_FILE_NAME = 'test_output.tmp';
+const ROOT_FOLDER = TEMP_FOLDER;
+const OUT_FILE_FULL_PATH = path.join(ROOT_FOLDER, OUT_FILE_NAME);
+try {
+    deleteFileIfExists(OUT_FILE_FULL_PATH);
 
-const src = rx.of(1,2,3,4,5,6,7,8,9,10);
-const p$ = src.pipe(
-    etl.collect(v => v % 3 == 1 ),
-    etl.log()
-)
-etl.run(p$);
+    console.log(111111)
+
+    const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+    console.log(222222)
+    // const src = ep.getFolder('.');
+    // console.log(333333)
+    // await src.insert(OUT_FILE_NAME, 'test');
+    // console.log(444444)
+
+    // const res = loadFileContent(OUT_FILE_FULL_PATH);
+    // assert.strictEqual(res, 'test');
+}
+finally {
+    //deleteFileIfExists(OUT_FILE_FULL_PATH);
+}
+
 
 
 

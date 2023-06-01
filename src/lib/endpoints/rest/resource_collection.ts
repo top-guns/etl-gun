@@ -84,8 +84,7 @@ export class RestResourceCollection<T> extends UpdatableCollection<T> {
         return exists;
     }
 
-    public async insert(value: Partial<Omit<T, 'id'>> | any): Promise<any> {
-        this.sendInsertEvent(value);
+    protected async _insert(value: Partial<Omit<T, 'id'>> | any): Promise<any> {
         const body = {};
         body[this.resourceName] = value;
         return await this.endpoint.fetchJson(this.getResourceListUrl(), 'POST', body);

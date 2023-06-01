@@ -74,9 +74,14 @@ export class QueueCollection<T = any> extends BaseQueueCollection<T> {
     }
 
 
-    public async insert(value: T): Promise<void> {
-        this.sendInsertEvent(value);
+    protected async _insert(value: T): Promise<void> {
         this.queue.push(value);
+        this.activateSignal.notify();
+    }
+
+    public async insertBatch(values: T[]): Promise<void> {
+        this.sendInsertBatchEvent(values);
+        this.queue.push(...values);
         this.activateSignal.notify();
     }
     

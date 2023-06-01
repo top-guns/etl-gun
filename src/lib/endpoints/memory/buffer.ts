@@ -64,9 +64,13 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         return elements;
     }
 
-    public async insert(value: T) {
-        this.sendInsertEvent(value);
+    protected async _insert(value: T) {
         this._buffer.push(value); 
+    }
+
+    public async insertBatch(values: T[]) {
+        this.sendInsertBatchEvent(values);
+        this._buffer.push(...values); 
     }
 
     public async update(value: Partial<T>, where?: Condition<T>): Promise<any> {
