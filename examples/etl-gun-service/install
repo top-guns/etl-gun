@@ -1,6 +1,48 @@
 #!/bin/bash
 
-[ -z "$1" ] || [ -z "$2" ] && echo "Usage:" && echo "install service-name command-to-execute" && exit
+bold () { printf "\e[1m" ; $@ ; printf "\e[0m"; }
+header1 () { printf "\e[32m\e[1m\e[4m" ; $@ ; printf "\e[0m"; }
+header2 () { printf "\e[92m" ; $@ ; printf "\e[0m"; }
+selected () { printf "\e[4m" ; $@ ; printf "\e[0m"; }
+
+service () { selected echo -n "<service-name>"; }
+line () { bold echo -n "# "; }
+
+if [ -z "$1" ] || [ -z "$2" ]; then
+    header1 echo "ETL-Gun service installer"
+    echo "This tool converts any command to the systemd service + timer for it."
+    echo ""
+    header2 echo "Usage"
+    line && echo -n " install " && service && echo " <command-to-execute>"
+    echo ""
+    header2 echo "This creates two services"
+    echo -n "" && service && echo ".service - which runs your command"
+    echo -n "" && service && echo -n ".timer - which is scheduler for the " && service && echo ".service"
+    echo ""
+    echo -n "You can find service files in the /etc/etl-gun/" && service && echo " folder"
+    echo ""
+    echo -n "To change schedule for service, you should edit the /etc/etl-gun/" && service && echo "/systemd.timer file in the line OnCalendar="
+    echo ""
+    header2 echo "Then, to start timer service"
+    line && echo -n " sudo systemctl enable " && service && echo ".timer"
+    line && echo -n " sudo systemctl start " && service && echo ".timer"
+    echo ""
+    header2 echo "To stop timer service"
+    line && echo -n " sudo systemctl stop " && service && echo ".timer"
+    line && echo -n " sudo systemctl disable " && service && echo ".timer"
+    echo ""
+    header2 echo "To start service once just now"
+    line && echo -n " sudo systemctl start " && service && echo ".service"
+    echo ""
+    header2 echo "Example"
+    echo ""
+    line && echo " install test1 \"npm --prefix /var/your-etl-folder start\""
+    echo ""
+    echo "This will creates two services:"
+    echo " - test1.service - which runs the command npm --prefix /var/your-etl-folder start"
+    echo " - test1.timer - which is scheduler for the test1.service"
+    exit
+fi
 
 [ -d /etc/etl-gun/ ] || sudo mkdir /etc/etl-gun
 
@@ -19,5 +61,5 @@ echo "$2" | sudo tee -a /etc/etl-gun/$1/service
 [ -f /etc/systemd/system/$1.timer ] || sudo ln -s /etc/etl-gun/$1/systemd.timer /etc/systemd/system/$1.timer
 
 sudo systemctl daemon-reload
-sudo systemctl enable $1.timer
-sudo systemctl start $1.timer
+#sudo systemctl enable $1.timer
+#sudo systemctl start $1.timer
