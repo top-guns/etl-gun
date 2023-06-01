@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            //"isTestCommand": true,
+            "label": "Run current node:test file",
+            "command": "yarn", 
+            "args": [
+                "test:one",
+                "${relativeFile}"
+            ],
+            "group": "test",
+            "presentation": {
+              "reveal": "always",
+              "panel": "new"
+            }
+        }
+    ]
+}
