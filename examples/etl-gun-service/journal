@@ -1,0 +1,9 @@
+#!/bin/bash
+
+service=$1
+[ -z $service ] && service="timer"
+service=`basename "$PWD"`.$service
+
+echo "Logs for the $service service":
+
+sudo journalctl -u $service

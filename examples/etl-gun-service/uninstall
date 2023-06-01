@@ -1,0 +1,13 @@
+#!/bin/bash
+
+service=$1
+[ -z $service ] && service=`basename "$PWD"`
+echo "Uninstall $service service"
+
+[ -z $1 ] && cd ~
+
+sudo systemctl stop "$service.timer"
+
+[ -f "/etc/systemd/system/$service.service" ] && sudo rm "/etc/systemd/system/$service.service"
+[ -f "/etc/systemd/system/$service.timer" ] && sudo rm "/etc/systemd/system/$service.timer"
+[ -d "/etc/etl-gun/$service" ] && sudo rm -rf "/etc/etl-gun/$service"

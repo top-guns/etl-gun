@@ -1,0 +1,12 @@
+# /etc/systemd/system/{service}.timer
+
+[Unit]
+Description=Runs ETL-Gun service {service} by schedule
+Requires={service}.service
+
+[Timer]
+Unit={service}.service
+OnCalendar=*:*:0/10
+
+[Install]
+WantedBy=multi-user.target

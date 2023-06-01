@@ -1,0 +1,15 @@
+# /etc/systemd/system/{service}.service
+
+[Unit]
+Description=ETL-Gun service {service}
+#After=network.target
+Wants={service}.timer
+
+[Service]
+Type=simple
+ExecStart=/etc/etl-gun/{service}/service
+#Restart=always
+#RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

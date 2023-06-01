@@ -142,12 +142,14 @@ yarn add etl-gun
 
 # Usage
 
-**Info:** You can get the ready to use blank example project in the [example-project](./example-project/) folder of this repository.
+**Info:** You can get the ready to use blank example project in the [example-project](./examples/example-project/) folder of this repository.
+
+**Info:** You can convert your etl process to the systemd service and setup schedule for it with the [etl-gun-service](./examples/example-project/) tool.
 
 **Warning:** Since the version 2.0.4 this library is native [ESM](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and no longer provides a CommonJS export. If your project uses CommonJS, you will have to [convert to ESM](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) or use the [dynamic `import()`](https://v8.dev/features/dynamic-import) function.
 
+<ins>Introductory example of library using: postgresql -> .csv</ins>
 
-Introductory example of library using: postgresql -> .csv
 ```typescript
 import { map } from "rxjs";
 import { Csv, GuiManager, Header, Postgres, log, push, run } from "etl-gun";

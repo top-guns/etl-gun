@@ -1,0 +1,7 @@
+#!/bin/bash
+
+service=$1
+[ -z $service ] && service="timer"
+service=`basename "$PWD"`.$service
+
+sudo systemctl start $service

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+[ -z "$1" ] || [ -z "$2" ] && echo "Usage:" && echo "install service-name command-to-execute" && exit
+
+[ -d /etc/etl-gun/ ] || sudo mkdir /etc/etl-gun
+
+[ -d /etc/etl-gun/$1 ] || sudo cp -r . /etc/etl-gun/$1
+
+sudo sed -i "s/{service}/$1/" /etc/etl-gun/$1/systemd.service
+sudo sed -i "s/{service}/$1/" /etc/etl-gun/$1/systemd.timer
+
+#str="sudo bash -c \"echo '$2' >> /etc/etl-gun/$1/service\""
+#echo $str
+#$str
+
+echo "$2" | sudo tee -a /etc/etl-gun/$1/service
+
+[ -f /etc/systemd/system/$1.service ] || sudo ln -s /etc/etl-gun/$1/systemd.service /etc/systemd/system/$1.service
+[ -f /etc/systemd/system/$1.timer ] || sudo ln -s /etc/etl-gun/$1/systemd.timer /etc/systemd/system/$1.timer
+
+sudo systemctl daemon-reload
+sudo systemctl enable $1.timer
+sudo systemctl start $1.timer
