@@ -4,6 +4,7 @@ import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-te
 import { BaseObservable } from '../../core/observable.js';
 import { BaseCollection_I } from '../../core/base_collection_i.js';
 import { CollectionOptions } from '../../core/base_collection.js';
+import { MessangerService, SendError } from "./messanger-service.js";
 
 export type InputMessage = {
     chatId: string;
@@ -39,7 +40,7 @@ export function getEndpoint(): Endpoint {
     return Endpoint.instance;
 }
 
-export class Collection extends BaseCollection_I<InputMessage> {
+export class Collection extends BaseCollection_I<InputMessage> implements MessangerService {
     protected static instanceNo = 0;
 
     protected token: string;
@@ -98,13 +99,29 @@ export class Collection extends BaseCollection_I<InputMessage> {
         this.bot = undefined;
     }
 
+    protected async _insert(value: InputMessage): Promise<void>;
+    protected async _insert(chatId: string, message: string): Promise<void>;
+    protected async _insert(valueOrChartId: InputMessage | string, message?: string): Promise<void> {
+        if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
+        const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
+        this.bot.sendMessage(value.chatId, value.message);
+    }
+
     public async insert(value: InputMessage): Promise<void>;
     public async insert(chatId: string, message: string): Promise<void>;
     public async insert(valueOrChartId: InputMessage | string, message?: string): Promise<void> {
-        if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
         this.sendInsertEvent(value);
-        this.bot.sendMessage(value.chatId, value.message);
+        await this._insert(valueOrChartId as any, message);
+    }
+
+    public async send(value: InputMessage): Promise<SendError | undefined>;
+    public async send(message: string, chatId: string): Promise<SendError | undefined>;
+    public async send(valueOrMessage: string | InputMessage, chatId?: string): Promise<SendError | undefined> {
+        const value = typeof valueOrMessage === 'string' ? {chatId, message: valueOrMessage} : valueOrMessage;
+        this.sendInsertEvent(value);
+        await this._insert(value);
+        return undefined;
     }
 
     public setKeyboard(keyboard: any) {
