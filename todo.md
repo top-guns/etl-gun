@@ -4,7 +4,6 @@
 
 ### Should be implemented
 1. Add expect operator and magento stock collection to readme
-
 1. Return new id or new object from push 
 1. Change push to insert & update
 1. Batch operations support
@@ -19,6 +18,7 @@
 1. Input/output application streams support
 1. Add constructor to all files collection to create collection from buffered contents
 1. Add archives support
+1. Add context to store current process state to restore it after the process restarting
 
 ### Desirable protocols and integrations
 
