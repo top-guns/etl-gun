@@ -3,7 +3,7 @@ version: '3.7'
 services:
   ftp:
     env_file:
-      - "./docker.env"
+      - "../../test.env"
     image: stilliard/pure-ftpd:hardened
     #image: stilliard/pure-ftpd
     ports:

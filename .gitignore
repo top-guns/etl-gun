@@ -8,6 +8,7 @@ node_modules
 # dotenv environment variables file
 *.env
 !/src/tests/suites/docker/docker.env
+!/src/tests/test.env
 
 # Build / generate output
 dist
