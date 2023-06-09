@@ -61,13 +61,13 @@ describe('HttpClientHelper', () => {
     })
 
     test('Fetch from local http', async () => {
-        const helper = new etl.HttpClientHelper(HTTP_URL);
+        const helper = new etl.HttpClientHelper(HTTP_URL, {}, { timeout: 2000 });
         const res = await helper.fetch();
         assert.strictEqual(res.status, 200);
     });
 
     test('Fetch from local https', async () => {
-        const helper = new etl.HttpClientHelper(HTTPS_URL, {}, { dontRejectUnauthorized: true });
+        const helper = new etl.HttpClientHelper(HTTPS_URL, {}, { dontRejectUnauthorized: true, timeout: 2000 });
         const res = await helper.fetch();
         assert.strictEqual(res.status, 200);
     });
