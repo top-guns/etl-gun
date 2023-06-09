@@ -1,35 +1,17 @@
+import * as ix from 'ix';
 import * as fs from "fs";
 import { glob, Glob } from 'glob';
-import PATH from 'path';
+import PATH, { join } from 'path';
 import internal from "stream";
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { extractFileName, extractParentFolderPath, pathJoin } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
-import { FilesystemCollection } from "./filesystem_collection.js";
-import { CollectionOptions } from "../../core/base_collection.js";
+import { FilesystemCollection, FilesystemCollectionOptions, FilesystemItem, FilesystemItemType } from "./filesystem_collection.js";
+import { generator2Iterable, generator2Observable, generator2Promise, observable2Stream, selectOne_from_Generator, wrapGenerator, wrapObservable, wrapPromise } from "../../utils/flows.js";
 
-
-export type PathDetails = {
-    isFolder: boolean
-    name: string;
-    relativePath: string; // Empty for root folder
-    fullPath: string;
-    parentFolderRelativePath: string; // '..' for root folder
-    parentFolderFullPath: string;
-    content?: Buffer;
-}
-
-export type ReadOptions = {
-    // false by default
-    includeRootDir?: boolean;
-    // all is default
-    objectsToSearch?: 'filesOnly' | 'foldersOnly' | 'all';
-    // false by default
-    withContent?: boolean;
-}
 
 export class Endpoint extends BaseEndpoint {
-    protected rootFolder: string = null;
+    protected rootFolder: string = '';
 
     constructor(rootFolder: string) {
         super();
@@ -37,7 +19,7 @@ export class Endpoint extends BaseEndpoint {
         if (this.rootFolder.endsWith('/')) this.rootFolder.substring(0, this.rootFolder.lastIndexOf('/'));
     }
 
-    getFolder(folderName: string = '.', options: CollectionOptions<PathDetails> = {}): Collection {
+    getFolder(folderName: string = '.', options: FilesystemCollectionOptions = {}): Collection {
         options.displayName ??= this.getName(folderName);
 
         let path = folderName == '.' ? '' : folderName;
@@ -58,71 +40,80 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
-export function getEndpoint(rootFolder: string = null): Endpoint {
+export function getEndpoint(rootFolder: string = ''): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-export class Collection extends FilesystemCollection<PathDetails> {
+export class Collection extends FilesystemCollection {
     protected static instanceCount = 0;
 
     protected rootPath: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, rootPath: string, options: CollectionOptions<PathDetails> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, rootPath: string, options: FilesystemCollectionOptions = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
         this.rootPath = rootPath.trim();
         if (this.rootPath.endsWith('/')) this.rootPath.substring(0, this.rootPath.lastIndexOf('/'));
     }
 
+    protected makeFilesystemItem(info: fs.Stats, fileName: string, folderPath: string, contents?: string): FilesystemItem {
+        const path = join(folderPath, fileName);
+        return {
+            name: fileName,
+            path,
+            fullPath: this.getFullPath(path),
+            size: info.size,
+            type: info.isDirectory() ? FilesystemItemType.Directory : info.isFile() ? FilesystemItemType.File : info.isSymbolicLink() ? FilesystemItemType.SymbolicLink : FilesystemItemType.Unknown,
+            modifiedAt: info.mtime,
+            fileContents: contents
+        }
+    }
+
+    protected async* _selectGen(mask: string = '*'): AsyncGenerator<FilesystemItem, void, void> {
+        const matches = new Glob(mask, { cwd: this.rootPath });
+        for await (const path of matches) {
+            const fullPath = PATH.resolve(this.rootPath, path);
+            const info = await await fs.promises.lstat(fullPath);
+            const value = this.makeFilesystemItem(info, extractFileName(path), extractParentFolderPath(path));
+            yield value;
+        }
+    }
+
+    protected async _select(mask: string = '*'): Promise<FilesystemItem[]> {
+        const generator = this._selectGen(mask);
+        const values = await wrapPromise(generator2Promise(generator), this);
+        return values;
+    }
+
+    public async select(mask: string = '*'): Promise<FilesystemItem[]> {
+        const generator = this._selectGen(mask);
+        const values = await wrapPromise(generator2Promise(generator), this);
+        return values;
+    }
+
+    public async* selectGen(mask: string = '*'): AsyncGenerator<FilesystemItem, void, void> {
+        const generator = wrapGenerator(this._selectGen(mask), this);
+        for await (const value of generator) yield value;
+    }
+
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(mask: string = '*', options: ReadOptions = {}): BaseObservable<PathDetails> {
-        const observable = new BaseObservable<any>(this, (subscriber) => {
-            this.sendStartEvent();
-            try {
-                (async () => {
-                    try {
-                        if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
-                            let res = this.getRootFolderDetails();
-                            this.sendReciveEvent(res);
-                            subscriber.next(res);
-                        }
-                
-                        const matches = new Glob(mask, { cwd: this.rootPath });
-
-                        for await (const path of matches) {
-                            const res: PathDetails = await this.getInfo(path, options);
-                            if ( (res.isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch))
-                                || (!res.isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch)) )
-                            {
-                                if (subscriber.closed) break;
-                                await this.waitWhilePaused();
-                                this.sendReciveEvent(res);
-                                subscriber.next(res);
-                            }
-                        }
-
-                        if (!subscriber.closed) {
-                            subscriber.complete();
-                            this.sendEndEvent();
-                        }
-                    }
-                    catch(err) {
-                        this.sendErrorEvent(err);
-                        subscriber.error(err);
-                    }
-                })();
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
-        });
-        return observable;
+    public selectRx(mask: string = '*'): BaseObservable<FilesystemItem> {
+        const generator = this._selectGen(mask);
+        return wrapObservable(generator2Observable(generator), this);
     }
 
-    public async get(filePath: string): Promise<string> {
+    public selectIx(mask?: string): ix.AsyncIterable<FilesystemItem> {
+        return generator2Iterable(this.selectGen(mask));
+    }
+
+    public selectStream(mask?: string): ReadableStream<FilesystemItem> {
+        return observable2Stream(this.selectRx(mask));
+    }
+
+
+    public async read(filePath: string): Promise<string> {
         if (await this.isFolder(filePath)) throw new Error("Error: method 'get' of filesystem collections can be used only with file path");
 
         let resStr = '';
@@ -135,44 +126,8 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return resStr;
     }
 
-    public async list(folderPath: string = ''): Promise<PathDetails[]> {
-        const res = await this._list(folderPath);
-        this.sendListEvent(res, folderPath);
-        return res;
-    }
-
-    public async _list(folderPath: string = ''): Promise<PathDetails[]> {
-        const res: PathDetails[] = [];
-        const names = await fs.promises.readdir(this.getFullPath(folderPath));
-        for (const path of names) res.push(await this.getInfo(path));
-        return res;
-    }
-
-
-    public async find(folderPath: string = '', params: {mask?: string, options?: ReadOptions} = { mask: '*', options: {} }): Promise<PathDetails[]> {
-        const res: PathDetails[] = [];
-
-        if (params?.options?.includeRootDir && (params?.options?.objectsToSearch === 'all' || params?.options?.objectsToSearch === 'foldersOnly' || !params?.options?.objectsToSearch)) {
-            res.push(this.getRootFolderDetails());
-        }
-
-        const matches = await glob(params?.mask ?? '*', { cwd: this.getFullPath(folderPath) });
-
-        for (const path of matches) {
-            const cur: PathDetails = await this.getInfo(path, params?.options);
-            if ( (cur.isFolder && (params?.options?.objectsToSearch == 'all' || params?.options?.objectsToSearch == 'foldersOnly' || !params?.options?.objectsToSearch))
-                || (!cur.isFolder && (params?.options?.objectsToSearch == 'filesOnly' || params?.options?.objectsToSearch == 'all' || !params?.options?.objectsToSearch)) )
-            {
-                res.push(cur);
-            }
-        }
-
-        this.sendFindEvent(res, folderPath, params);
-        return res;
-    }
-
-    protected async _insert(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
-        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    protected async _insert(pathDetails: string | FilesystemItem, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
+        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         const fullPath = this.getFullPath(path);
         console.log("fullPath:", fullPath)
         
@@ -187,42 +142,42 @@ export class Collection extends FilesystemCollection<PathDetails> {
         await fs.promises.writeFile(fullPath, data);
     }
 
-    public async insertExt(folderPathDetails: PathDetails): Promise<void>;
-    public async insertExt(pathDetails: PathDetails, fileContents: string): Promise<void>;
-    public async insertExt(pathDetails: PathDetails, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
+    public async insertExt(folderPathDetails: FilesystemItem): Promise<void>;
+    public async insertExt(pathDetails: FilesystemItem, fileContents: string): Promise<void>;
+    public async insertExt(pathDetails: FilesystemItem, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
     public async insertExt(folderPath: string): Promise<void>;
     public async insertExt(filePath: string, fileContents: string): Promise<void>;
     public async insertExt(filePath: string, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
-    public async insertExt(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
-        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    public async insertExt(pathDetails: string | FilesystemItem, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
+        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         const fullPath = this.getFullPath(path);
         this.sendInsertEvent(path, data);
         return await this._insert(pathDetails, data);
     }
 
-    public async update(pathDetails: PathDetails, fileContents: string): Promise<void>;
-    public async update(pathDetails: PathDetails, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
+    public async update(pathDetails: FilesystemItem, fileContents: string): Promise<void>;
+    public async update(pathDetails: FilesystemItem, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
     public async update(filePath: string, fileContents: string): Promise<void>;
     public async update(filePath: string, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void>;
-    public async update(pathDetails: string | PathDetails, data: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void> {
-        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    public async update(pathDetails: string | FilesystemItem, data: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<void> {
+        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         this.sendUpdateEvent(filePath, data);
         if (!await this.isExists(filePath)) throw new Error(`File ${filePath} does not exists`);
 
         await fs.promises.writeFile(this.getFullPath(filePath), data);
     }
 
-    public async upsert(folderPathDetails: PathDetails): Promise<boolean>;
-    public async upsert(pathDetails: PathDetails, fileContents: string): Promise<boolean>;
-    public async upsert(pathDetails: PathDetails, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<boolean>;
+    public async upsert(folderPathDetails: FilesystemItem): Promise<boolean>;
+    public async upsert(pathDetails: FilesystemItem, fileContents: string): Promise<boolean>;
+    public async upsert(pathDetails: FilesystemItem, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<boolean>;
     public async upsert(folderPath: string): Promise<boolean>;
     public async upsert(filePath: string, fileContents: string): Promise<boolean>;
     public async upsert(filePath: string, sourceStream: NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<boolean>;
-    public async upsert(pathDetails: string | PathDetails, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<boolean> {
-        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    public async upsert(pathDetails: string | FilesystemItem, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable): Promise<boolean> {
+        let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         const exists = await this.isExists(path);
 
-        if (exists) this.sendUpdateEvent(path, data);
+        if (exists) this.sendUpdateEvent(path, data!);
         else this.sendInsertEvent(path, data);
 
         if (typeof data === 'undefined') return await this.ensureDir(path);
@@ -234,10 +189,10 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return exists;
     }
 
-    public async delete(mask: string = '*', options: ReadOptions = {}): Promise<boolean> {
+    public async delete(mask: string = '*'): Promise<boolean> {
         this.sendDeleteEvent(mask);
 
-        if (options.includeRootDir && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch)) {
+        if (['.', ''].includes(mask)) {
             let res = this.isExists(this.rootPath);
             fs.rmSync(this.rootPath, { recursive: true, force: true });
             return res;
@@ -247,27 +202,17 @@ export class Collection extends FilesystemCollection<PathDetails> {
         let res = false;
         for (let i = 0; i < matches.length; i++) {
             const matchPath = PATH.join(this.rootPath, matches[i]);
-            const isFolder = (await fs.promises.lstat(matchPath)).isDirectory();
-
-            if ( isFolder && (options.objectsToSearch == 'all' || options.objectsToSearch == 'foldersOnly' || !options.objectsToSearch) ) {
-                await fs.promises.rm(matchPath, { recursive: true });
-                res = true;
-            }
-
-            if ( !isFolder && (options.objectsToSearch == 'filesOnly' || options.objectsToSearch == 'all' || !options.objectsToSearch) ) {
-                await fs.promises.rm(matchPath, { force: true });
-                res = true;
-            }
-            
+            await fs.promises.rm(matchPath, { recursive: true, force: true });
+            res = true;
         };
         return res;
     }
 
     
     public async append(path: string, data: string | internal.Readable): Promise<void>;
-    public async append(pathDetails: PathDetails, data: string | internal.Readable): Promise<void>;
-    public async append(pathDetails: string | PathDetails, data: string | internal.Readable): Promise<void> {
-        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    public async append(pathDetails: FilesystemItem, data: string | internal.Readable): Promise<void>;
+    public async append(pathDetails: string | FilesystemItem, data: string | internal.Readable): Promise<void> {
+        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         this.sendUpdateEvent(filePath, data);
         
         if (!await this.isExists(filePath)) throw new Error(`File ${filePath} does not exists`);
@@ -278,9 +223,9 @@ export class Collection extends FilesystemCollection<PathDetails> {
 
 
     public async clear(path: string): Promise<void>;
-    public async clear(pathDetails: PathDetails): Promise<void>;
-    public async clear(pathDetails: string | PathDetails): Promise<void> {
-        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.fullPath;
+    public async clear(pathDetails: FilesystemItem): Promise<void>;
+    public async clear(pathDetails: string | FilesystemItem): Promise<void> {
+        let filePath = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         this.sendUpdateEvent(filePath, '');
         const path = this.getFullPath(filePath);
         
@@ -296,9 +241,9 @@ export class Collection extends FilesystemCollection<PathDetails> {
     }
 
     public async copy(srcPath: string, dstPath: string): Promise<void>;
-    public async copy(srcPathDetails: PathDetails, dstPath: string): Promise<void>;
-    public async copy(srcPathDetails: string | PathDetails, dstPath: string): Promise<void> {
-        let srcPath = (typeof srcPathDetails === 'string') ? srcPathDetails : srcPathDetails.fullPath;
+    public async copy(srcPathDetails: FilesystemItem, dstPath: string): Promise<void>;
+    public async copy(srcPathDetails: string | FilesystemItem, dstPath: string): Promise<void> {
+        let srcPath = (typeof srcPathDetails === 'string') ? srcPathDetails : srcPathDetails.path;
         this.sendCopyEvent(srcPath, dstPath);
         const srcPathFull = this.getFullPath(srcPath);
         const dstPathFull = this.getFullPath(dstPath);
@@ -310,9 +255,9 @@ export class Collection extends FilesystemCollection<PathDetails> {
     }
 
     public async move(srcPath: string, dstPath: string): Promise<void>;
-    public async move(srcPathDetails: PathDetails, dstPath: string): Promise<void>;
-    public async move(srcPathDetails: string | PathDetails, dstPath: string): Promise<void> {
-        let srcPath = (typeof srcPathDetails === 'string') ? srcPathDetails : srcPathDetails.fullPath;
+    public async move(srcPathDetails: FilesystemItem, dstPath: string): Promise<void>;
+    public async move(srcPathDetails: string | FilesystemItem, dstPath: string): Promise<void> {
+        let srcPath = (typeof srcPathDetails === 'string') ? srcPathDetails : srcPathDetails.path;
         this.sendCopyEvent(srcPath, dstPath);
         const srcPathFull = this.getFullPath(srcPath);
         const dstPathFull = this.getFullPath(dstPath);
@@ -325,15 +270,16 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return this.rootPath == '.' || this.rootPath == '';
     }
 
-    protected getRootFolderDetails(): PathDetails {
+    protected getRootFolderDetails(): FilesystemItem {
         const fullPath = PATH.resolve(this.rootPath);
         return {
-            isFolder: true,
             name: extractFileName(fullPath),
-            relativePath: '',
-            fullPath,
-            parentFolderRelativePath: '..',
-            parentFolderFullPath: PATH.resolve(this.rootPath + '/..')
+            path: fullPath,
+            fullPath: fullPath,
+            size: undefined,
+            type: FilesystemItemType.Directory,
+            modifiedAt: undefined,
+            fileContents: undefined
         }
     }
 
@@ -344,35 +290,16 @@ export class Collection extends FilesystemCollection<PathDetails> {
         return path;
     }
 
-
-    public async getInfo(relativePath: string, options?: ReadOptions) {
-        const rootFolderPath = this.rootPath ? this.rootPath : '.';
-        const fullPath = PATH.resolve(rootFolderPath + '/' + relativePath);
-
-        const res = {
-            isFolder: (await fs.promises.lstat(fullPath)).isDirectory(),
-            name: extractFileName(relativePath),
-            relativePath,
-            fullPath,
-            parentFolderRelativePath: extractParentFolderPath(relativePath),
-            parentFolderFullPath: extractParentFolderPath(fullPath)
-        } as PathDetails;
-        if (options && options.withContent) {
-            res.content = fs.readFileSync(fullPath);
-        }
-        return res;
-    }
-
-
-    public async getInfoExt(path: string): Promise<fs.Stats> {
+    public async getInfo(path: string): Promise<fs.Stats | undefined> {
         return await fs.promises.stat(this.getFullPath(path));
     } 
 
     public async isExists(path: string): Promise<boolean> {
         return fs.existsSync(this.getFullPath(path));
     }
-    public async isFolder(path: string): Promise<boolean> {
-        return (await this.getInfo(path)).isFolder;
+    public async isFolder(path: string): Promise<boolean | undefined> {
+        const info = await this.getInfo(path);
+        return info?.isDirectory();
     }
 
 
@@ -397,7 +324,7 @@ export class Collection extends FilesystemCollection<PathDetails> {
 
     protected streamToString(stream): Promise<string> {
         stream.setEncoding('utf-8'); // do this instead of directly converting the string
-        const chunks = [];
+        const chunks: string[] = [];
         return new Promise((resolve, reject) => {
             stream.on('data', (chunk) => chunks.push(chunk));
             stream.on('error', (err) => reject(err));

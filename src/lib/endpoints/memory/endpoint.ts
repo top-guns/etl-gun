@@ -9,7 +9,7 @@ export class Endpoint extends BaseEndpoint {
         return Endpoint._instance ||= new Endpoint();
     }
 
-    protected constructor() {
+    constructor() {
         super();
     }
 

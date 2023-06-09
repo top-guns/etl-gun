@@ -1,3 +1,4 @@
+import * as ix from 'ix';
 import * as fs from "fs";
 import * as webdav from "webdav";
 import { Readable } from "stream";
@@ -6,7 +7,7 @@ import { extractParentFolderPath, pathJoin } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
 import { RemoteFilesystemCollection } from "./remote_filesystem_collection.js";
 import { join } from "path";
-import { CollectionOptions } from "../../core/base_collection.js";
+import { FilesystemCollectionOptions, FilesystemItem, FilesystemItemType } from './filesystem_collection.js';
 
 
 export class Endpoint extends BaseEndpoint {
@@ -28,7 +29,7 @@ export class Endpoint extends BaseEndpoint {
         this.options = options;
     }
 
-    getFolder(folderPath: string = '', options: CollectionOptions<webdav.FileStat> = {}): Collection {
+    getFolder(folderPath: string = '', options: FilesystemCollectionOptions = {}): Collection {
         options.displayName ??= folderPath;
         return this._addCollection(folderPath, new Collection(this, folderPath, folderPath, options));
     }
@@ -48,80 +49,68 @@ export function getEndpoint(url: string, options: webdav.WebDAVClientOptions): E
 }
 
 
-export class Collection extends RemoteFilesystemCollection<webdav.FileStat> {
+export class Collection extends RemoteFilesystemCollection {
     protected static instanceCount = 0;
 
     protected rootPath: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, rootPath: string = '', options: CollectionOptions<webdav.FileStat> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, rootPath: string = '', options: FilesystemCollectionOptions = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
         this.rootPath = rootPath.trim();
         if (this.rootPath.endsWith('/')) this.rootPath.substring(0, this.rootPath.lastIndexOf('/'));
     }
 
-    public select(folderPath: string = ''): BaseObservable<webdav.FileStat> {
-        const observable = new BaseObservable<any>(this, (subscriber) => {
-            this.sendStartEvent();
-            try {
-                (async () => {
-                    try {
-                        const list: webdav.FileStat[] = await this._listWithoutEvent(folderPath);
-                        
-                        for (let fileInfo of list) {
-                            if (subscriber.closed) break;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(fileInfo);
-                            subscriber.next(fileInfo);
-                        }
+    protected makeFilesystemItem(info: webdav.FileStat, folderPath: string, contents?: string): FilesystemItem {
+        const path = join(folderPath, info.filename);
+        return {
+            name: info.filename,
+            path,
+            fullPath: this.getFullPath(path),
+            size: info.size, 
+            type: info.type === 'directory' ? FilesystemItemType.Directory : info.type === 'file' ? FilesystemItemType.File : FilesystemItemType.Unknown,
+            modifiedAt: new Date(info.lastmod),
+            fileContents: contents
+        }
+    }
 
-                        if (!subscriber.closed) {
-                            subscriber.complete();
-                            this.sendEndEvent();
-                        }
-                    }
-                    catch(err) {
-                        this.sendErrorEvent(err);
-                        subscriber.error(err);
-                    }
-                })();
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
-        });
-        return observable;
+    protected async _select(folderPath: string = '', mask: string = '*', recursive: boolean = false): Promise<FilesystemItem[]> {
+        const connection = await this.endpoint.getConnection();
+        const list: webdav.FileStat[] = await connection.getDirectoryContents(this.getFullPath(folderPath), { deep: recursive, glob: mask }) as webdav.FileStat[];
+        const result = list.map(info => this.makeFilesystemItem(info, folderPath));
+        return result;
+    }
+
+    public async select(folderPath?: string, mask: string = '*', recursive: boolean = false): Promise<FilesystemItem[]> {
+        return super.select(folderPath, mask, recursive);
+    }
+
+    public async* selectGen(folderPath: string = '', mask: string = '*', recursive: boolean = false): AsyncGenerator<FilesystemItem, void, void> {
+        const generator = super.selectGen(folderPath, mask, recursive);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(folderPath: string = '', mask: string = '*', recursive: boolean = false): BaseObservable<FilesystemItem> {
+        return super.selectRx(folderPath, mask, recursive);
+    }
+
+    public selectIx(folderPath?: string, mask: string = '*', recursive: boolean = false): ix.AsyncIterable<FilesystemItem> {
+        return super.selectIx(folderPath, mask, recursive);
+    }
+
+    public selectStream(folderPath?: string, mask: string = '*', recursive: boolean = false): ReadableStream<FilesystemItem> {
+        return super.selectStream(folderPath, mask, recursive);
     }
 
     // Get
 
-    public async get(filePath: string): Promise<undefined | string> {
+    public async read(filePath: string): Promise<undefined | string> {
         const connection = await this.endpoint.getConnection();
         if (await this.isFolder(filePath)) throw new Error("Error: method 'get' of filesystem collections can be used only with file path");
 
         const res: string = await connection.getFileContents(this.getFullPath(filePath), { format: 'text' }) as string;
         this.sendGetEvent(res, filePath);
         return res;
-    }
-
-    public async list(folderPath: string = ''): Promise<webdav.FileStat[]> {
-        const res: webdav.FileStat[] = await this._listWithoutEvent(folderPath);
-        this.sendListEvent(res, folderPath);
-        return res;
-    }
-
-    public async find(folderPath: string = '', mask: string = '*', recursive: boolean = false): Promise<webdav.FileStat[]> {
-        const connection = await this.endpoint.getConnection();
-        const result: webdav.FileStat[] = await connection.getDirectoryContents(this.getFullPath(folderPath), { deep: recursive, glob: mask }) as webdav.FileStat[];
-        this.sendFindEvent(result, folderPath, { mask, recursive });
-        return result;
-    }
-
-    public async _listWithoutEvent(remotePath: string = ''): Promise<webdav.FileStat[]> {
-        const connection = await this.endpoint.getConnection();
-        const result: webdav.FileStat[] = await connection.getDirectoryContents(this.getFullPath(remotePath)) as webdav.FileStat[];
-        return result;
     }
 
     // Insert

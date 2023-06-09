@@ -1,3 +1,4 @@
+import * as ix from 'ix';
 import { Subscriber } from "rxjs";
 import { BaseEndpoint} from "../../core/endpoint.js";
 import TelegramBot, { InlineKeyboardButton, InlineKeyboardMarkup } from 'node-telegram-bot-api';
@@ -5,6 +6,7 @@ import { BaseObservable } from '../../core/observable.js';
 import { BaseCollection_I } from '../../core/base_collection_i.js';
 import { CollectionOptions } from '../../core/base_collection.js';
 import { MessangerService, SendError } from "./messanger-service.js";
+import { observable2Generator, observable2Iterable, observable2Promise, observable2Stream, selectOne_from_Observable, wrapObservable, wrapPromise } from "../../utils/flows.js";
 
 export type InputMessage = {
     chatId: string;
@@ -45,8 +47,8 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
 
     protected token: string;
     protected keyboard: any;
-    protected subscriber: Subscriber<InputMessage>;
-    protected bot: TelegramBot;
+    protected subscriber: Subscriber<InputMessage> | undefined;
+    protected bot: TelegramBot | undefined;
 
     constructor(endpoint: Endpoint, collectionName: string, token: string, keyboard?: any, options: CollectionOptions<InputMessage> = {}) {
         Collection.instanceNo++;
@@ -55,11 +57,39 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
         this.keyboard = keyboard;
     }
 
-    public select(): BaseObservable<InputMessage> {
+    public select(): Promise<InputMessage[]> {
+        const observable = this._selectRx();
+        return wrapPromise(observable2Promise(observable), this);
+    }
+    public async* selectGen(): AsyncGenerator<InputMessage, void, void> {
+        const observable = this.selectRx();
+        const generator = observable2Generator(observable);
+        for await (const value of generator) yield value;
+    }
+    public selectIx(): ix.AsyncIterable<InputMessage> {
+        const observable = this.selectRx();
+        return observable2Iterable(observable);
+    }
+
+    public selectStream(): ReadableStream<InputMessage> {
+        const observable = this.selectRx();
+        return observable2Stream(observable);
+    }
+    public async selectOne(): Promise<InputMessage | null> {
+        const observable = this._selectRx();
+        const value = await selectOne_from_Observable(observable);
+        this.sendSelectOneEvent(value);
+        return value;
+    }
+
+    public selectRx(): BaseObservable<InputMessage> {
+        const observable = this._selectRx();
+        return wrapObservable(observable, this);
+    }
+
+    protected _selectRx(): BaseObservable<InputMessage> {
         const observable = new BaseObservable<InputMessage>(this, (subscriber) => {
             try {
-                this.sendStartEvent();
-
                 this.bot = new TelegramBot(this.token, { polling: true });
 
                 this.subscriber = subscriber;
@@ -76,24 +106,22 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
                             return;
                         }
                         await this.waitWhilePaused();
-                        this.sendReciveEvent(message);
-                        subscriber.next(message);
+                        if (!subscriber.closed) subscriber.next(message);
 
                         if (this.keyboard) this.installKeyboard(message.chatId, "", this.keyboard);
                     })();
                 })
             }
             catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
+                if (!subscriber.closed) subscriber.error(err);
             }
         });
         return observable;
     }
 
     public async stop() {
-        await this.bot.close();
-        this.subscriber.complete();
+        await this.bot?.close();
+        if (!this.subscriber?.closed) this.subscriber?.complete();
         this.sendEndEvent();
         this.subscriber = undefined;
         this.bot = undefined;
@@ -104,7 +132,7 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
     protected async _insert(valueOrChartId: InputMessage | string, message?: string): Promise<void> {
         if (!this.bot) throw new Error("Cannot use push() while telegram bot is not active. Please, call list() before.");
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
-        this.bot.sendMessage(value.chatId, value.message);
+        this.bot.sendMessage(value.chatId, value.message!);
     }
 
     public async insert(value: InputMessage): Promise<void>;
@@ -112,7 +140,7 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
     public async insert(valueOrChartId: InputMessage | string, message?: string): Promise<void> {
         const value = typeof valueOrChartId === 'string' ? {chatId: valueOrChartId, message} : valueOrChartId;
         this.sendInsertEvent(value);
-        await this._insert(valueOrChartId as any, message);
+        await this._insert(valueOrChartId as any, message!);
     }
 
     public async send(value: InputMessage): Promise<SendError | undefined>;
@@ -120,7 +148,7 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
     public async send(valueOrMessage: string | InputMessage, chatId?: string): Promise<SendError | undefined> {
         const value = typeof valueOrMessage === 'string' ? {chatId, message: valueOrMessage} : valueOrMessage;
         this.sendInsertEvent(value);
-        await this._insert(value);
+        await this._insert(value as InputMessage);
         return undefined;
     }
 
@@ -129,7 +157,7 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
     }
 
     protected installKeyboard(chatid: string, message: string, keyboard: any) {
-        this.bot.sendMessage(chatid, message, {
+        this.bot?.sendMessage(chatid, message, {
             "reply_markup": {
                 "keyboard": keyboard
             }
@@ -150,11 +178,11 @@ export class Collection extends BaseCollection_I<InputMessage> implements Messan
         let inlineKeyboardButton: InlineKeyboardButton = {text: "/задача", callback_data: 'Button \"задача\" has been pressed'};
         let inlineKeyboardMarkup: InlineKeyboardMarkup = {inline_keyboard: [[inlineKeyboardButton]]};
 
-        await this.bot.sendMessage(chatid, message, {reply_markup: inlineKeyboardMarkup});
+        await this.bot?.sendMessage(chatid, message, {reply_markup: inlineKeyboardMarkup});
     }
 
     async removeKeyboard(chatid: number) {
-        await this.bot.sendMessage(chatid, 'Keyboard has closed', {
+        await this.bot?.sendMessage(chatid, 'Keyboard has closed', {
             "reply_markup": {
                 "remove_keyboard": true
             }

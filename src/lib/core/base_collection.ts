@@ -1,8 +1,13 @@
+import * as rx from "rxjs";
+import * as ix from 'ix';
+import * as internal from "stream";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
-import { Errors } from "../index.js";
+import { Errors, run } from "../index.js";
 import { EtlError } from "../endpoints/errors.js";
 import { BaseObservable } from "./observable.js";
+import { generator2Iterable, observable2Stream } from "../utils/flows.js";
+
 
 export type CollectionOptions<T> = {
     displayName?: string;
@@ -14,13 +19,13 @@ export type BaseCollectionEvent =
     "select.start" |
     "select.end" |
     "select.sleep" |
-    "select.recive" |
     "select.error" |
     "select.skip" |
     "select.up" |
     "select.down" |
     "pipe.start" |
     "pipe.end" |
+    "recive" |
     string;
 
 
@@ -37,33 +42,43 @@ export abstract class BaseCollection<T> {
         return this._endpoint;
     }
 
-    public errors: Errors.ErrorsQueue = null;
+    protected _errors: Errors.ErrorsQueue | null = null;
+    get errors(): Errors.ErrorsQueue | null {
+        if (this._errors) return this._errors;
+        if (!this.options.disableErrorsCollectionCreation && !['ErrorsQueue'].includes(this.constructor.name)) {
+            // TODO
+            //this._errors = Errors.Endpoint.instance.getCollection(`${this.collectionName}`, {disableErrorsCollectionCreation: true});
+        }
+        return this._errors;
+    }
+    set errors(errorsQueue: Errors.ErrorsQueue) {
+        this._errors = errorsQueue;
+    }
 
+    protected collectionName: string;
     protected options: CollectionOptions<T>;
 
     protected _isPaused: boolean = false;
 
     constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
         this._endpoint = endpoint;
+        this.collectionName = collectionName;
         this.options = options;
 
         this._listeners = {
-            "pipe.start": [],
-            "pipe.end": [],
             "select.start": [],
             "select.end": [],
             "select.sleep": [],
-            "select.recive": [],
             "select.error": [],
             "select.skip": [],
             "select.up": [],
-            "select.down": []
+            "select.down": [],
+            "pipe.start": [],
+            "pipe.end": [],
+            "recive": []
         };
 
         if (GuiManager.instance) GuiManager.instance.registerCollection(this, options);
-        if (!options.disableErrorsCollectionCreation && this.constructor.name != 'ErrorsQueue') {
-            this.errors = Errors.Endpoint.instance.getCollection(`${collectionName}`, {disableErrorsCollectionCreation: true});
-        }
     }
 
     public pause() {
@@ -105,25 +120,22 @@ export abstract class BaseCollection<T> {
         return new Promise<void>(resolve => setTimeout(doWait, 10, resolve));
     }
 
-    public abstract select(...params: any[]): BaseObservable<T>;
+    
+    public abstract select(...params: any[]): Promise<T[]>;
+    public abstract selectGen(...params: any[]): AsyncGenerator<T, void, void>;
+    public abstract selectRx(...params: any[]): BaseObservable<T>;
+    public abstract selectIx(...params: any[]): ix.AsyncIterable<T>;
+    public abstract selectStream(...params: any[]): ReadableStream<T>;
+    public abstract selectOne(...params: any[]): Promise<T | null>;
 
-    public selectErrors(stopOnEmpty: boolean = false): BaseObservable<EtlError> {
-        if (!this.errors) throw new Error("Errors collection is not specified.");
-        return this.errors.select(stopOnEmpty);
-    }
-
-    // public selectOneByOne(delay: number = 0, ...params: any[]): Observable<CollectionItem<T>> {
-    //     let timestamp = null;
-
-    //     const memory = Memory.getEndpoint();
-    //     const queue = memory.getQueue<T>(`${this.options.displayName}-queue`);
-
-    //     this.select(params).pipe(
-    //         push(queue)
-    //     ).subscribe();
-
-    //     return queue.select(false, delay);
+    // public selectReadable(...params: any[]): internal.Readable {
+    //     return rx2Stream(this.selectRx(...params));
     // }
+
+    // public abstract selectStream(...params: any[]): NodeJS.ReadStream; 
+    //public abstract selectStream(...params: any[]): NodeJS.ReadableStream; 
+    // public abstract selectStream(...params: any[]): NodeJS.ArrayBufferView; 
+    
 
  
     public stop() {
@@ -155,15 +167,15 @@ export abstract class BaseCollection<T> {
     }
   
     public sendErrorEvent(error: any) {
-        this.sendEvent("select.error", {error});
+        this.sendEvent("select.error", { error });
     }
   
     public sendReciveEvent(value: T) {
-        this.sendEvent("select.recive", {value});
+        this.sendEvent("recive", { value });
     }
   
     public sendSkipEvent(value: T) {
-        this.sendEvent("select.skip", {value});
+        this.sendEvent("select.skip", { value });
     }
   
     public sendUpEvent() {
@@ -175,11 +187,19 @@ export abstract class BaseCollection<T> {
     }
 
     public sendPipeStartEvent(value: T) {
-        this.sendEvent("pipe.start", {value});
+        this.sendEvent("pipe.start", { value });
     }
   
     public sendPipeEndEvent(value: T) {
-        this.sendEvent("pipe.end", {value});
+        this.sendEvent("pipe.end", { value });
+    }
+
+    public sendSelectOneEvent(value: T | null) {
+        this.sendEvent("recive", { value });
+    }
+
+    public sendSelectEvent(values: T[]) {
+        this.sendEvent("recive", { value: values });
     }
 }
   

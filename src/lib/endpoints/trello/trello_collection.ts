@@ -1,13 +1,15 @@
+import * as ix from 'ix';
 import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseObservable } from "../../core/observable.js";
-import { RestResourceCollection } from "../rest/resource_collection.js";
+import { generator2Iterable, observable2Stream } from "../../utils/flows.js";
+import { ResourceCollection } from "../rest/resource_collection.js";
 import { Endpoint } from './endpoint.js';
 
 
-export class TrelloCollection<T> extends RestResourceCollection<T> {
+export class TrelloCollection<T> extends ResourceCollection<T> {
     protected static instanceNo = 0;
     
-    constructor(endpoint: Endpoint, collectionName: string, resourceName: string, resourceNameS: string, options: CollectionOptions<Partial<T>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, resourceName: string, resourceNameS: string, options: CollectionOptions<T> = {}) {
         TrelloCollection.instanceNo++;
         super(endpoint, collectionName, resourceName, resourceNameS, options);
     }
@@ -16,12 +18,25 @@ export class TrelloCollection<T> extends RestResourceCollection<T> {
     //     return `${this.resourceNameS}?filter=${this.resourceName}`;
     // }
 
-    async find(where?: Partial<T>, fields?: (keyof T)[]): Promise<T[]> {
-        return await super.find({ ...where, fields });
+    async select(where?: Partial<T>, fields?: (keyof T)[]): Promise<T[]> {
+        return await super.select({...where, fields});
     }
 
-    public select(where: Partial<T> = {}, fields?: (keyof T)[]): BaseObservable<T>{
-        return super.select({ ...where, fields });
+    public async* selectGen(where?: Partial<T>, fields?: (keyof T)[]): AsyncGenerator<T, void, void> {
+        const generator = super.selectGen({...where, fields});
+        for await (const item of generator) yield item;
+    }
+
+    public selectRx(where?: Partial<T>, fields?: (keyof T)[]): BaseObservable<T>{
+        return super.selectRx({...where, fields});
+    }
+
+    public selectIx(where?: Partial<T>, fields?: (keyof T)[]): ix.AsyncIterable<T> {
+        return super.selectIx({...where, fields});
+    }
+
+    public selectStream(where?: Partial<T>, fields?: (keyof T)[]): ReadableStream<T> {
+        return super.selectStream({...where, fields});
     }
 
     get endpoint(): Endpoint {

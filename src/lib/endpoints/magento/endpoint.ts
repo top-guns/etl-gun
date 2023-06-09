@@ -21,8 +21,8 @@ const TOKEN_LIFE_TIME = 1 * 60 * 60 * 1000;
 export class Endpoint extends RestEndpoint {
     protected login: string;
     protected password: string;
-    protected token: string;
-    protected tokenTS: Date = null;
+    protected token: string | undefined;
+    protected tokenTS: Date | null = null;
 
 
     constructor(magentoUrl: string, login: string, password: string, rejectUnauthorized: boolean = true) {

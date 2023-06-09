@@ -7,10 +7,10 @@ import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
 
 export class HttpClientHelper {
-    protected baseUrl: string;
-    protected headers: Record<string, string>;
+    protected baseUrl: string | undefined;
+    protected headers: Record<string, string> | undefined;
     protected rejectUnauthorized: boolean;
-    protected agent: https.Agent;
+    protected agent: https.Agent | undefined;
 
     constructor(baseUrl?: string, headers?: Record<string, string>, rejectUnauthorized: boolean = true) {
         if (baseUrl && baseUrl.startsWith('http:') && !rejectUnauthorized) throw new Error('HttpClientHelper error: you can use rejectUnauthorized = false only for https urls')
@@ -18,7 +18,7 @@ export class HttpClientHelper {
         this.baseUrl = baseUrl;
         this.headers = headers;
         this.rejectUnauthorized = rejectUnauthorized;
-        this.agent = rejectUnauthorized ? null : new https.Agent({
+        this.agent = rejectUnauthorized ?  undefined : new https.Agent({
             rejectUnauthorized
         });
     }
@@ -50,28 +50,28 @@ export class HttpClientHelper {
     getJsonOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getJsonOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getJson(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.getJson(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getTextOperator<T>(): OperatorFunction<T, string>;
     getTextOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getTextOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getTextOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getText(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.getText(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getBlobOperator<T>(): OperatorFunction<T, Blob>;
     getBlobOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getBlobOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.getBlob(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     getFileContentsOperator<T>(): OperatorFunction<T, Blob>;
     getFileContentsOperator<T, R = T>(url: string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getFileContentsOperator<T, R = T>(getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
     getFileContentsOperator<T, R = T>(urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.getFileContents(this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.getFileContents(this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // POST
@@ -109,7 +109,7 @@ export class HttpClientHelper {
     postJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     postJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.postJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // PUT
@@ -147,15 +147,14 @@ export class HttpClientHelper {
     putJsonOperator<T, R = T>(getBody: (value: T) => any, getUrl: (value: T) => string, toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R>;
 
     putJsonOperator<T, R = T>(bodyParam?: any | ((value: T) => any), urlParam?: string | ((value: T) => string), toProperty?: string, headers?: Record<string, string>): OperatorFunction<T, R> {
-        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty, this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
+        return rx.mergeMap(val => rx.from(this.getOperatorResult<T, R>(val, toProperty!, this.putJson(this.getOperatorBody(val, bodyParam), this.getOperatorUrl(val, urlParam), headers)))); 
     }
 
     // FETCH
 
-    async fetch(url: string): Promise<Response>;
-    async fetch(url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE', headers: Record<string, string>): Promise<Response>;
-    async fetch(url: string, init: RequestInit): Promise<Response>;
-    async fetch(url: string, p1?: any, p2?: Record<string, string>): Promise<Response> {
+    async fetch(url?: string, method?: 'GET' | 'POST' | 'PUT' | 'DELETE', headers?: Record<string, string>): Promise<Response>;
+    async fetch(url?: string, init?: RequestInit): Promise<Response>;
+    async fetch(url?: string, p1?: any, p2?: Record<string, string>): Promise<Response> {
         let init: RequestInit = {
             headers: {...this.headers},
             agent: this.agent,
@@ -170,7 +169,7 @@ export class HttpClientHelper {
             }
         }
 
-        const res: Response = await fetch(this.getUrl(url), init);
+        const res: Response = await fetch(this.getUrl(url ?? ''), init);
         return res;
     }
 
@@ -186,7 +185,7 @@ export class HttpClientHelper {
             }
             else {
                 let stat = fs.statSync(folderPath);
-                if (stat && stat.isDirectory) filePath = pathJoin([folderPath, this.generateFilenameFromPath(srcUrl)]);
+                if (stat && stat.isDirectory()) filePath = pathJoin([folderPath, this.generateFilenameFromPath(srcUrl)]);
                 else {
                     const urlParts = destPath.split("/");
                     urlParts.pop();
@@ -206,8 +205,8 @@ export class HttpClientHelper {
 
             const download = (url: string) => {
                 const request = httpModule.get(url, response => {
-                    if ([301,302].includes(response.statusCode)) {
-                        download(response.headers.location);
+                    if ([301,302].includes(response.statusCode!)) {
+                        download(response.headers.location!);
                         return;
                     }
     

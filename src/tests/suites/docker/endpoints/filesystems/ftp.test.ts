@@ -12,18 +12,69 @@ describe('FTP endpoint', () => {
     after(async () => {
         if (ftp) await ftp.releaseEndpoint();
     })
-    
-    test('list folder', async () => {
+
+    test('select()', async () => {
+        const ROOT_FOLDER = 'ftp/dir-1';
+
+        const folder = ftp.getFolder(ROOT_FOLDER);
+
+        const values = await folder.select();
+        const res: any[] = values.map(v => v.name);
+
+        assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
+    });
+
+    test('selectGen()', async () => {
         const ROOT_FOLDER = 'ftp/dir-1';
 
         const folder = ftp.getFolder(ROOT_FOLDER);
 
         const res: any[] = [];
 
-        let stream$ = folder.select().pipe(
+        for await (const v of folder.selectGen()) res.push(v.name);
+
+        assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
+    });
+
+    test('selectIx()', async () => {
+        const ROOT_FOLDER = 'ftp/dir-1';
+
+        const folder = ftp.getFolder(ROOT_FOLDER);
+
+        const res: any[] = [];
+
+        await folder.selectIx().forEach(v => {
+            res.push(v.name);
+        })
+
+        assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
+    });
+
+    test('selectRx()', async () => {
+        const ROOT_FOLDER = 'ftp/dir-1';
+
+        const folder = ftp.getFolder(ROOT_FOLDER);
+
+        const res: any[] = [];
+
+        let stream$ = folder.selectRx().pipe(
             rx.tap(v => res.push(v.name))
         );
         await etl.run(stream$);
+
+        assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
+    });
+
+    test('selectStream()', async () => {
+        const ROOT_FOLDER = 'ftp/dir-1';
+
+        const folder = ftp.getFolder(ROOT_FOLDER);
+
+        const res: any[] = [];
+
+        const reader = folder.selectStream().getReader();
+        let v;
+        while(!(v = await reader.read()).done) res.push(v.value.name);
 
         assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
     });

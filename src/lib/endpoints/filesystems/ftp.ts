@@ -1,3 +1,4 @@
+import * as ix from 'ix';
 import * as ftp from "basic-ftp";
 import { AccessOptions, Client, FileInfo } from "basic-ftp";
 import { Readable } from "stream";
@@ -7,11 +8,11 @@ import { extractParentFolderPath } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
 import { RemoteFilesystemCollection } from "./remote_filesystem_collection.js";
 import { join } from "path";
-import { CollectionOptions } from "../../core/base_collection.js";
+import { FilesystemCollectionOptions, FilesystemItem, FilesystemItemType } from './filesystem_collection.js';
 
 
 export class Endpoint extends BaseEndpoint {
-    protected _client: Client = null;
+    protected _client: Client | null = null;
     protected verbose: boolean;
     protected options: AccessOptions;
 
@@ -33,7 +34,7 @@ export class Endpoint extends BaseEndpoint {
         this.options = options;
     }
 
-    getFolder(folderPath: string = '', options: CollectionOptions<FileInfo> = {}): Collection {
+    getFolder(folderPath: string = '', options: FilesystemCollectionOptions = {}): Collection {
         options.displayName ??= folderPath;
         return this._addCollection(folderPath, new Collection(this, folderPath, folderPath, options));
     }
@@ -57,56 +58,62 @@ export function getEndpoint(options: AccessOptions, verbose: boolean = false): E
 }
 
 
-export class Collection extends RemoteFilesystemCollection<FileInfo> {
+export class Collection extends RemoteFilesystemCollection {
     protected static instanceCount = 0;
 
     protected rootPath: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, rootPath: string = '', options: CollectionOptions<FileInfo> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, rootPath: string = '', options: FilesystemCollectionOptions = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
         this.rootPath = rootPath.trim();
         if (this.rootPath.endsWith('/')) this.rootPath.substring(0, this.rootPath.lastIndexOf('/'));
     }
 
-    public select(folderPath: string = ''): BaseObservable<FileInfo> {
-        const observable = new BaseObservable<any>(this, (subscriber) => {
-            this.sendStartEvent();
-            try {
-                (async () => {
-                    try {
-                        const connection = await this.endpoint.getConnection();
-                        const list: FileInfo[] = await this._list(folderPath);
-                        
-                        for (let fileInfo of list) {
-                            if (subscriber.closed) break;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(fileInfo);
-                            subscriber.next(fileInfo);
-                        }
+    protected makeFilesystemItem(info: FileInfo, folderPath: string, contents?: string): FilesystemItem {
+        const path = join(folderPath, info.name);
+        return {
+            name: info.name,
+            path,
+            fullPath: this.getFullPath(path),
+            size: info.size,
+            type: info.isDirectory ? FilesystemItemType.Directory : info.isFile ? FilesystemItemType.File : info.isSymbolicLink ? FilesystemItemType.SymbolicLink : FilesystemItemType.Unknown,
+            modifiedAt: info.modifiedAt,
+            fileContents: contents
+        }
+    }
 
-                        if (!subscriber.closed) {
-                            subscriber.complete();
-                            this.sendEndEvent();
-                        }
-                    }
-                    catch(err) {
-                        this.sendErrorEvent(err);
-                        subscriber.error(err);
-                    }
-                })();
-            }
-            catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
-            }
-        });
-        return observable;
+    protected async _select(folderPath: string = ''): Promise<FilesystemItem[]> {
+        const connection = await this.endpoint.getConnection();
+        const list: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
+        const result = list.map(info => this.makeFilesystemItem(info, folderPath));
+        return result;
+    }
+
+    public async select(folderPath?: string): Promise<FilesystemItem[]> {
+        return super.select(folderPath);
+    }
+
+    public async* selectGen(folderPath: string = ''): AsyncGenerator<FilesystemItem, void, void> {
+        const generator = super.selectGen(folderPath);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(folderPath: string = ''): BaseObservable<FilesystemItem> {
+        return super.selectRx(folderPath);
+    }
+
+    public selectIx(folderPath?: string): ix.AsyncIterable<FilesystemItem> {
+        return super.selectIx(folderPath);
+    }
+
+    public selectStream(folderPath?: string): ReadableStream<FilesystemItem> {
+        return super.selectStream(folderPath);
     }
 
     // Get
 
-    public async get(filePath: string): Promise<string> {
+    public async read(filePath: string): Promise<string> {
         const connection = await this.endpoint.getConnection();
         if (await this.isFolder(filePath)) throw new Error("Error: method 'get' of filesystem collections can be used only with file path");
 
@@ -115,25 +122,6 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
         const res = writableStreamBuffer.getContentsAsString() as string;
 
         this.sendGetEvent(res, filePath);
-        return res;
-    }
-
-    public async list(folderPath: string = ''): Promise<FileInfo[]> {
-        const res = await this._list(folderPath);
-        this.sendListEvent(res, folderPath);
-        return res;
-    }
-
-    public async _list(folderPath: string = ''): Promise<FileInfo[]> {
-        const connection = await this.endpoint.getConnection();
-        let res: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
-        return res;
-    }
-
-    public async find(folderPath: string = ''): Promise<FileInfo[]> {
-        const connection = await this.endpoint.getConnection();
-        let res: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
-        this.sendFindEvent(res, folderPath);
         return res;
     }
 
@@ -180,7 +168,7 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
         const connection = await this.endpoint.getConnection();
         const exists = await this.isExists(remotePath);
 
-        if (exists) this.sendUpdateEvent(remotePath, fileContents);
+        if (exists) this.sendUpdateEvent(remotePath, fileContents!);
         else this.sendInsertEvent(remotePath, fileContents);
 
         if (typeof fileContents === 'undefined') return await this.ensureDir(remotePath);
@@ -268,9 +256,9 @@ export class Collection extends RemoteFilesystemCollection<FileInfo> {
         return list[0];
     }
 
-    public async isFolder(path: string): Promise<boolean> {
+    public async isFolder(path: string): Promise<boolean | undefined> {
         const info = await this.getInfo(path);
-        return info.isDirectory;
+        return info?.isDirectory;
     }
 
     public async isExists(path: string) {

@@ -13,13 +13,12 @@ type EndpointDesc = {
 type CollectionDesc = {
     collection: BaseCollection<any>;
     displayName: string;
-    status: 'waiting' | 'running' | 'finished' | 'error' | 'sleep' | 'inserted' | 'deleted' | 'recived' | 'updated' | 'upserted';
+    status: 'waiting' | 'running' | 'finished' | 'error' | 'sleep' | 'inserted' | 'deleted' | 'recived' | 'updated';
     value: any;
     counters: {
         recived: number;
         inserted: number;
         updated: number;
-        upserted: number;
         deleted: number;
         errors: number;
     };
@@ -200,10 +199,6 @@ export class GuiManager {
                         color = 'cyanBright';
                         counter = desc.counters.updated;
                         break;
-                    case 'upserted':
-                        color = 'yellowBright';
-                        counter = desc.counters.upserted;
-                        break;
                     case 'deleted':
                         color = 'redBright';
                         counter = desc.counters.deleted;
@@ -298,7 +293,6 @@ export class GuiManager {
             recived: 0,
             inserted: 0,
             updated: 0,
-            upserted: 0,
             deleted: 0,
             errors: 0
         }};
@@ -306,9 +300,7 @@ export class GuiManager {
 
         collection.on('select.start', () => { desc.status = 'running'; this.updateConsole(); });
         collection.on('select.end', () => { desc.status = 'finished'; this.updateConsole(); });
-        collection.on('select.recive', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
-        collection.on('get', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
-        collection.on('find', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
+        collection.on('recive', v => { desc.status = 'recived'; desc.value = v.value; desc.counters.recived++; this.updateConsole(); });
 
         collection.on('select.error', v => { desc.status = 'error'; desc.value = (v.error ?? v.message ?? v); desc.counters.errors++; this.updateConsole(); });
         collection.on('select.sleep', v => { desc.status = 'sleep'; desc.value = v.where; desc.counters.deleted++; this.updateConsole(); });

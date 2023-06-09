@@ -12,8 +12,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number[]>('bufer1',[[1], [2]]);
         const src2 = mem.getBuffer<number[]>('bufer2',[[10], [11]]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -29,8 +29,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 11}]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -46,8 +46,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);
         const src2 = mem.getBuffer<number>('bufer2', [10, 11]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -64,8 +64,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number[]>('bufer1', [[1], [2]]);
         const src2 = mem.getBuffer<{f1: number}>('bufer2', [{f1: 1}, {f1: 2}]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -81,8 +81,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
         const src2 = mem.getBuffer<number[]>('bufer2', [[1], [2]]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -99,8 +99,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number[]>('bufer1', [[1], [2]]);
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -116,8 +116,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number>('bufer1', [10, 20]);
         const src2 = mem.getBuffer<number[]>('bufer2', [[1], [2]]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -134,8 +134,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select(), 'f2'),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx(), 'f2'),
             rx.tap(v => res.push(v))
         );
 
@@ -151,8 +151,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -169,8 +169,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 20}]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select(), 'f1'),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx(), 'f1'),
             rx.tap(v => res.push(v))
         );
 
@@ -185,8 +185,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);
         const src2 = mem.getBuffer<{f1: number}>('bufer2', [{f1: 10}, {f1: 20}]);
 
-        let stream$ = src1.select().pipe(
-            etl.join(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -203,8 +203,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<number[]>('bufer1', [[1], [2]]);
         const src2 = mem.getBuffer<number[]>('bufer2', [[10], [11]]);
 
-        let stream$ = src1.select().pipe(
-            etl.joinArrays(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.joinArrays(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
@@ -220,8 +220,8 @@ describe('Operator join()', () => {
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 11}]);
 
-        let stream$ = src1.select().pipe(
-            etl.joinObjects(src2.select()),
+        let stream$ = src1.selectRx().pipe(
+            etl.joinObjects(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 

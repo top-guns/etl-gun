@@ -55,7 +55,7 @@ describe('CsvEndpoint', () => {
             await src.insert(['33', '66,55']);
 
             const res: any[][] = [];
-            let stream$ = src.select().pipe(
+            let stream$ = src.selectRx().pipe(
                 rx.tap(v => res.push(v))
             );
             await etl.run(stream$);

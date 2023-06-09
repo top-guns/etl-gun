@@ -1,13 +1,14 @@
 //import { Knex, knex } from 'knex';
 //import parseDbUrl from "parse-database-url";
-import pkg from 'knex';
+import * as pkg from 'knex';
+import * as ix from 'ix';
 
 import { BaseEndpoint} from "../../core/endpoint.js";
 import { BaseObservable } from '../../core/observable.js';
 import { conditionToSql, SqlCondition } from './condition.js';
 import { UpdatableCollection } from '../../core/updatable_collection.js';
 import { BaseCollection, CollectionOptions } from '../../core/base_collection.js';
-import { BaseCollection_GF } from '../../core/base_collection_gf.js';
+import { generator2Iterable, promise2Generator, promise2Observable, observable2Stream, selectOne_from_Promise, wrapObservable, wrapGenerator } from '../../utils/flows.js';
 
 
 type ClientType = 'pg'  // pg for PostgreSQL, CockroachDB and Amazon Redshift
@@ -117,79 +118,70 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
         this.table = table;
     }
 
-    public select(where: SqlCondition<T>, fields?: string[]): BaseObservable<T>;
-    public select(whereSql?: string, whereParams?: any[], fields?: string[]): BaseObservable<T>;
-    public select(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): BaseObservable<T> {
-        const observable = new BaseObservable<T>(this, (subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-                    
-                    let result: any[];
-                    if (typeof where === 'string') {
-                        result = await this.endpoint.database(this.table)
-                            .whereRaw(where, params)
-                            .select(...fields);
-                    }
-                    else {
-                        result = await this.endpoint.database(this.table)
-                            .whereRaw(where.expression, where.params)
-                            .select(...fields);
-                            // .where(where)
-                            // .select(...params);
-                    } 
+    protected async _select(p1?: SqlCondition<T> | string, p2?: string[] | any[], fields?: string[]): Promise<T[]> {
+        const where: SqlCondition<T> | undefined = typeof p1 === 'string' ? undefined : p1;
+        const whereSql: string | undefined = typeof p1 === 'string' ? p1 : undefined;
+        const whereParams: any[] | undefined = p2;
+        if (typeof p1 !== 'string') fields = p2;
 
-                    for (const row of result) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(row);
-                        subscriber.next(row);
-                    }
-
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    public async get(where: SqlCondition<T>): Promise<any>;
-    public async get(whereSql?: string, whereParams?: any[]): Promise<any>;
-    public async get(where: string | SqlCondition<T> = '', params?: any[]): Promise<any> {
-        const results = await this._find(where, params);
-        const result = results.length > 0 ? results[0] : undefined;
-        this.sendGetEvent(result, where, params);
-        return result;
-    }
-
-    public async find(where: SqlCondition<T>, fields?: string[]): Promise<any[]>;
-    public async find(whereSql?: string, whereParams?: any[], fields?: string[]): Promise<any[]>;
-    public async find(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): Promise<any[]> {
-        const result = await this._find(where, params, fields);
-        this.sendListEvent(result, where, params);
-        return result;
-    }
-
-    public async _find(where: string | SqlCondition<T> = '', params?: any[], fields: string[] = []): Promise<any[]> {
         let result: any[];
-        if (typeof where === 'string') {
+        if (whereSql) {
             result = await this.endpoint.database(this.table)
-                .whereRaw(where, params)
-                .select(...fields);
+                .whereRaw(whereSql, whereParams)
+                .select(...fields!);
         }
         else {
             result = await this.endpoint.database(this.table)
-                .whereRaw(where.expression, where.params)
-                .select(...fields);
+                .whereRaw(where!.expression, whereParams)
+                .select(...fields!);
                 // .where(where)
                 // .select(...params);
         } 
         return result;
+    }
+
+    public async select(where: SqlCondition<T>, fields?: string[]): Promise<T[]>;
+    public async select(whereSql?: string, whereParams?: any[], fields?: string[]): Promise<T[]>;
+    public async select(p1?: any, p2?: any, fields?: string[]): Promise<T[]> {
+        let result: any[] = await this._select(p1, p2, fields);
+        this.sendSelectEvent(result);
+        return result;
+    }
+
+    public selectGen(where: SqlCondition<T>, fields?: string[]): AsyncGenerator<T, void, void>;
+    public selectGen(whereSql?: string, whereParams?: any[], fields?: string[]): AsyncGenerator<T, void, void>;
+    public async* selectGen(p1?: any, p2?: any, fields?: string[]): AsyncGenerator<T, void, void> {
+        const values = this._select(p1, p2, fields);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(where: SqlCondition<T>, fields?: string[]): BaseObservable<T>;
+    public selectRx(whereSql?: string, whereParams?: any[], fields?: string[]): BaseObservable<T>;
+    public selectRx(p1?: any, p2?: any, fields?: string[]): BaseObservable<T> {
+        const values = this._select(p1, p2, fields);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public async selectOne(where: SqlCondition<T>, fields?: string[]): Promise<T | null>;
+    public async selectOne(whereSql?: string, whereParams?: any[], fields?: string[]): Promise<T | null>;
+    public async selectOne(p1?: any, p2?: any, fields?: string[]): Promise<T | null> {
+        const values = this._select(p1, p2, fields);
+        const value = await selectOne_from_Promise(values);
+        this.sendSelectOneEvent(value);
+        return value;
+    }
+
+    public selectIx(where: SqlCondition<T>, fields?: string[]): ix.AsyncIterable<T>;
+    public selectIx(whereSql?: string, whereParams?: any[], fields?: string[]): ix.AsyncIterable<T>;
+    public selectIx(p1?: any, p2?: any, fields?: string[]): ix.AsyncIterable<T> {
+        return generator2Iterable(this.selectGen(p1, p2, fields));
+    }
+
+    public selectStream(where: SqlCondition<T>, fields?: string[]): ReadableStream<T>;
+    public selectStream(whereSql?: string, whereParams?: any[], fields?: string[]): ReadableStream<T>;
+    public selectStream(p1?: any, p2?: any, fields?: string[]): ReadableStream<T> {
+        return observable2Stream(this.selectRx(p1, p2, fields));
     }
 
     protected async _insert(value: T): Promise<void>;
@@ -257,7 +249,7 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
 }
 
 
-export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection_GF<T> {
+export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection<T> {
     protected static instanceNo = 0;
 
     protected query: string;
@@ -268,52 +260,43 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
         this.query = sqlQuery;
     }
 
-    public select(params?: any[]): BaseObservable<T> {
-        const observable = new BaseObservable<T>(this, (subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-
-                    const result = await this._find(params);
-                    
-                    if (result) {
-                        for (const row of result) {
-                            if (subscriber.closed) break;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(row);
-                            subscriber.next(row);
-                        }
-                    }
-
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    public async get(params?: any[]): Promise<T> {
-        const result = await this._find(params);
-        const value = (result && result.length) ? result[0] : null;
-        this.sendGetEvent(value, params);
-        return value;
-    }
-    public async find(params?: any[]): Promise<T[]> {
-        const result = await this._find(params);
-        this.sendListEvent(result, params);
-        return result;
-    }
-
-    protected async _find(params?: any[]): Promise<T[]> {
-        const result = await this.endpoint.database.raw(this.query, params);
+    protected async _select(params?: any[]): Promise<T[]> {
+        const result = await this.endpoint.database.raw(this.query, ...params!);
         return result.rows;
     }
 
+    public async select(params?: any[]): Promise<T[]> {
+        const values = await this._select(params);
+        this.sendSelectEvent(values);
+        return values;
+    }
+
+    public async* selectGen(params?: any[]): AsyncGenerator<T, void, void> {
+        const values = this._select(params);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(params?: any[]): BaseObservable<T> {
+        const values = this._select(params);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public selectIx(params?: any[]): ix.AsyncIterable<T> {
+        return generator2Iterable(this.selectGen(params));
+    }
+
+    public selectStream(params?: any[]): ReadableStream<T> {
+        return observable2Stream(this.selectRx(params));
+    }
+
+    public async selectOne(params?: any[]): Promise<T | null> {
+        const values = this._select(params);
+        const value = await selectOne_from_Promise(values);
+        this.sendSelectOneEvent(value);
+        return value;
+    }
+    
     get endpoint(): KnexEndpoint {
         return super.endpoint as KnexEndpoint;
     }

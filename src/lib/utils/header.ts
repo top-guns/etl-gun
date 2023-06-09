@@ -1,7 +1,7 @@
 type HeaderItemType = 'string'|'number'|'boolean'|'object'|string;
 
 type HeaderItem = {
-    [key: string]: HeaderItemType;
+    [key: string]: HeaderItemType | undefined;
     nullValue?: string;
     undefinedValue?: string;
     trueValue?: string;
@@ -49,7 +49,7 @@ export class Header {
     arrToObj(values: any[]) {
         let res: Record<string, any> = {};
         for (let i = 0; i < values.length && i < this.fields.length; i++) {
-            res[this.fields[i].name] = values[i];
+            res[this.fields[i].name!] = values[i];
         }
         return res;
     }
@@ -58,7 +58,7 @@ export class Header {
         let res: any[] = [];
         for (let i = 0; i < this.fields.length; i++) {
             const fieldName = this.fields[i].name;
-            const value = values.hasOwnProperty(fieldName) ? values[fieldName] : undefined;
+            const value = values.hasOwnProperty(fieldName!) ? values[fieldName!] : undefined;
             res.push(value);
         }
         return res;
@@ -71,14 +71,15 @@ export class Header {
             if (['nullValue', 'undefinedValue', 'trueValue', 'falseValue'].includes(key)) continue;
             return key; 
         }
+        throw new Error('undefined result in extractFieldName')
     }
 
     protected getFieldNullValue(i: number): string {
-        return typeof this.fields[i].nullValue === 'undefined' ? 'null' : this.fields[i].nullValue;
+        return typeof this.fields[i].nullValue === 'undefined' ? 'null' : this.fields[i].nullValue!;
     }
 
     protected getFieldUndefinedValue(i: number): string {
-        return typeof this.fields[i].undefinedValue === 'undefined' ? 'undefined' : this.fields[i].undefinedValue;
+        return typeof this.fields[i].undefinedValue === 'undefined' ? 'undefined' : this.fields[i].undefinedValue!;
     }
 
     valToStr(i: number, val: any): string {

@@ -60,11 +60,70 @@ describe('BufferEndpoint', () => {
 
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
-        let stream$ = src.select().pipe(
+
+        let stream$ = src.selectRx().pipe(
             rx.tap(v => res.push(v))
         );
         await etl.run(stream$);
 
         assert.deepStrictEqual(res, [1, 2, 3]);
+    });
+
+    test('select() method', async () => {
+        const mem = Memory.getEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+        const res = await src.select();
+
+        assert.deepStrictEqual(res, [1, 2, 3]);
+    });
+
+    test('selectGen() method', async () => {
+        const res: number[] = [];
+
+        const mem = Memory.getEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+
+        for await (const v of src.selectGen()) res.push(v);
+
+        assert.deepStrictEqual(res, [1, 2, 3]);
+    });
+
+    test('selectIx() method', async () => {
+        const res: number[] = [];
+
+        const mem = Memory.getEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+        await src.selectIx().forEach(v => {
+            res.push(v);
+        });
+
+        assert.deepStrictEqual(res, [1, 2, 3]);
+    });
+
+    test('selectRx() method', async () => {
+        const res: number[] = [];
+
+        const mem = Memory.getEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+
+        const stream$ = src.selectRx().pipe(
+            rx.tap(v => res.push(v))
+        );
+        await etl.run(stream$);
+
+        assert.deepStrictEqual(res, [1, 2, 3]);
+    });
+
+    test('selectStream() method', async () => {
+        const res: number[] = [];
+
+        const mem = Memory.getEndpoint();
+        const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
+
+        const reader = src.selectStream().getReader();
+        let v;
+        while(!(v = await reader.read()).done) res.push(v);
+
+        assert.deepStrictEqual(res, [{done: false, value: 1}, {done: false, value: 2}, {done: false, value: 3}]);
     });
 });

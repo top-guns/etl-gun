@@ -18,7 +18,7 @@ export class ListsCollection extends TrelloCollection<List> {
     protected static instanceNo = 0;
     protected boardId: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, boardId: string, options: CollectionOptions<Partial<List>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, boardId: string, options: CollectionOptions<List> = {}) {
         ListsCollection.instanceNo++;
         super(endpoint, collectionName, 'list', 'lists', options);
         this.boardId = boardId;

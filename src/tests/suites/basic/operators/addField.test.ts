@@ -12,7 +12,7 @@ describe('Operator addField()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.addField("f2", v => v.f1 * 10),
             rx.tap(v => res.push(v))
         );
@@ -26,7 +26,7 @@ describe('Operator addField()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.addField('f1', v => v * 10),
         );
 

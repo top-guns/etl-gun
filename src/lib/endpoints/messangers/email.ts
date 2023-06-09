@@ -1,3 +1,4 @@
+import * as ix from 'ix';
 import nodemailer, { Transporter } from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport/index.js";
 import Imap from 'node-imap';
@@ -7,6 +8,7 @@ import { BaseEndpoint } from '../../core/endpoint.js';
 import { BaseCollection, CollectionOptions } from '../../core/base_collection.js';
 import { BaseObservable } from '../../core/observable.js';
 import { Subscriber } from "rxjs";
+import { generator2Iterable, observable2Generator, observable2Promise, observable2Stream, wrapObservable, wrapPromise } from "../../utils/flows.js";
 
 
 
@@ -48,7 +50,7 @@ export interface ConnectionOptions {
 export class Endpoint extends BaseEndpoint  implements MessangerService {
     protected connectionOptions: ConnectionOptions;
 
-    protected _smtpConnection: Transporter<SMTPTransport.SentMessageInfo> = null;
+    protected _smtpConnection: Transporter<SMTPTransport.SentMessageInfo> | null = null;
     async getSmtpConnection(): Promise<Transporter<SMTPTransport.SentMessageInfo>> {
         return this._smtpConnection ||= await nodemailer.createTransport({
             service: this.connectionOptions.smtpService,
@@ -119,7 +121,7 @@ export class Endpoint extends BaseEndpoint  implements MessangerService {
                 subject,
                 body,
                 from
-            }
+            } as EMail
         }
         const smtp = await this.getSmtpConnection();
         let info = await smtp.sendMail({...value, text: value.body});
@@ -195,7 +197,7 @@ export class Collection extends BaseCollection<EMail> {
     protected static instanceCount = 0;
 
     protected mailBox: string;
-    protected connection: Imap = null;
+    protected connection: Imap | null = null;
 
     constructor(endpoint: BaseEndpoint, collectionName: string, mailBox: string, options: CollectionOptions<EMail> = {}) {
         Collection.instanceCount++;
@@ -203,26 +205,63 @@ export class Collection extends BaseCollection<EMail> {
         this.mailBox = mailBox;
     }
 
+    public select(): Promise<EMail[]>;
+    public select(searchOptions: SearchOptions, markSeen?: boolean): Promise<EMail[]>;
+    public select(range: string, markSeen?: boolean): Promise<EMail[]>;
+    public select(searchCriteria: any[], markSeen?: boolean): Promise<EMail[]>;
+    public select(searchCriteria?: any, markSeen: boolean = false): Promise<EMail[]> {
+        const values = observable2Promise(this._selectRx(searchCriteria, markSeen));
+        return wrapPromise(values, this);
+    }
+
+    public selectGen(): AsyncGenerator<EMail, void, void>;
+    public selectGen(searchOptions: SearchOptions, markSeen?: boolean): AsyncGenerator<EMail, void, void>;
+    public selectGen(range: string, markSeen?: boolean): AsyncGenerator<EMail, void, void>;
+    public selectGen(searchCriteria: any[], markSeen?: boolean ): AsyncGenerator<EMail, void, void>;
+    public async* selectGen(searchCriteria?: any, markSeen: boolean = false): AsyncGenerator<EMail, void, void> {
+        const generator = observable2Generator(this.selectRx(searchCriteria, markSeen));
+        for await (const item of generator) yield item;
+    }
+
+    public selectIx(): ix.AsyncIterable<EMail>;
+    public selectIx(searchOptions: SearchOptions, markSeen?: boolean): ix.AsyncIterable<EMail>;
+    public selectIx(range: string, markSeen?: boolean): ix.AsyncIterable<EMail>;
+    public selectIx(searchCriteria: any[], markSeen?: boolean ): ix.AsyncIterable<EMail>;
+    public selectIx(searchCriteria?: any, markSeen: boolean = false): ix.AsyncIterable<EMail> {
+        return generator2Iterable(this.selectGen(searchCriteria, markSeen));
+    }
+
+    public selectStream(): ReadableStream<EMail>;
+    public selectStream(searchOptions: SearchOptions, markSeen?: boolean): ReadableStream<EMail>;
+    public selectStream(range: string, markSeen?: boolean): ReadableStream<EMail>;
+    public selectStream(searchCriteria: any[], markSeen?: boolean ): ReadableStream<EMail>;
+    public selectStream(searchCriteria?: any, markSeen: boolean = false): ReadableStream<EMail> {
+        return observable2Stream(this.selectRx(searchCriteria, markSeen));
+    }
+
     // TODO: make it stopable with with await this.waitWhilePaused()
-    public select(): BaseObservable<EMail>;
-    public select(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
-    public select(range: string, markSeen?: boolean): BaseObservable<EMail>;
-    public select(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
-    public select(searchCriteria?: any[] | string | SearchOptions, markSeen: boolean = false): BaseObservable<EMail> {
+    public selectRx(): BaseObservable<EMail>;
+    public selectRx(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
+    public selectRx(range: string, markSeen?: boolean): BaseObservable<EMail>;
+    public selectRx(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
+    public selectRx(searchCriteria?: any, markSeen: boolean = false): BaseObservable<EMail> {
+        const observable = this._selectRx(searchCriteria, markSeen);
+        return wrapObservable(observable, this);
+    }
+
+    protected _selectRx(searchCriteria?: any, markSeen: boolean = false): BaseObservable<EMail> {
         const observable = new BaseObservable<EMail>(this, (subscriber) => {
                 try {
                     //if (this.connection) this.closeConnection();
                     if (!this.connection) this.connection = this.endpoint.openImapConnection();
 
                     const openInbox = (cb) => {
-                        this.connection.openBox(this.mailBox, true, cb);
+                        this.connection?.openBox(this.mailBox, true, cb);
                     }
 
                     this.connection.once('ready', () => {
                         openInbox((err, box) => {
                             if (err) throw err;
-
-                            this.sendStartEvent();
 
                             const options = { 
                                 bodies: ['HEADER.FIELDS (FROM TO CC BCC SUBJECT DATE)', 'TEXT'], 
@@ -230,8 +269,8 @@ export class Collection extends BaseCollection<EMail> {
                             };
 
                             const selectAllRecords = () => {
-                                const f = this.connection.seq.fetch(box.messages.total + ':*', options);
-                                this._select(f, subscriber);
+                                const f = this.connection?.seq.fetch(box.messages.total + ':*', options);
+                                this._selectOnMessage(f!, subscriber);
                             }
 
                             switch (typeof searchCriteria) {
@@ -240,17 +279,17 @@ export class Collection extends BaseCollection<EMail> {
                                 }
                                 case 'string': {
                                     if (!searchCriteria) return selectAllRecords();
-                                    const f = this.connection.seq.fetch(searchCriteria, options);
-                                    this._select(f, subscriber);
+                                    const f = this.connection?.seq.fetch(searchCriteria, options);
+                                    this._selectOnMessage(f!, subscriber);
                                     return;
                                 }
                                 case 'object': {
                                     if (Array.isArray(searchCriteria)) {
                                         if (!searchCriteria.length) return selectAllRecords();
-                                        this.connection.search(searchCriteria, (err, results) => {
+                                        this.connection?.search(searchCriteria, (err, results) => {
                                             if (err) throw err;
-                                            const f = this.connection.fetch(results, options);
-                                            this._select(f, subscriber);
+                                            const f = this.connection?.fetch(results, options);
+                                            this._selectOnMessage(f!, subscriber);
                                         })
                                     }
                                     else {
@@ -268,10 +307,10 @@ export class Collection extends BaseCollection<EMail> {
 
                                         if (!searchCriteriaArr.length) return selectAllRecords();
 
-                                        this.connection.search(searchCriteriaArr, (err, uids: number[]) => {
+                                        this.connection?.search(searchCriteriaArr, (err, uids: number[]) => {
                                             if (err) throw err;
-                                            const f = this.connection.fetch(uids, options);
-                                            this._select(f, subscriber);
+                                            const f = this.connection?.fetch(uids, options);
+                                            this._selectOnMessage(f!, subscriber);
                                         })
                                     }
                                 }
@@ -280,7 +319,6 @@ export class Collection extends BaseCollection<EMail> {
                     });
                         
                     this.connection.once('error', (err) => {
-                        this.sendErrorEvent(err);
                         if (!subscriber.closed) subscriber.error(err);
                         //console.log(err);
                     });
@@ -292,7 +330,6 @@ export class Collection extends BaseCollection<EMail> {
                     this.connection.connect();
                 }
                 catch(err) {
-                    this.sendErrorEvent(err);
                     if (!subscriber.closed) subscriber.error(err);
                 }
 
@@ -300,8 +337,8 @@ export class Collection extends BaseCollection<EMail> {
         return observable;
     }
 
-    // TODO: make it stopable with with await this.waitWhilePaused()
-    protected _select(f: Imap.ImapFetch, subscriber: Subscriber<EMail>) {
+    // TODO: make it stopable with await this.waitWhilePaused()
+    protected _selectOnMessage(f: Imap.ImapFetch, subscriber: Subscriber<EMail>) {
         f.on('message', (msg, seqno) => {
             //console.log('Message #%d', seqno);
 
@@ -360,31 +397,30 @@ export class Collection extends BaseCollection<EMail> {
                 //await this.waitWhilePaused();
                 //if (subscriber.closed) return;
 
-                this.sendReciveEvent(email);
-                subscriber.next(email);
+                if (!subscriber.closed) subscriber.next(email);
             });
         });
 
         f.once('error', (err) => {
             //console.log('Fetch error: ' + err);
-            this.sendErrorEvent(err);
             if (!subscriber.closed) subscriber.error(err);
         });
 
         f.once('end', () => {
             //console.log('Done fetching all messages!');
             if (!subscriber.closed) subscriber.complete();
-            this.sendEndEvent();
             this.closeConnection();
         });
     }
 
-    public async get(UID: string | number, markSeen: boolean = false): Promise<EMail> {
+
+
+    public async selectOne(UID: string | number, markSeen: boolean = false): Promise<EMail> {
         return new Promise<EMail>((resolve: (value: EMail | PromiseLike<EMail>) => void, reject: (reason?: any) => void) => {
             if (!this.connection) this.connection = this.endpoint.openImapConnection();
 
             const openInbox = (cb) => {
-                this.connection.openBox(this.mailBox, true, cb);
+                this.connection?.openBox(this.mailBox, true, cb);
             }
 
             this.connection.once('ready', () => {
@@ -398,15 +434,16 @@ export class Collection extends BaseCollection<EMail> {
 
                     const searchCriteria = [[ 'UID', [UID] ]];
 
-                    this.connection.search(searchCriteria, (err, results) => {
+                    this.connection?.search(searchCriteria, (err, results) => {
                         if (err) throw err;
-                        const f = this.connection.fetch(results, options);
-                        this._get(f, resolve, reject);
+                        const f = this.connection?.fetch(results, options);
+                        this._selectOne(f!, resolve, reject);
                     })
                 });
             });
                 
             this.connection.once('error', (err) => {
+                this.sendErrorEvent(err);
                 reject(err);
             });
                 
@@ -415,7 +452,7 @@ export class Collection extends BaseCollection<EMail> {
     }
 
     // TODO: make it stopable with with await this.waitWhilePaused()
-    protected _get(f: Imap.ImapFetch, resolve: ((value: EMail | PromiseLike<EMail>) => void), reject: ((reason?: any) => void)) {
+    protected _selectOne(f: Imap.ImapFetch, resolve: ((value: EMail | PromiseLike<EMail>) => void), reject: ((reason?: any) => void)) {
         f.on('message', (msg, seqno) => {
             const email: EMail = {
                 to: [],
@@ -452,11 +489,13 @@ export class Collection extends BaseCollection<EMail> {
             });
 
             msg.once('end', () => {
+                this.sendSelectOneEvent(email);
                 resolve(email);
             });
         });
 
         f.once('error', (err) => {
+            this.sendErrorEvent(err);
             reject(err);
         });
 
@@ -469,7 +508,7 @@ export class Collection extends BaseCollection<EMail> {
         // if (this.connection) this.connection.closeBox(err => {
         //     throw err;
         // });
-        this.connection.end();
+        this.connection?.end();
         this.connection = null;
     }
 

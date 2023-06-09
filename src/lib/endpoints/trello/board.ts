@@ -49,7 +49,7 @@ export class BoardsCollection extends TrelloCollection<Board> {
     protected static instanceNo = 0;
     protected username: string;
 
-    constructor(endpoint: Endpoint, collectionName: string, username: string = 'me', options: CollectionOptions<Partial<Board>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, username: string = 'me', options: CollectionOptions<Board> = {}) {
         BoardsCollection.instanceNo++;
         super(endpoint, collectionName, 'board', 'boards', options);
         this.username = username;

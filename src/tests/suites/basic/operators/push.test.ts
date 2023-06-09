@@ -17,7 +17,7 @@ describe('Operator push()', () => {
 
         await rx.lastValueFrom(src$);
 
-        let stream$ = buf.select().pipe(
+        let stream$ = buf.selectRx().pipe(
             rx.tap(v => res.push(v))
         );
 

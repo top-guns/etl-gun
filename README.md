@@ -10,7 +10,7 @@ ETL-Gun
 [![Coverage Status](https://codecov.io/gh/top-guns/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/top-guns/etl-gun)
 <!-- [![npm package](https://nodei.co/npm/etl-gun.png?mini=true)](https://nodei.co/npm/etl-gun/) -->
 
-ETL-Gun is a platform that employs RxJs observables, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering, error handling and many useful features.
+ETL-Gun is a platform that employs promises, generators, IxJs iterables, RxJs observables and nodejs streams, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering, bulk operations, error handling and many useful features.
 
 [//]: # (https://img.shields.io/codecov/c/github/top-guns/etl-gun/.svg   https://codecov.io/gh/top-guns/etl-gun)
 
@@ -120,7 +120,7 @@ Here's some ways to use it:
 2. Create file converters
 3. Filter or sort content of some files
 4. Run some queries in database
-5. Create Telegram bots with [Telegram.Endpoint](#telegram)
+5. Scan remote ftp folder and download some files from it
 
 You can find many examples of using **ETL-Gun** in the API Reference section of this file.
 
@@ -167,7 +167,7 @@ const dest = csv.getFile('users.scv');
 const header = new Header("id", "name", "login", "email");
 
 // Step 2: transformation streams creation
-const sourceToDest$ = source.select().pipe(
+const sourceToDest$ = source.selectRx().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
@@ -194,7 +194,7 @@ Using of this library consists of 3 steps:
 
 ETL process:
 
-* **Extract**: Data extraction from the source collection performs with **select()** method, which returns the **RxJs** stream
+* **Extract**: Data extraction from the source collection performs with **selectRx()** method, which returns the **RxJs** stream
 * **Transform**: Use any **RxJs** and **ETL-Gun** operators inside **pipe()** method of the input stream to transform the input data. To complex data transformation you can use the **Memory.Endpoint** class, which can store data and which collections have **forEach()** and some other methods to manipulate with data in it
 * **Load**: Loading of data to the destination endpoint performs with **push()** collection operator
 
@@ -211,9 +211,14 @@ Chaning of several streams performs by using **await** with **run()** procedure.
   1. Create endpoints and get all collections which you need 
   2. Create pipelines to process collection data (via **select** method of the source collections)
   3. Run piplines in order you want (with **run** operator)
+* Support all main data processing paradigms:
+  1. Simple async/await - with select() method which returns promise
+  2. Generators - with selectGen() method which returns generator as AsyncGenerator generic class
+  3. **IxJs** - with selectIx() which returns AsyncIterable generic class fully compatible with **IxJs** library
+  4. **RxJs** - with selectRx() which returns Observable generic class fully compatible with **RxJs** library, it's observables, operators etc.
+  5. Node ReadableStream - with selectStream() which returns ReadableStream generic class
 * This library contains embedded debug console. It created as console application and works in any terminals. It supports step-by-step debuging with watching the processed values. If you want to use this GUI - you simply need to create the instance of **GuiManager** class before any endpoints and collections creation (see [GUI](#gui))
 * Library written in typescript, contains end systems types information and full support of types checking. But you can use it in javascript applications too
-* Fully compatible with **RsJs** library, it's observables, operators etc.
 * Contains many kind of sources and destinations, for example many relational databases (Postgre, Mysql, ...), file formats (csv, json, xml), business applications (Magento, Trello, ZenDesk, ...), etc.
 * Work with any types of input/output data, including arrays any hierarchical data structures (json, xml)
 * With endpoint events mechanism you can handle different stream events, for example stream start/end, errors and other (see [Endpoint](#endpoint))
@@ -221,8 +226,7 @@ Chaning of several streams performs by using **await** with **run()** procedure.
   1. Data validation with [expect](#expect) operator
   2. Special endpoint type for errors, which base on queue
   3. Any collections contains property **errors** with endpoint which collect all errors, occurred while collection processing. This endpoint automatic creates when the collection creates, but you can change it's value to collect errors in place of you chois
-  4. Any collections contains method **selectErrors** to create processing pipeline for the collection errors
-  5. Console GUI display all error collections, statistic for it and it's errors
+  4. Console GUI display all error collections, statistic for it and it's errors
 * Contains some ready to use helpers and integrations, for example you can translate some data to another language with [GoogleTranslateHelper](#googletranslatehelper)
 * Contains business rules integration and allows to extract analisys and transformation logic from the etl program sources, and then change it in runtime without application changing and redeployment (see [rools](#rools))
 
@@ -258,7 +262,7 @@ const dest = csv.getFile('users.scv');
 
 const header = new Header("id", "name", "login", "email");
 
-const sourceToDest$ = source.select().pipe(
+const sourceToDest$ = source.selectRx().pipe(
     log(),
     map(v => header.objToArr(v)),
     push(dest)
@@ -277,10 +281,10 @@ const csv = csvEndpoint.getFile('users.scv');
 const memory = new etl.Memory.Endpoint();
 const buffer = memory.getBuffer('buffer 1');
 
-const scvToBuffer$ = csv.select().pipe(
+const scvToBuffer$ = csv.selectRx().pipe(
     etl.push(buffer)
 );
-const bufferToCsv$ = buffer.select().pipe(
+const bufferToCsv$ = buffer.selectRx().pipe(
     etl.push(csv)
 );
 
@@ -301,7 +305,7 @@ const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', process.env.TELEGRAM_BOT_TOKEN!);
 const translator = new etl.GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
-const startTelegramBot$ = bot.select().pipe(
+const startTelegramBot$ = bot.selectRx().pipe(
     etl.log(),          // log user messages to the console
     translator.operator([], [message]), // translate 'message' field
     etl.push(bot)  // echo input message back to the user
@@ -323,9 +327,18 @@ Base class for all collections. Declares public interface of collection and impl
 Methods:
 
 ```typescript
-// Read elements from the collection and create data stream to process it
+// Read elements from the collection and return it
 // where: condition of the element selection
-select(where?: any): Observable<any>;
+// Read elements as promise
+async select(where?: any): Promise<T[]>;
+// Read elements from the collection and return generator to process it
+async* selectGen(where?: any): AsyncGenerator<T>;
+// Read elements from the collection and return IxJS iterable to process it
+selectIx(where?: any): AsyncIterable<T>;
+// Read elements from the collection and create RxJS observable to process it
+selectRx(where?: any): Observable<T>;
+// Read elements from the collection and create data stream to process it
+selectStream(where?: any): ReadableStream<T>;
 
 // Add value to the collection (usually to the end of stream)
 // value: what will be added to the collection
@@ -347,9 +360,6 @@ on(event: CollectionEvent, listener: (...data: any[]) => void);
 
 // Readable/writable property wich contains errors collection instance for this collection
 errors: Errors.ErrorsQueue;
-
-// Calls select() method of errors collection
-selectErrors(stopOnEmpty: boolean = false): BaseObservable<EtlError>;
 ```
 
 Types:
@@ -358,11 +368,11 @@ Types:
 export type CollectionEvent = 
     "select.start" |  // fires at the start of stream
     "select.end" |    // at the end of stream
-    "select.recive" | // for every data value in the stream 
     "select.error" |  // on error
     "select.skip" |   // when the collection skip some data 
     "select.up" |     // when the collection go to the parent element while the tree data processing
     "select.down" |   // when the collection go to the child element while the tree data processing
+    "recive" | // for every data value in the stream 
     "pipe.start" |    // when processing of any collection element was started
     "pipe.end" |      // when processing of one collection element was ended
     "insert" |        // when data is inserted to the collection
@@ -401,7 +411,7 @@ Methods:
 ```typescript
 // Create the observable object and send errors data from the queue to it
 // stopOnEmpty: is errors processing will be stopped when the queue is empty
-select(stopOnEmpty: boolean = false): BaseObservable<EtlError>;
+selectRx(stopOnEmpty: boolean = false): BaseObservable<EtlError>;
 
 // Pushes the error to the queue 
 // error: what will be added to the queue
@@ -442,7 +452,7 @@ Methods:
 
 ```typescript
 // Create the observable object and send data from the buffer to it
-select(): Observable<T>;
+selectRx(): Observable<T>;
 
 // Pushes the value to the buffer 
 // value: what will be added to the buffer
@@ -471,10 +481,10 @@ const csv = csvEndpoint.getFile('users.scv');
 const memory = new etl.Memory.Endpoint();
 const buffer = memory.getBuffer('buffer 1');
 
-const scvToBuffer$ = csv.select().pipe(
+const scvToBuffer$ = csv.selectRx().pipe(
     etl.push(buffer);
 )
-const bufferToCsv$ = buffer.select().pipe(
+const bufferToCsv$ = buffer.selectRx().pipe(
     etl.push(csv)
 )
 
@@ -496,7 +506,7 @@ Methods:
 // Create the observable object wich send process queue elements one by one and remove processed element from queue
 // dontStopOnEmpty - do we need stop queue processing (unsubscribe) when the queue will be empty
 // interval - pause between elements processing, in milliseconds
-select(dontStopOnEmpty: boolean = false, interval: number = 0): Observable<T>;
+selectRx(dontStopOnEmpty: boolean = false, interval: number = 0): Observable<T>;
 
 // Pushes the value to the queue 
 // value: what will be added to the queue
@@ -541,10 +551,10 @@ Methods:
 //       *.js - all js files in root folder
 //       **/*.png - all png files in root folder and subfolders
 // options: Search options, see below
-select(mask: string = '*', options?: ReadOptions): BaseObservable<PathDetails>;
+selectRx(mask: string = '*', options?: ReadOptions): BaseObservable<PathDetails>;
 
 // Create folder or file
-// pathDetails: Information about path, which returns from select() method
+// pathDetails: Information about path, which returns from selectRx() method
 // filePath: File or folder path
 // isFolder: Is it file or folder
 // data: What will be added to the file, if it is a file, ignore for folders
@@ -593,7 +603,7 @@ import * as rxjs from "rxjs";
 const fs = new etl.Filesystem.Endpoint('~');
 const scripts = ep.getFolder('scripts');
 
-const printAllJsFileNames$ = scripts.select('**/*.js').pipe(
+const printAllJsFileNames$ = scripts.selectRx('**/*.js').pipe(
     rx.map(v => v.name)
     etl.log()
 );
@@ -631,7 +641,7 @@ Methods:
 
 ```typescript
 // Create the observable object and send files and folders information to it
-select(): BaseObservable<FileInfo>;
+selectRx(): BaseObservable<FileInfo>;
 
 // Create folder or file. 
 // remoteFolderPath, remoteFilePath, remotePath: remote path to be created
@@ -662,7 +672,7 @@ import * as rxjs from "rxjs";
 
 const ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER, password: process.env.FTP_PASSWORD});
 const folder = ftp.getFolder('/var/logs');
-const PrintFolderContents$ = folder.select().pipe(
+const PrintFolderContents$ = folder.selectRx().pipe(
     etl.log()
 )
 await etl.run(PrintFolderContents$);
@@ -718,7 +728,7 @@ Methods:
 // Create the observable object and send file data to it string by string
 // skipFirstLine: skip the first line in the file, useful for skip header
 // skipEmptyLines: skip all empty lines in file
-select(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]>;
+selectRx(skipFirstLine: boolean = false, skipEmptyLines = false): Observable<string[]>;
 
 // Add row to the end of file with specified value 
 // value: what will be added to the file
@@ -736,7 +746,7 @@ import * as etl from "etl-gun";
 const csv = new etl.Csv.Endpoint('~');
 const testFile = csv.getFile('test.csv')
 
-const logTestFileRows$ = testFile.select().pipe(
+const logTestFileRows$ = testFile.selectRx().pipe(
     etl.log()
 );
 
@@ -776,7 +786,7 @@ Methods:
 // path: search path in lodash simple path manner
 // jsonPath: search path in JSONPath format
 // options: see below
-select(path: string, options?: ReadOptions): Observable<any>;
+selectRx(path: string, options?: ReadOptions): Observable<any>;
 selectByJsonPath(jsonPath: string | string[], options?: ReadOptions): Observable<any>;
 
 // Find and return child object by specified path
@@ -824,7 +834,7 @@ import { tap } from "rxjs";
 const json = new etl.Json.Endpoint('~');
 const testFile = etl.getFile('test.json');
 
-const printJsonBookNames$ = testFile.select('store.book').pipe(
+const printJsonBookNames$ = testFile.selectRx('store.book').pipe(
     tap(book => console.log(book.name))
 );
 
@@ -869,7 +879,7 @@ Methods:
 // Find and send to observable child objects by specified xpath
 // xpath: xpath to search
 // options: see below
-select(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node>;
+selectRx(xpath: string = '', options: XmlReadOptions = {}): EtlObservable<Node>;
 
 // Find and return child node by specified path
 // xpath: search path
@@ -914,7 +924,7 @@ import { map } from "rxjs";
 const xml = new etl.Xml.Endpoint('/tmp');
 const testFile = xml.getFile('test.xml');
 
-const printXmlAuthors$ = testFile.select('/store/book/author').pipe(
+const printXmlAuthors$ = testFile.selectRx('/store/book/author').pipe(
     map(v => v.firstChild.nodeValue),
     etl.log()
 );
@@ -968,8 +978,8 @@ Methods:
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-select(where: SqlCondition<T>, fields?: string[]): BaseObservable<T>;
-select(whereSql?: string, whereParams?: any[], fields?: string[]): BaseObservable<T>;
+selectRx(where: SqlCondition<T>, fields?: string[]): BaseObservable<T>;
+selectRx(whereSql?: string, whereParams?: any[], fields?: string[]): BaseObservable<T>;
 
 // Insert value to the database table
 // value: what will be added to the database
@@ -1014,7 +1024,7 @@ Methods:
 //        it can be SQL where clause 
 //        or object with fields as collumn names 
 //        and its values as needed collumn values
-select(params?: any[]): BaseObservable<T>;
+selectRx(params?: any[]): BaseObservable<T>;
 
 // Execute query with specified parameters and return the first founded record or null
 async get(params?: any[]): Promise<T> {
@@ -1049,7 +1059,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.CockroachDb.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1082,7 +1092,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.MariaDb.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1115,7 +1125,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.SqlServer.Endpoint('mssql://user:password@127.0.0.1:1433/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1148,7 +1158,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.MySql.Endpoint('mysql://user:password@127.0.0.1:3306/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1186,7 +1196,7 @@ const pg = new etl.databases.OracleDb.Endpoint({
 });
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1219,7 +1229,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1252,7 +1262,7 @@ import * as etl from "etl-gun";
 const pg = new etl.databases.Redshift.Endpoint('postgres://user:password@127.0.0.1:5439/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1287,7 +1297,7 @@ const pg = new etl.databases.SqlLite.Endpoint(connection: {
 });
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.log()
 );
 
@@ -1325,10 +1335,10 @@ Methods:
 
 ```typescript
 // Create the observable object and send product data from the Magento to it
-select(): BaseObservable<EMail>;
-select(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
-select(range: string, markSeen?: boolean): BaseObservable<EMail>;
-select(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
+selectRx(): BaseObservable<EMail>;
+selectRx(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
+selectRx(range: string, markSeen?: boolean): BaseObservable<EMail>;
+selectRx(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
 
 async get(UID: string | number, markSeen: boolean = false): Promise<EMail>;
 ```
@@ -1341,7 +1351,7 @@ import * as etl from "etl-gun";
 const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
 const inbox = gmail.getInbox();
 
-const PrintMails$ = inbox.select({seen: false}).pipe(
+const PrintMails$ = inbox.selectRx({seen: false}).pipe(
     rx.take(10),
     etl.log()
 )
@@ -1396,10 +1406,10 @@ Methods:
 
 ```typescript
 // Create the observable object and send product data from the Magento to it
-select(): BaseObservable<EMail>;
-select(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
-select(range: string, markSeen?: boolean): BaseObservable<EMail>;
-select(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
+selectRx(): BaseObservable<EMail>;
+selectRx(searchOptions: SearchOptions, markSeen?: boolean): BaseObservable<EMail>;
+selectRx(range: string, markSeen?: boolean): BaseObservable<EMail>;
+selectRx(searchCriteria: any[], markSeen?: boolean ): BaseObservable<EMail>;
 
 async get(UID: string | number, markSeen: boolean = false): Promise<EMail>;
 ```
@@ -1412,7 +1422,7 @@ import * as etl from "etl-gun";
 const gmail = new etl.messangers.Gmail.Endpoint(process.env.GMAIL_USER!, process.env.GMAIL_PASSWORD!);
 const inbox = gmail.getInbox();
 
-const PrintMails$ = inbox.select({seen: false}).pipe(
+const PrintMails$ = inbox.selectRx({seen: false}).pipe(
     rx.take(10),
     etl.log()
 )
@@ -1488,7 +1498,7 @@ Methods:
 // Create the observable object and send product data from the Magento to it
 // where: you can filter products by specifing object with fields as collumn names and it's values as fields values 
 // fields: you can select which products fields will be returned (null means 'all fields') 
-select(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObservable<Partial<Product>> ;
+selectRx(where: Partial<Product> = {}, fields: (keyof Product)[] = null): BaseObservable<Partial<Product>> ;
 
 // Add new product to the Magento
 // value: product fields values
@@ -1516,7 +1526,7 @@ import * as etl from "etl-gun";
 const magento = new etl.Magento.Endpoint('https://magento.test', process.env.MAGENTO_LOGIN!, process.env.MAGENTO_PASSWORD!);
 const products = magento.getProducts();
 
-const logProductsWithPrice100$ = products.select({price: 100}).pipe(
+const logProductsWithPrice100$ = products.selectRx({price: 100}).pipe(
     etl.log()
 );
 
@@ -1532,8 +1542,8 @@ Methods:
 ```typescript
 // Create the observable object and send stock items data from the Magento to it
 // sku, product: you can filter stock items by product attributes
-select(sku: string): BaseObservable<StockItem>;
-select(product: Partial<Product>): BaseObservable<StockItem>;
+selectRx(sku: string): BaseObservable<StockItem>;
+selectRx(product: Partial<Product>): BaseObservable<StockItem>;
 
 // Get stock item for specified product
 // sku, product: product, wich stock items we need to get
@@ -1602,7 +1612,7 @@ Methods:
 // Create the observable object and send boards data from the Trello to it
 // where (does not working now!): you can filter boards by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which board fields will be returned (null means 'all fields') 
-select(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
+selectRx(where: Partial<Board> = {}, fields: (keyof Board)[] = null): EtlObservable<Partial<Board>>;
 
 // Add new board to the Trello
 // value: board fields values
@@ -1634,7 +1644,7 @@ Methods:
 // Create the observable object and send lists data from the Trello to it
 // where (does not working now!): you can filter lists by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which list fields will be returned (null means 'all fields') 
-select(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
+selectRx(where: Partial<List> = {}, fields: (keyof List)[] = null): EtlObservable<Partial<List>>;
 
 // Add new list to the Trello
 // value: list fields values
@@ -1676,7 +1686,7 @@ Methods:
 // Create the observable object and send cards data from the Trello to it
 // where (does not working now!): you can filter cards by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which card fields will be returned (null means 'all fields') 
-select(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
+selectRx(where: Partial<Card> = {}, fields: (keyof Card)[] = null): EtlObservable<Partial<Card>>;
 
 // Add new card to the Trello
 // value: card fields values
@@ -1713,7 +1723,7 @@ Methods:
 // Create the observable object and send comments from the Trello to it
 // where (does not working now!): you can filter comments by specifing object with fields as collumn names and it's values as fields values 
 // fields (does not working now!): you can select which comment fields will be returned (null means 'all fields') 
-select(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>>;
+selectRx(where: Partial<Comment> = {}, fields: (keyof Comment)[] = null): EtlObservable<Partial<Comment>>;
 
 // Add new comment to the Trello card
 // text: comment text
@@ -1748,7 +1758,7 @@ const list = (await lists.get())[0];
 
 const cards = trello.getListCards(list.id);
 
-const addCommentToAllCards$ = cards.select().pipe(
+const addCommentToAllCards$ = cards.selectRx().pipe(
     rx.tap(card => {
         const comments = trello.getBoardLists(card.id, 'cards');
         comments.push('New comment');
@@ -1801,7 +1811,7 @@ Methods:
 ```typescript
 // Create the observable object and send tickets data from the Zendesk to it
 // where: you can filter tickets by specifing object with fields as collumn names and it's values as fields values 
-select(where: Partial<Ticket> = {}): BaseObservable<Partial<Ticket>>;
+selectRx(where: Partial<Ticket> = {}): BaseObservable<Partial<Ticket>>;
 
 // Add new ticket to the Zendesk
 // value: ticket fields values
@@ -1828,7 +1838,7 @@ Methods:
 
 ```typescript
 // Create the observable object and send fields description data from the Zendesk to it
-select(): BaseObservable<Partial<Field>>;
+selectRx(): BaseObservable<Partial<Field>>;
 
 // Add new field to the Zendesk
 // value: field attributes values
@@ -1856,7 +1866,7 @@ import * as etl from 'etl-gun';
 const zendesk = new etl.Zendesk.Endpoint(process.env.ZENDESK_URL!, process.env.ZENDESK_USERNAME!, process.env.ZENDESK_TOKEN!);
 const tickets = zendesk.getTickets();
 
-const PrintAllOpenedTickets$ = tickets.select().pipe(
+const PrintAllOpenedTickets$ = tickets.selectRx().pipe(
     etl.where({status: 'open'}),
     etl.log()
 )
@@ -1897,7 +1907,7 @@ Methods:
 
 ```typescript
 // Start reciving of all users messages
-select(): Observable<T>;
+selectRx(): Observable<T>;
 
 // Stop reciving of user messages
 async stop();
@@ -1922,7 +1932,7 @@ import * as etl from "etl-gun";
 const telegram = new etl.Telegram.Endpoint();
 const bot = telegram.startBot('bot 1', '**********');
 
-const startTelegramBot$ = bot.select().pipe(
+const startTelegramBot$ = bot.selectRx().pipe(
     etl.log(),          // log user messages to the console
     etl.push(bot)  // echo input message back to the user
 );
@@ -1958,7 +1968,7 @@ Methods:
 
 ```typescript
 // Start interval generation, create observable and emit counter of intervals to it
-select(): Observable<number>;
+selectRx(): Observable<number>;
 
 // Stop endpoint reading
 async stop();
@@ -1979,7 +1989,7 @@ import * as etl from "etl-gun";
 const timer = new etl.Interval.Endpoint();
 const seq = new etl.getSequence('every 500 ms', 500);
 
-const startTimer$ = seq.select().pipe(
+const startTimer$ = seq.selectRx().pipe(
     etl.log()          // log counter
 );
 
@@ -2002,7 +2012,7 @@ import * as etl from "etl-gun";
 let memory = new etl.Memory.Endpoint();
 let buffer = memory.getBuffer('test buffer', [1, 2, 3, 4, 5]);
 
-let stream$ = buffer.select().pipe(
+let stream$ = buffer.selectRx().pipe(
     etl.log()
 );
 
@@ -2041,7 +2051,7 @@ let buffer = memory.getBuffer('test buffer', [{count: 1}, {count: 2}]);
 const errorsEndpoint = etl.Errors.getEndpoint();
 const errors = errorsEndpoint.getCollection('all');
 
-let stream$ = buffer.select().pipe(
+let stream$ = buffer.selectRx().pipe(
     etl.expect('count = 1', { count: 1 }, errors),
     etl.expect('count one of [1,2,3]', { count: etl.VALUE.of([1,2,3]) }),
     etl.expect('count not > 3', { count: etl.VALUE.not['>'](3) }),
@@ -2211,7 +2221,7 @@ await rules.register([ruleSkipCheapProducts, ruleSetProductTaxClass]);
 const db = new etl.databases.MySql.Endpoint(process.env.MYSQL_CONNECTION_STRING!, undefined, 'mysql2');
 const table = db.getTable<DbProduct>('products');
 
-const PrintRichProducts$ = table.select().pipe(
+const PrintRichProducts$ = table.selectRx().pipe(
     etl.rools(rules),
     etl.log()
 )
@@ -2233,7 +2243,7 @@ import * as etl from "etl-gun";
 const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 
-let stream$ = src.select().pipe(
+let stream$ = src.selectRx().pipe(
     etl.move<{ nn: number }>({to: 'nn'}), // 1 -> { nn: 1 }
     etl.move<{ num: number }>({from: 'nn', to: 'num'}), // { nn: 1 } -> { num: 1 }
     etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
@@ -2258,7 +2268,7 @@ import * as etl from "etl-gun";
 const memory = etl.Memory.getEndpoint();
 const buf = memory.getBuffer<number>('buf', [1,2,3,4,5]);
 
-let stream$ = src.select().pipe(
+let stream$ = src.selectRx().pipe(
     etl.move<{ nn: number }>({to: 'nn'}), // 1 -> { nn: 1 }
     etl.move<{ num: number }>({from: 'nn', to: 'num'}), // { nn: 1 } -> { num: 1 }
     etl.copy<{ num: number, kk: {pp: number} }>('nn', 'kk.pp'), // { nn: 1 } -> { nn: 1, kk: {pp: 1} }
@@ -2283,7 +2293,7 @@ import * as etl from "etl-gun";
 let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
 
-let stream$ = src.select().pipe(
+let stream$ = src.selectRx().pipe(
     etl.numerate(10), // 10 is the first value for numeration
     etl.log()
 );
@@ -2305,7 +2315,7 @@ import * as etl from "etl-gun";
 const pg = new etl.Postgres.Endpoint('postgres://user:password@127.0.0.1:5432/database');
 const table = pg.getTable('users');
 
-const logUsers$ = table.select().pipe(
+const logUsers$ = table.selectRx().pipe(
     etl.addField('NAME_IN_UPPERCASE', value => value.name.toUpperCase()),
     etl.log()
 );
@@ -2327,7 +2337,7 @@ import * as etl from "etl-gun";
 let csv = new etl.Csv.Endpoint();
 let src = csv.getFile('test.csv');
 
-const stream$ = src.select().pipe(
+const stream$ = src.selectRx().pipe(
     etl.addColumn(value => value[2].toUpperCase()), 
     etl.log()
 );
@@ -2352,7 +2362,7 @@ let src = csv.getFile('test.csv');
 let mem = new etl.Memory.Endpoint();
 let buffer = mem.getBuffer('buffer 1', [1, 2, 3, 4, 5]);
 
-let stream$ = src.select().pipe(
+let stream$ = src.selectRx().pipe(
     etl.join(buffer),
     etl.log()
 );
@@ -2376,7 +2386,7 @@ let buffer = mem.getBuffer('urls', ['1.json', '2.json', '3.json']);
 
 const mySite = new HttpClientHelper('http://www.mysite.com/jsons');
 
-let stream$ = src.select().pipe(
+let stream$ = src.selectRx().pipe(
     mapAsync(async (url) => await mySite.getJson(url)),
     etl.log()
 );
@@ -2400,7 +2410,7 @@ let src = csv.getFile('products.csv');
 
 const translator = new GoogleTranslateHelper(process.env.GOOGLE_CLOUD_API_KEY!, 'en', 'ru');
 
-let translateProducts$ = src.select().pipe(
+let translateProducts$ = src.selectRx().pipe(
     translator.operator(),
     log()
 );
@@ -2477,7 +2487,7 @@ let src = csv.getFile('products.csv');
 
 const mySite = new HttpClientHelper('http://www.mysite.com');
 
-let sendProductsToSite$ = src.select().pipe(
+let sendProductsToSite$ = src.selectRx().pipe(
     map(p => mySite.post(p)),
 );
 await run(sendProductsToSite$);
@@ -2498,7 +2508,7 @@ let csv = new Csv.Endpoint();
 const dest = csv.getFile("users.csv");
 const header = new Header([{"id": "number"}, "name", {"login": "string", nullValue: "-null-"}, "email"]);
 
-let sourceToDest$ = source.select().pipe(
+let sourceToDest$ = source.selectRx().pipe(
     map(v => header.objToArr(v)),
     push(dest)
 );

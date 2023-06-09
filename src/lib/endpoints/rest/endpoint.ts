@@ -14,7 +14,7 @@ export type RestFetchOptions = {
 
 export class RestEndpoint extends BaseEndpoint {
     protected apiUrl: string;
-    protected agent: https.Agent;
+    protected agent: https.Agent | null;
 
     constructor(apiUrl: string, rejectUnauthorized: boolean = true) {
         super();
@@ -35,7 +35,7 @@ export class RestEndpoint extends BaseEndpoint {
         }
         if (options.body) init.body = JSON.stringify(options.body);
 
-        let fullUrl = this.makeUrl([url], [options.params]);
+        let fullUrl = this.makeUrl([url], [options.params!]);
         //console.log(fullUrl)
         const res = await fetch(fullUrl, init);
         //console.log(res)

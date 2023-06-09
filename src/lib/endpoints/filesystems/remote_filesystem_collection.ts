@@ -1,7 +1,7 @@
 import { FilesystemCollection } from "./filesystem_collection.js";
 
 
-export abstract class RemoteFilesystemCollection<T> extends FilesystemCollection<T> { 
+export abstract class RemoteFilesystemCollection extends FilesystemCollection { 
     public abstract copy(remoteSrcPath: string, remoteDestPath: string): Promise<void>; 
     public abstract move(remoteSrcPath: string, remoteDestPath: string): Promise<void>; 
 

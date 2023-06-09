@@ -1,35 +1,40 @@
 {
-  "--extends": "@sindresorhus/tsconfig",
+  // "--extends": "@sindresorhus/tsconfig",
+  //"extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2021",
-    "declaration": true,
-    "sourceMap": true,
+    "target": "ES2022",
+    ////"declaration": true,
+    ////"sourceMap": true,
     "noImplicitAny": false,
-    //"types": ["node", "jest"],
-    "types": ["node", "node/test"],
+    //"types": ["node", "jest", "node/test"],
+    "types": ["node"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     //"strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    ////"forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "isolatedModules": true,
-    "baseUrl": ".",
-    "noFallthroughCasesInSwitch": true,
+    ////"noPropertyAccessFromIndexSignature": false,
+    ////"isolatedModules": true,
+    ////"baseUrl": ".",
+    ////"noFallthroughCasesInSwitch": true,
     "outDir": "./dist",
-    "lib": ["ES2021"],
+    "lib": ["ES2022"],
   },
-  "compileOnSave": true,
+  ////"compileOnSave": true,
   "exclude": [
     "node_modules"
   ],
   "include": [
-    "src/lib/**/*"
+    "src/**/*.ts"
   ],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+}
   // "ts-node": {
 	// 	"transpileOnly": true,
 	// 	"files": true,

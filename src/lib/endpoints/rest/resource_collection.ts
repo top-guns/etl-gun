@@ -1,47 +1,68 @@
+import * as ix from 'ix';
 import _ from 'lodash';
-import { Subscriber } from 'rxjs';
 import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseObservable } from "../../core/observable.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
 import { RestEndpoint } from './endpoint.js';
+import { generator2Iterable, observable2Stream, promise2Generator, promise2Observable, selectOne_from_Promise, wrapGenerator, wrapObservable } from '../../utils/flows.js';
 
 
-export class RestResourceCollection<T> extends UpdatableCollection<T> {
+export class ResourceCollection<T> extends UpdatableCollection<T> {
     protected static instanceNo = 0;
     protected resourceNameS: string;
     protected resourceName: string;
 
     constructor(endpoint: RestEndpoint, collectionName: string, resourceName: string, resourceNameS: string, options: CollectionOptions<T> = {}) {
-        RestResourceCollection.instanceNo++;
+        ResourceCollection.instanceNo++;
         super(endpoint, collectionName, options);
         this.resourceNameS = resourceNameS;
         this.resourceName = resourceName;
     }
 
-    public select(where: Partial<T> = {}): BaseObservable<T>{
-        const observable = new BaseObservable<T>(this, (subscriber) => {
-            this._select(this._findWithoutEvent(where), subscriber);
-        });
-        return observable;
+    protected async _select(where?: any): Promise<T[]> {
+        const params: Partial<T> = where;
+        const res = await this.endpoint.fetchJson(this.getSearchUrl(), 'GET', { params });
+        const result = res ? (typeof res[this.resourceNameS] === 'undefined' ? res : res[this.resourceNameS]) : null;
+        return result;
     }
 
-    protected async _select(itemsPromise: Promise<T[]>, subscriber: Subscriber<T>) {
-        try {
-            this.sendStartEvent();
-            const items = await itemsPromise;
-            for (const obj of items) {
-                if (subscriber.closed) break;
-                await this.waitWhilePaused();
-                this.sendReciveEvent(obj);
-                subscriber.next(obj);
-            }
-            subscriber.complete();
-            this.sendEndEvent();
-        }
-        catch(err) {
-            this.sendErrorEvent(err);
-            subscriber.error(err);
-        }
+    public async select(where?: any): Promise<T[]> {
+        const params: Partial<T> = where;
+        const res = await this.endpoint.fetchJson(this.getSearchUrl(), 'GET', { params });
+        const result = res ? (typeof res[this.resourceNameS] === 'undefined' ? res : res[this.resourceNameS]) : null;
+        this.sendSelectEvent(result);
+        return result;
+    }
+
+    public async* selectGen(where?: any): AsyncGenerator<T, void, void> {
+        const values = this._select(where);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(where?: any): BaseObservable<T> {
+        const values = this._select(where);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public selectIx(where?: any): ix.AsyncIterable<T> {
+        return generator2Iterable(this.selectGen(where));
+    }
+
+    public selectStream(where?: any): ReadableStream<T> {
+        return observable2Stream(this.selectRx(where));
+    }
+
+    protected async _selectOne(id: string): Promise<T> {
+        const res = await this.endpoint.fetchJson(this.getResourceUrl(id));
+        const result = res ? (typeof res[this.resourceName] === 'undefined' ? res : res[this.resourceName]) : null;
+        return result;
+    }
+
+    public async selectOne(id: string): Promise<T> {
+        const result = await this._selectOne(id);
+        this.sendSelectOneEvent(result);
+        return result;
     }
 
     protected getResourceUrl(id: string): string {
@@ -56,30 +77,8 @@ export class RestResourceCollection<T> extends UpdatableCollection<T> {
         return `${this.resourceNameS}`;
     }
 
-    async get(id: string): Promise<T> {
-        const res = await this._getWithoutEvent(id);
-        this.sendGetEvent(res, id);
-        return res;
-    }
-
-    async _getWithoutEvent(id: string): Promise<T> {
-        const res = await this.endpoint.fetchJson(this.getResourceUrl(id));
-        return res ? (typeof res[this.resourceName] === 'undefined' ? res : res[this.resourceName]) : null;
-    }
-
-    async find(where?: Partial<T>): Promise<T[]> {
-        const res = await this._findWithoutEvent(where);
-        this.sendListEvent(res, where);
-        return res;
-    }
-
-    async _findWithoutEvent(where?: Partial<T>): Promise<T[]> {
-        const res = await this.endpoint.fetchJson(this.getSearchUrl(), 'GET', { params: where });
-        return res ? (typeof res[this.resourceNameS] === 'undefined' ? res : res[this.resourceNameS]) : null;
-    }
-
     public async isExists(id: string): Promise<boolean> {
-        const res = await this._getWithoutEvent(id);
+        const res = await this._selectOne(id);
         const exists = !!res;
         return exists;
     }

@@ -1,9 +1,11 @@
+import * as ix from 'ix';
 import _ from 'lodash';
 import { CollectionOptions } from '../../core/base_collection.js';
 import { Condition, isMatch } from "../../core/condition.js";
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
+import { generator2Iterable, observable2Stream, promise2Generator, promise2Iterable, promise2Observable, promise2Stream, selectOne_from_Promise, wrapGenerator, wrapIterable, wrapObservable, wrapStream } from '../../utils/flows.js';
 
 
 export class BufferCollection<T = any> extends UpdatableCollection<T> {
@@ -20,48 +22,38 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
         this._buffer = [...values];
     }
 
-    public select(where?: (value: T, index: number) => T): BaseObservable<T> {
-        const observable = new BaseObservable<T>(this, (subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-                    
-                    const elements = where ? this._buffer.filter(where) : this._buffer;
-                    for(const value of elements) {
-                        if (subscriber.closed) break;
-                        await this.waitWhilePaused();
-                        this.sendReciveEvent(value);
-                        subscriber.next(value);
-                    };
-
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
+    protected async _select(where?: Condition<T>): Promise<T[]> {
+        if (!where) return this._buffer;
+        return this._buffer.filter(v => isMatch(v, where));
     }
 
-    public async get(where: any): Promise<T> {
-        const elements = this._buffer.filter(v => isMatch(v, where));
-        const res = elements.length ? elements[0] : undefined;
-        this.sendGetEvent(res, where);
-        return res;
+    public async select(where?: Condition<T>): Promise<T[]> {
+        let list: T[] = await this._select(where);
+        this.sendSelectEvent(list);
+        return list;
     }
 
-    public async find(where?: Condition<T>): Promise<T[]> {
-        if (!where) {
-            this.sendListEvent(this._buffer);
-            return this._buffer;
-        }
+    public async* selectGen(where?: Condition<T>): AsyncGenerator<T, void, void> {
+        const generator = wrapGenerator(promise2Generator(this._select(where)), this);
+        for await (let item of generator) yield item;
+    }
 
-        const elements = this._buffer.filter(v => isMatch(v, where));
-        this.sendListEvent(elements, where);
-        return elements;
+    public selectRx(where?: Condition<T>): BaseObservable<T> {
+        return wrapObservable(promise2Observable(this._select(where)), this);
+    }
+
+    public selectIx(where?: Condition<T>): ix.AsyncIterable<T> {
+        return wrapIterable(promise2Iterable(this._select(where)), this);
+    }
+
+    public selectStream(where?: Condition<T>): ReadableStream<T> {
+        return wrapStream(promise2Stream(this._select(where)), this);
+    }
+
+    public async selectOne(where: Condition<T>): Promise<T | null> {
+        const res = await selectOne_from_Promise(this._select(where));
+        this.sendSelectOneEvent(res ?? null);
+        return res ?? null;
     }
 
     protected async _insert(value: T) {
@@ -93,7 +85,7 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
                 exists = true;
                 this.sendUpdateEvent(value, where);
                 for (let key in value) {
-                    if (!value.hasOwnProperty(key)) continue;
+                    if (!(value as any).hasOwnProperty(key)) continue;
                     _.set(v, key, value);
                 }
             }

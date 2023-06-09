@@ -1,3 +1,4 @@
+import * as ix from 'ix';
 import * as fs from "fs";
 import { parse, Options } from "csv-parse";
 import { BaseEndpoint} from "../core/endpoint.js";
@@ -5,15 +6,16 @@ import { Header, pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
 import { CollectionOptions } from "../core/base_collection.js";
+import { observable2Generator, observable2Iterable, observable2Promise, observable2Stream, selectOne_from_Observable, wrapObservable, wrapPromise } from '../utils/flows.js';
 
 export class Endpoint extends BaseEndpoint {
-    protected rootFolder: string = null;
-    constructor(rootFolder: string = null) {
+    protected rootFolder: string | null = null;
+    constructor(rootFolder: string | null = null) {
         super();
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<string[]> = {}): Collection {
+    getFile(filename: string, header: Header | null = null, delimiter: string = ",", options: CollectionOptions<CsvCellType[]> = {}): Collection {
         options.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
@@ -33,20 +35,22 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
-export function getEndpoint(rootFolder: string = null): Endpoint {
+export function getEndpoint(rootFolder: string | null = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
 export type CsvCellType = string | boolean | number | undefined | null;
+
+export type CsvWhere = { skipFirstLine: boolean, skipEmptyLines: boolean };
 
 export class Collection extends UpdatableCollection<CsvCellType[]> {
     protected static instanceCount = 0;
 
     protected filename: string;
     protected delimiter: string;
-    public header: Header;
+    public header: Header | null;
 
-    constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header = null, delimiter: string = ",", options: CollectionOptions<CsvCellType[]> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, filename: string, header: Header | null = null, delimiter: string = ",", options: CollectionOptions<CsvCellType[]> = {}) {
         Collection.instanceCount++;
         super(endpoint, collectionName, options);
         this.filename = filename;
@@ -54,16 +58,45 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
         this.header = header;
     }
 
-   /**
-   * @param skipFirstLine skip the first line in file, useful for skip header
-   * @param skipEmptyLines skip empty lines in file
-   * @return Observable<string[]> 
-   */
-    public select(skipFirstLine: boolean = false, skipEmptyLines = false, options: Options = {}): BaseObservable<CsvCellType[]> {
-        const rows = [];
+    public select(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): Promise<CsvCellType[][]> {
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+        return wrapPromise(observable2Promise(observable), this);
+    }
+    public async* selectGen(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): AsyncGenerator<CsvCellType[], void, void> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+        const generator = observable2Generator(observable);
+        for await (const value of generator) yield value;
+    }
+    public selectIx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): ix.AsyncIterable<CsvCellType[]> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+        return observable2Iterable(observable);
+    }
+
+    public selectStream(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): ReadableStream<CsvCellType[]> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+        return observable2Stream(observable);
+    }
+    public async selectOne(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): Promise<CsvCellType[] | null> {
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+        const value = await selectOne_from_Observable(observable);
+        this.sendSelectOneEvent(value);
+        return value;
+    }
+
+    public selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): BaseObservable<CsvCellType[]> {
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+        return wrapObservable(observable, this);
+    }
+
+    /**
+    * @param skipFirstLine skip the first line in file, useful for skip header
+    * @param skipEmptyLines skip empty lines in file
+    * @return Observable<string[]> 
+    */
+    protected _selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): BaseObservable<CsvCellType[]> {
+        const rows: any[] = [];
         const observable = new BaseObservable<CsvCellType[]>(this, (subscriber) => {
             try {
-                this.sendStartEvent();
                 const readStream = fs.createReadStream(this.filename)
                 .pipe(parse({ delimiter: this.delimiter, from_line: skipFirstLine ? 2 : 1, ...options}))
                 .on("data", (row: string[]) => {
@@ -82,34 +115,22 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
                             if (subscriber.closed) break;
                             await this.waitWhilePaused();
                             if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
-                                this.sendSkipEvent(row);
                                 return;
                             }
-                            this.sendReciveEvent(row);
-                            subscriber.next(row);
+                            if (!subscriber.closed) subscriber.next(row);
                         }
-                        subscriber.complete();
-                        this.sendEndEvent();
+                        if (!subscriber.closed) subscriber.complete();
                     })();
                 })
                 .on('error', (err) => {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
+                    if (!subscriber.closed) subscriber.error(err);
                 }); 
             }
             catch(err) {
-                this.sendErrorEvent(err);
-                subscriber.error(err);
+                if (!subscriber.closed) subscriber.error(err);
             }
         });
         return observable;
-    }
-
-    public async get(where: any, ...params: any[]): Promise<CsvCellType[]> {
-        throw new Error("Method not implemented.");
-    }
-    public async find(): Promise<CsvCellType[][]> {
-        throw new Error("Method not implemented.");
     }
 
     protected async _insert(value: CsvCellType[], nullValue: string = ''): Promise<void> {

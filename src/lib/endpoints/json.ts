@@ -1,31 +1,34 @@
+import * as ix from 'ix';
 import * as fs from "fs";
-import { Subscriber } from 'rxjs';
 import _ from 'lodash';
 import { JSONPath } from 'jsonpath-plus';
 import { BaseEndpoint} from "../core/endpoint.js";
 import { pathJoin } from "../utils/index.js";
 import { BaseObservable } from "../core/observable.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
-import { CollectionOptions } from "../core/base_collection.js";
+import { BaseCollection, CollectionOptions } from "../core/base_collection.js";
+import { generator2Iterable, generator2Stream, promise2Generator, promise2Observable, selectOne_from_Promise, wrapGenerator, wrapObservable } from "../utils/flows.js";
 
-export type ReadOptions = {
-    // foundedOnly is default
-    searchReturns?: 'foundedOnly' | 'foundedImmediateChildrenOnly' | 'foundedWithDescendants';
-    addRelativePathAsField?: string;
-}
 
 export class Endpoint extends BaseEndpoint {
-    protected rootFolder: string = null;
-    constructor(rootFolder: string = null) {
+    protected rootFolder: string | null = null;
+    constructor(rootFolder: string | null = null) {
         super();
         this.rootFolder = rootFolder;
     }
 
-    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, options: CollectionOptions<number> = {}): Collection {
+    getFile(filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, options: CollectionOptions<number> = {}): LodashPathCollection {
         options.displayName ??= this.getName(filename);
         let path = filename;
         if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
-        return this._addCollection(filename, new Collection(this, filename, path, autosave, autoload, encoding, options));
+        return this._addCollection(filename, new LodashPathCollection(this, filename, path, autosave, autoload, encoding, options));
+    }
+
+    getFileWithJsonPaths(filename: string, encoding?: BufferEncoding, options: CollectionOptions<number> = {}): JsonPathCollection {
+        options.displayName ??= this.getName(filename);
+        let path = filename;
+        if (this.rootFolder) path = pathJoin([this.rootFolder, filename], '/');
+        return this._addCollection(filename, new JsonPathCollection(this, filename, path, encoding, options));
     }
 
     releaseFile(filename: string) {
@@ -41,21 +44,21 @@ export class Endpoint extends BaseEndpoint {
     }
 }
 
-export function getEndpoint(rootFolder: string = null): Endpoint {
+export function getEndpoint(rootFolder: string | null = null): Endpoint {
     return new Endpoint(rootFolder);
 }
 
-export class Collection extends UpdatableCollection<any> {
+export class LodashPathCollection extends UpdatableCollection<any> {
     protected static instanceNo = 0;
 
     protected filename: string;
-    protected encoding: BufferEncoding;
+    protected encoding: BufferEncoding | undefined;
     protected json: any;
     protected autosave: boolean;
     protected autoload: boolean;
 
     constructor(endpoint: Endpoint, collectionName: string, filename: string, autosave: boolean = true, autoload: boolean = false, encoding?: BufferEncoding, options: CollectionOptions<any> = {}) {
-        Collection.instanceNo++;
+        LodashPathCollection.instanceNo++;
         super(endpoint, collectionName, options);
         this.filename = filename;
         this.encoding = encoding;
@@ -67,188 +70,51 @@ export class Collection extends UpdatableCollection<any> {
     // Uses simple path syntax from lodash.get function
     // path example: 'store.book[5].author'
     // use path '' for the root object
-    public select(path: string = '', options: ReadOptions = {}): BaseObservable<any> {
-        const observable = new BaseObservable<any>(this, (subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-                    path = path.trim();
-                    let result: any = await this.find(path);
-                    if (result) {
-                        if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
-                            if (options.addRelativePathAsField) result[options.addRelativePathAsField] = ``;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(result);
-                            subscriber.next(result);
-                        }
-                        if (options.searchReturns == 'foundedWithDescendants') {
-                            await this.sendElementWithChildren(result, subscriber, observable, options, '');
-                        }
-                        if (options.searchReturns == 'foundedImmediateChildrenOnly') {
-                            if (Array.isArray(result)) {
-                                for (let i = 0; i < result.length; i++) {
-                                    const value = result[i];
-                                    if (options.addRelativePathAsField) value[options.addRelativePathAsField] = `[${i}]`;
-                                    if (subscriber.closed) break;
-                                    await this.waitWhilePaused();
-                                    this.sendReciveEvent(value);
-                                    subscriber.next(value);
-                                };
-                            }
-                            else if (typeof result === 'object') {
-                                for (let key in result) {
-                                    if (result.hasOwnProperty(key)) {
-                                        if (options.addRelativePathAsField) result[key][options.addRelativePathAsField] = `${key}`;
-                                        if (subscriber.closed) break;
-                                        await this.waitWhilePaused();
-                                        this.sendReciveEvent(result[key]);
-                                        subscriber.next(result[key]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    // Uses complex JSONPath standart for path syntax
-    // About path syntax read https://www.npmjs.com/package/jsonpath-plus
-    // path example: '$.store.book[*].author'
-    // use path '$' for the root object
-    public selectByJsonPath(jsonPath?: string, options?: ReadOptions): BaseObservable<any>;
-    public selectByJsonPath(jsonPaths?: string[], options?: ReadOptions): BaseObservable<any>;
-    public selectByJsonPath(jsonPath: any = '', options: ReadOptions = {}): BaseObservable<any> {
-        const observable = new BaseObservable<any>(this, (subscriber) => {
-            (async () => {
-                try {
-                    this.sendStartEvent();
-                    let result: any = this.getByJsonPath(jsonPath);
-                    if (options.searchReturns == 'foundedOnly' || !options.searchReturns) {
-                        for (const value of result) {
-                            if (options.addRelativePathAsField) value[options.addRelativePathAsField] = ``;
-                            await this.waitWhilePaused();
-                            this.sendReciveEvent(value);
-                            subscriber.next(value);
-                        };
-                    }
-                    if (options.searchReturns == 'foundedWithDescendants') {
-                        for (const value of result) {
-                            await this.sendElementWithChildren(value, subscriber, observable, options, ``);
-                        };
-                    }
-                    if (options.searchReturns == 'foundedImmediateChildrenOnly') {
-                        for (const value of result) {
-                            if (Array.isArray(value)) {
-                                for (let i = 0; i < value.length; i++) {
-                                    const child = value[i];
-                                    if (options.addRelativePathAsField) child[options.addRelativePathAsField] = `[${i}]`;
-                                    if (subscriber.closed) break;
-                                    await this.waitWhilePaused();
-                                    this.sendReciveEvent(child);
-                                    subscriber.next(child);
-                                };
-                            }
-                            else if (typeof value === 'object') {
-                                for (let key in value) {
-                                    if (value.hasOwnProperty(key)) {
-                                        if (options.addRelativePathAsField) value[key][options.addRelativePathAsField] = `${key}`;
-                                        if (subscriber.closed) break;
-                                        await this.waitWhilePaused();
-                                        this.sendReciveEvent(value[key]);
-                                        subscriber.next(value[key]);
-                                    }
-                                }
-                            }
-                        };
-                    }
-                    subscriber.complete();
-                    this.sendEndEvent();
-                }
-                catch(err) {
-                    this.sendErrorEvent(err);
-                    subscriber.error(err);
-                }
-            })();
-        });
-        return observable;
-    }
-
-    protected async sendElementWithChildren(element: any, subscriber: Subscriber<any>, observable: BaseObservable<any>, options: ReadOptions = {}, relativePath = '') {
-        if (options.addRelativePathAsField) element[options.addRelativePathAsField] = relativePath;
-        if (subscriber.closed) return;
-        await this.waitWhilePaused();
-        this.sendReciveEvent(element);
-        subscriber.next(element);
-
-        if (Array.isArray(element)) {
-            if (element.length) this.sendDownEvent();
-            for (let i = 0; i < element.length; i++) {
-                const child = element[i];
-                await this.sendElementWithChildren(child, subscriber, observable, options, `${relativePath}[${i}]`);
-            };
-            if (element.length) this.sendUpEvent();
-        }
-        else if (typeof element === 'object') {
-            let sendedDown = false;
-            for (let key in element) {
-                if (element.hasOwnProperty(key)) {
-                    if (Array.isArray(element[key]) || typeof element[key] === 'object') {
-                        if (!sendedDown) {
-                            this.sendDownEvent();
-                            sendedDown = true;
-                        }
-                        await this.sendElementWithChildren(element[key], subscriber, observable, options, relativePath ? `${relativePath}.${key}` : `${key}`);
-                    }
-                }
-            }
-            if (sendedDown) this.sendUpEvent();
-        }
-    }
-
-    public async get(path: string = ''): Promise<any> {
+    protected async _select(lodashPath: string = ''): Promise<any[]> {
         if (this.autoload) this.load();
-        path = path.trim();
-        let result: any = path ? _.get(this.json, path) : this.json;
-        this.sendGetEvent(result, path);
+        lodashPath = lodashPath.trim();
+        let result: any = lodashPath ? _.get(this.json, lodashPath) : this.json;
+        return Array.isArray(result) ? result : [result];
+    }
+
+    public async select(lodashPath: string = ''): Promise<any[]> {
+        const values = await this._select(lodashPath);
+        this.sendSelectEvent(values);
+        return values;
+    }
+
+    public async* selectGen(lodashPath: string = ''): AsyncGenerator<any, void, void> {
+        const values = this._select(lodashPath);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+    public selectIx(lodashPath: string = ''): ix.AsyncIterable<any> {
+        const generator = this.selectGen(lodashPath);
+        return generator2Iterable(generator);
+    }
+
+    public selectStream(lodashPath: string = ''): ReadableStream<any> {
+        const generator = this.selectGen(lodashPath);
+        return generator2Stream(generator);
+    }
+
+    public selectRx(lodashPath: string = ''): BaseObservable<any> {
+        const values = this._select(lodashPath);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public async selectOne(lodashPath: string = ''): Promise<any> {
+        const values = this._select(lodashPath);
+        const result = await selectOne_from_Promise(values);
+        this.sendSelectOneEvent(result);
         return result;
     }
-
-    // Uses complex JSONPath standart for path syntax
-    // About path syntax read https://www.npmjs.com/package/jsonpath-plus
-    // path example: '$.store.book[*].author'
-    // use path '$' for the root object
-    public getByJsonPath(jsonPath?: string): any;
-    public getByJsonPath(jsonPaths?: string[]): any;
-    public getByJsonPath(jsonPath: any = ''): any {
-        if (this.autoload) this.load();
-        let result: any = JSONPath({path: jsonPath, json: this.json, wrap: true});
-        this.sendGetEvent(result, jsonPath);
-        return result;
-    }
-
-    // Uses simple path syntax from lodash.get function
-    // path example: 'store.book[5].author'
-    // use path '' for the root object
-    public async find(path: string = ''): Promise<any> {
-        if (this.autoload) this.load();
-        path = path.trim();
-        let result: any = path ? _.get(this.json, path) : this.json;
-        return result;
-    }
+    
 
     // Pushes value to the array specified by simple path
     // or update property fieldname of object specified by simple path
-    protected async _insert(value: any, path: string = '', fieldname: string = '') {
-        const obj = await this.find(path);
+    protected async _insert(value: any, lodashPath: string = '', fieldname: string = '') {
+        const obj = await this._select(lodashPath);
 
         if (fieldname) obj[fieldname] = value;
         else obj.push(value);
@@ -256,33 +122,33 @@ export class Collection extends UpdatableCollection<any> {
         if (this.autosave) this.save();
     }
 
-    public async update(value: any, path: string, fieldname: string): Promise<void> {
-        this.sendUpdateEvent(value, { path, fieldname });
-        const obj = await this.find(path);
+    public async update(value: any, lodashPath: string, fieldname: string): Promise<void> {
+        this.sendUpdateEvent(value, { lodashPath, fieldname });
+        const obj = await this._select(lodashPath);
         obj[fieldname] = value;
         if (this.autosave) this.save();
     }
-    public async upsert(value: any, path: string, fieldname: string): Promise<boolean> {  
-        const obj = await this.find(path);
+    public async upsert(value: any, lodashPath: string, fieldname: string): Promise<boolean> {  
+        const obj = await this._select(lodashPath);
         const exists = typeof obj[fieldname] !== 'undefined';
-        if (!exists) this.sendInsertEvent(value, { path, fieldname });
-        else this.sendUpdateEvent(value, { path, fieldname });
+        if (!exists) this.sendInsertEvent(value, { lodashPath, fieldname });
+        else this.sendUpdateEvent(value, { lodashPath, fieldname });
         obj[fieldname] = value;
         if (this.autosave) this.save();
         return exists;
     }
 
-    public async delete(path: string = '', fieldname?: string): Promise<boolean> {
-        this.sendDeleteEvent({ path, fieldname });
+    public async delete(lodashPath: string = '', fieldname?: string): Promise<boolean> {
+        this.sendDeleteEvent({ lodashPath, fieldname });
         let exists = false;
-        if (!path && !fieldname) {
+        if (!lodashPath && !fieldname) {
             exists = this.json && !!Object.keys(this.json).length;
             this.json = {};
         }
         else {
-            const obj = await this.find(path);
-            exists = typeof obj[fieldname] !== 'undefined';
-            delete obj[fieldname];
+            const obj = await this._select(lodashPath);
+            exists = typeof obj[fieldname!] !== 'undefined';
+            delete obj[fieldname!];
         }
         if (this.autosave) this.save();
         return exists;
@@ -296,6 +162,82 @@ export class Collection extends UpdatableCollection<any> {
     public save() {
         const text = JSON.stringify(this.json);
         fs.writeFile(this.filename, text, function(){});
+    }
+}
+
+export class JsonPathCollection extends BaseCollection<any> {
+    protected static instanceNo = 0;
+
+    protected filename: string;
+    protected encoding: BufferEncoding | undefined;
+    protected json: any;
+
+    constructor(endpoint: Endpoint, collectionName: string, filename: string, encoding?: BufferEncoding, options: CollectionOptions<any> = {}) {
+        JsonPathCollection.instanceNo++;
+        super(endpoint, collectionName, options);
+        this.filename = filename;
+        this.encoding = encoding;
+        this.load();
+    }
+
+    // Uses complex JSONPath standart for path syntax
+    // About path syntax read https://www.npmjs.com/package/jsonpath-plus
+    // path example: '$.store.book[*].author'
+    // use path '$' for the root object
+    protected async _select(jsonPath: any = ''): Promise<any[]> {
+        this.load();
+        let result = JSONPath({ path: jsonPath, json: this.json, wrap: false });
+        return Array.isArray(result) ? result : [result];
+    }
+
+    public select(jsonPath?: string): Promise<any[]>;
+    public select(jsonPaths?: string[]): Promise<any[]>;
+    public async select(jsonPath: any = ''): Promise<any[]> {
+        const values = await this._select(jsonPath);
+        this.sendSelectEvent(values);
+        return values;
+    }
+
+    public selectGen(jsonPath?: string): AsyncGenerator<any, void, void>;
+    public selectGen(jsonPaths?: string[]): AsyncGenerator<any, void, void>;    
+    public async* selectGen(jsonPath: any = ''): AsyncGenerator<any, void, void> {
+        const values = this._select(jsonPath);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+    public selectIx(jsonPath?: string): ix.AsyncIterable<any>;
+    public selectIx(jsonPaths?: string[]): ix.AsyncIterable<any>;    
+    public selectIx(jsonPath: any = ''): ix.AsyncIterable<any> {
+        const generator = this.selectGen(jsonPath);
+        return generator2Iterable(generator);
+    }
+
+    public selectStream(jsonPath?: string): ReadableStream<any>;
+    public selectStream(jsonPaths?: string[]): ReadableStream<any>;    
+    public selectStream(jsonPath: any = ''): ReadableStream<any> {
+        const generator = this.selectGen(jsonPath);
+        return generator2Stream(generator);
+    }
+
+    public selectRx(jsonPath?: string): BaseObservable<any>;
+    public selectRx(jsonPaths?: string[]): BaseObservable<any>;    
+    public selectRx(jsonPath: any = ''): BaseObservable<any> {
+        const values = this._select(jsonPath);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public selectOne(jsonPath?: string): Promise<any>;
+    public selectOne(jsonPaths?: string[]): Promise<any>;
+        public async selectOne(jsonPath: any = ''): Promise<any> {
+        const values = this._select(jsonPath);
+        const result = await selectOne_from_Promise(values);
+        this.sendSelectOneEvent(result);
+        return result;
+    }
+
+    protected load() {
+        const text = fs.readFileSync(this.filename).toString(this.encoding);
+        this.json = JSON.parse(text);
     }
 }
 

@@ -30,7 +30,7 @@ export class DiscordHelper {
             })
 
             server.listen(process.env.DISCORD_REDIRECT_PORT);
-            open(process.env.DISCORD_LOGIN_URL);
+            open(process.env.DISCORD_LOGIN_URL!);
         })
     }
 

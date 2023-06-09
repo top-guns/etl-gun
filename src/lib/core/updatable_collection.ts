@@ -1,6 +1,5 @@
-import { BaseCollection_GF_IUD, BaseCollection_GF_IUD_Event } from "./base_collection_gf_iud.js";
+import { BaseCollection_IDU as UpdatableCollection, BaseCollection_IDU_Event } from "./base_collection_idu.js";
 
-export type UpdatableCollectionEvent = BaseCollection_GF_IUD_Event;
-export abstract class UpdatableCollection<T> extends BaseCollection_GF_IUD<T> {
-}
-  
+export type UpdatableCollectionEvent = BaseCollection_IDU_Event;
+
+export { UpdatableCollection };

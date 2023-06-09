@@ -1,8 +1,10 @@
+import * as ix from 'ix';
 import { Readable } from "stream";
 import { CollectionOptions } from "../../core/base_collection.js";
 import { BaseEndpoint } from "../../core/endpoint.js";
 import { BaseObservable } from "../../core/observable.js";
 import { UpdatableCollection } from "../../core/updatable_collection.js";
+import { generator2Iterable, observable2Stream, promise2Generator, promise2Observable, selectOne_from_Promise, wrapGenerator, wrapObservable } from '../../utils/flows.js';
 
 // export type FilesystemCollectionEvent = UpdatableCollectionEvent |
 //     "append" |
@@ -11,18 +13,31 @@ import { UpdatableCollection } from "../../core/updatable_collection.js";
 
 export type AlreadyExistsAction = 'update' | 'append' | 'skip' | 'error';
 
-
-export type FilesystemItem = {
-    path: string;
-    fileContents?: string | Readable;
+export enum FilesystemItemType {
+    Unknown = 0,
+    File = 1,
+    Directory = 2,
+    SymbolicLink = 3
 }
 
-export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
+export type FilesystemItem = {
+    name: string;
+    path: string;
+    fullPath: string;
+    size?: number;
+    type: FilesystemItemType;
+    modifiedAt?: Date;
+    fileContents?: string;
+}
+
+export type FilesystemCollectionOptions = CollectionOptions<FilesystemItem>;
+
+export abstract class FilesystemCollection extends UpdatableCollection<FilesystemItem> {
     // protected get listeners(): Record<UpdatableCollectionEvent, CollectionEventListener[]> {
     //     return this._listeners as Record<UpdatableCollectionEvent, CollectionEventListener[]>;
     // }
 
-    constructor(endpoint: BaseEndpoint, collectionName: string, options: CollectionOptions<T> = {}) {
+    constructor(endpoint: BaseEndpoint, collectionName: string, options: FilesystemCollectionOptions = {}) {
         super(endpoint, collectionName, options);
 
         // this.listeners.append = [];
@@ -30,11 +45,47 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
         // this.listeners.move = [];
     }
 
+    
+    protected abstract _select(mask?: string, ...params: any[]): Promise<FilesystemItem[]>;
+    public abstract read(filePath: string): Promise<string>;
 
-    public abstract select(folderPath?: string, ...params: any[]): BaseObservable<T>;
-    public abstract list(folderPath?: string): Promise<T[]>;
-    public abstract find(folderPath?: string, ...params: any[]): Promise<T[]>;
-    public abstract get(filePath: string): Promise<string>;
+    public async select(mask?: string, ...params: any[]): Promise<FilesystemItem[]> {
+        const values = await this._select(mask, ...params);
+        this.sendSelectEvent(values);
+        return values;
+    }
+
+    public async* selectGen(mask: string = '', ...params: any[]): AsyncGenerator<FilesystemItem, void, void> {
+        const values = this._select(mask, ...params);
+        const generator = wrapGenerator(promise2Generator(values), this);
+        for await (const value of generator) yield value;
+    }
+
+    public selectRx(mask: string = '', ...params: any[]): BaseObservable<FilesystemItem> {
+        const values = this._select(mask, ...params);
+        return wrapObservable(promise2Observable(values), this);
+    }
+
+    public selectIx(mask?: string, ...params: any[]): ix.AsyncIterable<FilesystemItem> {
+        return generator2Iterable(this.selectGen(mask, ...params));
+    }
+
+    public selectStream(mask?: string, ...params: any[]): ReadableStream<FilesystemItem> {
+        return observable2Stream(this.selectRx(mask, ...params));
+    }
+
+    public async selectOne(path: string = ''): Promise<FilesystemItem | null> {
+        const values = this._select(path);
+        const value = await selectOne_from_Promise(values);
+        this.sendSelectOneEvent(value);
+        return value;
+    }
+
+
+    public async list(folderPath: string = '', ...params: any[]): Promise<FilesystemItem[]> {
+        return await this.select(folderPath, ...params);
+    }
+    
 
     public async insert(folderPath: string): Promise<void>;
     public async insert(filePath: string, fileContents: string): Promise<void>;
@@ -67,8 +118,8 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     public abstract move(srcPath: string, dstPath: string): Promise<void>; // , ifAlreadyExists?: AlreadyExistsAction
 
     public abstract isExists(path: string): Promise<boolean>;
-    public abstract isFolder(path: string): Promise<boolean>;
-    public abstract getInfo(path: string): Promise<any>;
+    public abstract isFolder(path: string): Promise<boolean | undefined>;
+    public abstract getInfo(path: string): Promise<any | undefined>;
 
 
     // public on(event: UpdatableCollectionEvent, listener: EventListener): UpdatableCollection<T> {
@@ -83,16 +134,8 @@ export abstract class FilesystemCollection<T> extends UpdatableCollection<T> {
     // }
 
     
-    public sendGetEvent(value: T | string, path: string, operation: string = 'get', params: {} = {}) {
+    public sendGetEvent(value: FilesystemItem | string, path: string, operation: string = 'get', params: {} = {}) {
         this.sendEvent("get", { where: path, value, params: { operation, ...params } } );
-    }
-
-    public sendListEvent(values: T[], path: string) {
-        this.sendEvent("find", { where: path, values } );
-    }
-
-    public sendFindEvent(values: T[], path: string, params?: {}) {
-        this.sendEvent("find", { values, where: { path, ...params } } );
     }
 
 

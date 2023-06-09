@@ -11,7 +11,7 @@ describe('Operator addColumn()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.addColumn(v => v[0] * 10),
             rx.tap(v => res.push(v)),
         );
@@ -27,7 +27,7 @@ describe('Operator addColumn()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.addColumn<number, number[]>(v => v * 10),
             rx.tap(v => res.push(v)),
         );

@@ -12,7 +12,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.numerate(10),
             rx.tap(v => res.push(v))
         );
@@ -28,7 +28,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.numerate(10, "index"),
             rx.tap(v => res.push(v))
         );
@@ -44,7 +44,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.numerate(10),
             rx.tap(v => res.push(v))
         );
@@ -59,7 +59,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.numerate(10),
         );
 
@@ -72,7 +72,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             etl.numerate(10, "index"),
         );
 
@@ -84,7 +84,7 @@ describe('Operator numerate()', () => {
         const mem = Memory.getEndpoint();
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
-        let stream$ = src.select().pipe(
+        let stream$ = src.selectRx().pipe(
             rx.map(v => v as unknown as Record<string, any>),
             etl.numerate(10, "index"),
         );

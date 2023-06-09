@@ -19,6 +19,7 @@
 1. Add constructor to all files collection to create collection from buffered contents
 1. Add archives support
 1. Add context to store current process state to restore it after the process restarting
+1. Support empty collection name - dont show it in GUI
 
 ### Desirable protocols and integrations
 
