@@ -6,7 +6,7 @@ import * as etl from '../../../../../lib/index.js';
 describe('FTP endpoint', () => {
     let ftp: etl.filesystems.Ftp.Endpoint;
     before(() => {
-        ftp = new etl.filesystems.Ftp.Endpoint({host: process.env.FTP_HOST, user: process.env.FTP_USER_NAME, password: process.env.FTP_USER_PASS});
+        ftp = new etl.filesystems.Ftp.Endpoint({host: "localhost", user: process.env.DOCKER_FTP_USER, password: process.env.DOCKER_FTP_PASSWORD});
     })
 
     after(async () => {

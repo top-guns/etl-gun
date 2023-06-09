@@ -6,21 +6,41 @@ import { pathJoin } from '../utils/index.js';
 import * as rx from 'rxjs';
 import { OperatorFunction } from 'rxjs';
 
+export type HttpClientHelperOptions = {
+    dontRejectUnauthorized?: boolean;
+    timeout?: number;
+    maxParallelNumber?: number;
+}
+
 export class HttpClientHelper {
     protected baseUrl: string | undefined;
-    protected headers: Record<string, string> | undefined;
-    protected rejectUnauthorized: boolean;
-    protected agent: https.Agent | undefined;
+    protected headers: Record<string, string>;
+    protected options: HttpClientHelperOptions;
+    protected agent: https.Agent | http.Agent;
+    protected isHttps: boolean;
 
-    constructor(baseUrl?: string, headers?: Record<string, string>, rejectUnauthorized: boolean = true) {
-        if (baseUrl && baseUrl.startsWith('http:') && !rejectUnauthorized) throw new Error('HttpClientHelper error: you can use rejectUnauthorized = false only for https urls')
+    constructor(baseUrl?: string, headers: Record<string, string> = {}, options: HttpClientHelperOptions = {}) {
+        this.isHttps = baseUrl && baseUrl.trim().toLocaleLowerCase().startsWith('https:');
+        if (!this.isHttps && options.dontRejectUnauthorized) throw new Error('You can use dontRejectUnauthorized = true only for https:// urls');
 
         this.baseUrl = baseUrl;
         this.headers = headers;
-        this.rejectUnauthorized = rejectUnauthorized;
-        this.agent = rejectUnauthorized ?  undefined : new https.Agent({
-            rejectUnauthorized
+        this.options = options;
+        this.agent = this.isHttps ? new https.Agent({
+            rejectUnauthorized: !options.dontRejectUnauthorized,
+            maxTotalSockets: options.maxParallelNumber,
+            timeout: options.timeout,
+            // ciphers: 'ALL',
+            // secureProtocol: 'TLSv1_1_method',
+            // ecdhCurve: 'auto' // <-- Does the trick
+        }) : new http.Agent({
+            maxTotalSockets: options.maxParallelNumber,
+            timeout: options.timeout
         });
+    }
+
+    setBasicAuth(login: string, password: string) {
+        this.headers['Authorization'] = 'Basic ' + Buffer.from(login + ":" + password).toString('base64');
     }
 
     // GET

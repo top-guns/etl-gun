@@ -16,7 +16,7 @@ services:
       - "../../tmp/ftp/pass:/etc/pure-ftpd/passwd"
     environment:
       PUBLICHOST: "0.0.0.0"
-      #FTP_USER_NAME: "${FTP_USER}"
-      #FTP_USER_PASS: "${FTP_PASSWORD}"
-      #FTP_USER_HOME: "/home/${FTP_USER}/data"
+      FTP_USER_NAME: "${DOCKER_FTP_USER}"
+      FTP_USER_PASS: "${DOCKER_FTP_PASSWORD}"
+      FTP_USER_HOME: "${DOCKER_FTP_HOME}"
     restart: always
