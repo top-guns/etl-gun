@@ -8,8 +8,8 @@ import * as fs from "fs";
 
 const HTTP_PORT: number = parseInt(process.env.LOCAL_HTTP_PORT);
 const HTTPS_PORT: number = parseInt(process.env.LOCAL_HTTPS_PORT);
-const HTTP_URL: string = `http://localhost:${HTTP_PORT}`;
-const HTTPS_URL: string = `https://localhost:${HTTPS_PORT}`;
+const HTTP_URL: string = `http://127.0.0.1:${HTTP_PORT}`;
+const HTTPS_URL: string = `https://127.0.0.1:${HTTPS_PORT}`;
 
 
 describe('HttpClientHelper', () => {
@@ -24,8 +24,8 @@ describe('HttpClientHelper', () => {
             res.setHeader('Content-Type', 'text/plain');
             res.end("ok");
         });
-        httpServer.listen(HTTP_PORT, 'localhost', ()=> {
-            console.log(`Test http server is running on port ${HTTP_PORT}`);
+        httpServer.listen(HTTP_PORT, '127.0.0.1', ()=> {
+            console.log(`Test http server is running on http://127.0.0.1:${HTTP_PORT}`);
         });
 
         // HTTPS SERVER
@@ -48,8 +48,8 @@ describe('HttpClientHelper', () => {
             res.setHeader('Content-Type', 'text/plain');
             res.end("ok");
         });
-        httpsServer.listen(HTTPS_PORT, 'localhost', ()=> {
-            console.log(`Test https server is running on port ${HTTPS_PORT}`);
+        httpsServer.listen(HTTPS_PORT, '127.0.0.1', ()=> {
+            console.log(`Test https server is running on https://127.0.0.1:${HTTPS_PORT}`);
         });
     });
 
