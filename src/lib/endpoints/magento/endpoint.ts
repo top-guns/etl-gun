@@ -53,7 +53,8 @@ export class Endpoint extends RestEndpoint {
         }
         
         const url = this.makeUrl([`integration/admin/token`]);
-        this.token = await (await fetch(url), init).json() as string;
+        const res = await fetch(url, init);
+        this.token = await res.json() as string;
         this.tokenTS = new Date();
     }
 
