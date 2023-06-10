@@ -3,7 +3,7 @@ ETL-Gun
 <img src="./static/gun-02.png" height="40px" style="margin-left: 10px; vertical-align: middle"/>
 </h1>
 
-![Typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label)
+<!-- ![Typescript](https://badgen.net/badge/icon/typescript?icon=typescript&label) -->
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
