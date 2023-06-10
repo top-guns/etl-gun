@@ -17,7 +17,7 @@ ETL-Gun is a platform that employs promises, generators, IxJs iterables, RxJs ob
 
 [//]: # (https://img.shields.io/codecov/c/github/top-guns/etl-gun/.svg   https://codecov.io/gh/top-guns/etl-gun)
 
-[logo]: https://img.shields.io/badge/©%20Powered%20by-TOP%20Guns%20︻デ═一-white
+[logo]: https://img.shields.io/badge/©%20Powered%20by-TOP%20Guns%20︻デ═一-white?color=black&labelColor=white
 [logo2]: https://img.shields.io/badge/Powered%20by%20©-TOP%20Guns%20︻デ═一-white?logo=nodedotjs&logoColor=white
 [logo1]: https://badgen.net/badge/Powered%20by/ETL%20Gun%20%EF%B8%BB%E3%83%87%E2%95%90%E4%B8%80-/blue?icon=github
 [top-guns-url]: https://github.com/top-guns
@@ -33,8 +33,6 @@ ETL-Gun is a platform that employs promises, generators, IxJs iterables, RxJs ob
 <div style="text-align: right">
 
 [![TOP Guns][logo]][top-guns-url]
-
-<!-- [![TOP Guns][logo1]][top-guns-url] -->
 
 </div>
 
