@@ -129,6 +129,7 @@ You can find many examples of using **ETL-Gun** in the API Reference section of 
 # Installation
 
 [![npm package](https://nodei.co/npm/etl-gun.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/etl-gun/)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun?ref=badge_shield)
 
 ```
 npm install etl-gun
@@ -2544,3 +2545,6 @@ function getChildByPropVal(obj: {} | [], propName: string, propVal?: any): any;
 # License
 
 This library is provided with [MIT](LICENSE) license.
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun?ref=badge_large)
