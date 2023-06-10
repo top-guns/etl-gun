@@ -92,7 +92,8 @@
     "queue",
     "extract",
     "load",
-    "business rules"
+    "business rules",
+    "javascript"
   ],
   "author": "Berezhnoy I.A.",
   "license": "MIT",
