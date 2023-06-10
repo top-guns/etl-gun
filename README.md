@@ -7,7 +7,9 @@ ETL-Gun
 [![NPM Downloads][downloads-image]][downloads-url]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://github.com/top-guns/etl-gun/actions/workflows/project-ci.yml/badge.svg?branch=main)](https://github.com/top-guns/etl-gun/actions?query=branch%3Amain+workflow%3A"Project%20CI")
-[![Coverage Status](https://codecov.io/gh/top-guns/etl-gun/branch/main/graph/badge.svg)](https://codecov.io/gh/top-guns/etl-gun)
+[![codecov](https://codecov.io/gh/top-guns/etl-gun/branch/main/graph/badge.svg?token=SPF3FMSOID)](https://codecov.io/gh/top-guns/etl-gun)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun?ref=badge_shield)
+<!-- [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun?ref=badge_small) -->
 <!-- [![npm package](https://nodei.co/npm/etl-gun.png?mini=true)](https://nodei.co/npm/etl-gun/) -->
 
 ETL-Gun is a platform that employs promises, generators, IxJs iterables, RxJs observables and nodejs streams, allowing developers to build stream-based ETL (Extract, Transform, Load) pipelines complete with buffering, bulk operations, error handling and many useful features.
@@ -206,6 +208,33 @@ Chaning of several streams performs by using **await** with **run()** procedure.
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Features
+
+<!-- ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![Yarn](https://img.shields.io/badge/yarn-%232C8EBB.svg?style=for-the-badge&logo=yarn&logoColor=white)
+![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
+![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
+![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) -->
+
+![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+![RxJS](https://img.shields.io/badge/rxjs-%23B7178C.svg?style=for-the-badge&logo=reactivex&logoColor=white)
+![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
+![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white)
+![MicrosoftSQLServer](https://img.shields.io/badge/Ms%20SQL%20Server-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)
+![Oracle](https://img.shields.io/badge/Oracle-F80000?style=for-the-badge&logo=oracle&logoColor=white)
+![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+![Trello](https://img.shields.io/badge/Trello-%23026AA7.svg?style=for-the-badge&logo=Trello&logoColor=white)
+![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)
+![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)
 
 * Simple way to use! Consists of only 3 steps: 
   1. Create endpoints and get all collections which you need 
@@ -2544,3 +2573,7 @@ function getChildByPropVal(obj: {} | [], propName: string, propVal?: any): any;
 # License
 
 This library is provided with [MIT](LICENSE) license.
+
+The detailed list of Open Source dependencies can be found in [Fossa report](https://app.fossa.com/reports/e0347ddb-3a0e-4c88-8655-0ec072928611).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftop-guns%2Fetl-gun?ref=badge_large)
