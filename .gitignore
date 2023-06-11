@@ -9,6 +9,7 @@ node_modules
 *.env
 !/src/tests/suites/docker/docker.env
 !/src/tests/test.env
+!/src/tests/config/test.env
 
 # Build / generate output
 dist
