@@ -85,6 +85,6 @@ async function getValue<S, T>(streamValue: S, options?: PushOptions<S, T>| null)
 async function getOperatorResult<S, R>(val: S, toProperty: string, res: any): Promise<R> {
     if (typeof toProperty === 'undefined') return res;
     if (!toProperty) return val as unknown as R; 
-    _.set(val, toProperty, res);
+    _.set(val as any, toProperty, res);
     return val as unknown as R;
 }

@@ -14,7 +14,7 @@ export function move<R, T = any>(options: {from?: (keyof T) | string, to?: (keyo
         if (options.from) _.unset(value, options.from);
         else value = {} as unknown as T;
 
-        _.set(value, options.to, val);
+        _.set(value as any, options.to, val);
 
         return value as unknown as R;
     });
@@ -29,7 +29,7 @@ export function copy<R, T = any>(fromPropertyPath: (keyof T) | string, toPropert
 
         if (fromPropertyPath) val = _.get(value, fromPropertyPath);
 
-        _.set(value, toPropertyPath, val);
+        _.set(value as any, toPropertyPath, val);
         return value as unknown as R;
     });
 }
@@ -38,7 +38,7 @@ export function update<T>(value: Partial<T> | Record<(keyof T) | string, any>): 
     return map<T, T>(value => {
         for (let key in value) {
             if (!value.hasOwnProperty(key)) continue;
-            _.set(value, key, value[key]);
+            _.set(value as any, key, value[key]);
         }
         return value;
     });

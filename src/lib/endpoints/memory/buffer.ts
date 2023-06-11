@@ -71,7 +71,7 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
             if (!where || isMatch(v, where)) {
                 for (let key in value) {
                     if (!value.hasOwnProperty(key)) continue;
-                    _.set(v, key, value);
+                    _.set(v as any, key, value);
                 }
             }
             return v;
@@ -86,7 +86,7 @@ export class BufferCollection<T = any> extends UpdatableCollection<T> {
                 this.sendUpdateEvent(value, where);
                 for (let key in value) {
                     if (!(value as any).hasOwnProperty(key)) continue;
-                    _.set(v, key, value);
+                    _.set(v as any, key, value);
                 }
             }
             return v;
