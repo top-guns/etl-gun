@@ -36,12 +36,13 @@ export class RestEndpoint extends BaseEndpoint {
         if (options.body) init.body = JSON.stringify(options.body);
 
         let fullUrl = this.makeUrl([url], [options.params!]);
-        //console.log(fullUrl)
         const res = await fetch(fullUrl, init);
-        //console.log(res)
+
+        if (!res.ok) throw new Error(await res.text());
+
         const jsonRes = await res.json();
         //console.log(jsonRes);
-        //for (let key in jsonRes) console.log(key)
+        //for (let key in jsonRes as any) console.log(key)
         return jsonRes as T;
     }
 
@@ -74,8 +75,8 @@ export class RestEndpoint extends BaseEndpoint {
     }
 
     converHashToQueryParams(where: {} = {}): string {
-        let queryParams = _.toQuery(where);
-        // const queryParams = new URLSearchParams(where as {}).toString();
+        //let queryParams = _.toQuery(where);
+        const queryParams = new URLSearchParams(where).toString();
         return queryParams;
     }
 }

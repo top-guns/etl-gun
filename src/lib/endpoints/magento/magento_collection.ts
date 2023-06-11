@@ -15,34 +15,49 @@ export class MagentoCollection<T> extends ResourceCollection<T> {
         super(endpoint, collectionName, resourceName, resourceNameS, options);
     }
 
-    protected async _select(where?: any): Promise<T[]> {
+    protected async _select(where?: any, fields?: (keyof T)[]): Promise<T[]> {
+        if (fields) where['fields'] = fields;
+
         let url = this.getSearchUrl();
         const searchParams = MagentoCollection.convertWhereToQueryParams(where);
         url = this.endpoint.makeUrl([url], [searchParams])
         
         const res = await this.endpoint.fetchJson(url);
-        const result = res ? (typeof res[this.resourceNameS] === 'undefined' ? res : res[this.resourceNameS]) : null;
+        const result = res ? res['items'] : null;
         return result;
     }
 
     public select(where?: Partial<T>, fields?: (keyof T)[]): Promise<T[]> {
-        return super.select({...where, fields});
+        if (fields) where['fields'] = fields;
+        return super.select(where);
     }
 
     public async* selectGen(where?: Partial<T>, fields?: (keyof T)[]): AsyncGenerator<T, void, void> {
+        if (fields) where['fields'] = fields;
         for await (const item of super.selectGen(where)) yield item;
     }
 
     public selectRx(where?: Partial<T>, fields?: (keyof T)[]): BaseObservable<T>{
-        return super.selectRx({...where, fields});
+        if (fields) where['fields'] = fields;
+        return super.selectRx(where);
     }
 
     public selectIx(where?: Partial<T>, fields?: (keyof T)[]): ix.AsyncIterable<T> {
-        return super.selectIx({...where, fields});
+        if (fields) where['fields'] = fields;
+        return super.selectIx(where);
     }
 
     public selectStream(where?: Partial<T>, fields?: (keyof T)[]): ReadableStream<T> {
-        return super.selectStream({...where, fields});
+        if (fields) where['fields'] = fields;
+        return super.selectStream(where);
+    }
+
+    protected async _selectOne(sku: string): Promise<T> {
+        return super._selectOne(sku);
+    }
+
+    public async selectOne(sku: string): Promise<T> {
+        return super.selectOne(sku);
     }
 
     protected static convertWhereToQueryParams(where: any = {}): string {

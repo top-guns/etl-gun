@@ -1498,8 +1498,14 @@ if (err) console.log(err); // log error if any
 
 ### Magento
 
-Presents Magento CMS objects.
-Go to https://meetanshi.com/blog/create-update-product-using-rest-api-in-magento-2/ for details how to configure Magento integration to get access to it's API. 
+Presents Magento CMS objects via [Magento REST API](https://devdocs.magento.com/guides/v2.4/rest/tutorials/index.html).
+
+It uses token-based authentication to access API. You must register a web service on Admin. Use the following general steps to set up Magento to enable web services:
+
+1. Create a web services user on Admin by selecting System > Permission > All Users > Add New User. (If you are using session-based or OAuth authentication, you do not need to create the new user in the Admin.)
+2. Create a new integration on Admin. To create an integration, click System > Extensions > Integration > Add New Integration. Be sure to restrict which resources the integration can access.
+
+See the [official guide](https://devdocs.magento.com/guides/v2.3/get-started/bk-get-started-api.html) for more information. Or you can go to [this article ](https://meetanshi.com/blog/create-update-product-using-rest-api-in-magento-2/) for details how to configure Magento integration to get access to it's API. 
 
 #### Endpoint
 

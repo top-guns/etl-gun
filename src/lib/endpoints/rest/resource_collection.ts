@@ -27,11 +27,9 @@ export class ResourceCollection<T> extends UpdatableCollection<T> {
     }
 
     public async select(where?: any): Promise<T[]> {
-        const params: Partial<T> = where;
-        const res = await this.endpoint.fetchJson(this.getSearchUrl(), 'GET', { params });
-        const result = res ? (typeof res[this.resourceNameS] === 'undefined' ? res : res[this.resourceNameS]) : null;
-        this.sendSelectEvent(result);
-        return result;
+        const values = await this._select(where);
+        this.sendSelectEvent(values);
+        return values;
     }
 
     public async* selectGen(where?: any): AsyncGenerator<T, void, void> {
@@ -53,20 +51,21 @@ export class ResourceCollection<T> extends UpdatableCollection<T> {
         return observable2Stream(this.selectRx(where));
     }
 
-    protected async _selectOne(id: string): Promise<T> {
-        const res = await this.endpoint.fetchJson(this.getResourceUrl(id));
+    protected async _selectOne(id: string | number): Promise<T> {
+        const res = await this.endpoint.fetchJson(this.getResourceUrl(encodeURIComponent(id.toString())));
         const result = res ? (typeof res[this.resourceName] === 'undefined' ? res : res[this.resourceName]) : null;
         return result;
     }
 
-    public async selectOne(id: string): Promise<T> {
+    public async selectOne(id: string | number): Promise<T> {
         const result = await this._selectOne(id);
         this.sendSelectOneEvent(result);
         return result;
     }
 
     protected getResourceUrl(id: string): string {
-        return `${this.resourceNameS}/${id}`;
+        const url = `${this.resourceNameS}/${id}`;
+        return url;
     }
 
     protected getResourceListUrl(): string {
