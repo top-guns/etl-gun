@@ -3,7 +3,7 @@ version: '3.7'
 services:
   ftp:
     env_file:
-      - "../../test.env"
+      - "test.env"
     image: stilliard/pure-ftpd:hardened
     #image: stilliard/pure-ftpd
     ports:
@@ -12,8 +12,8 @@ services:
       - "30000-30009:30000-30009"
       #- '40000-40009:40000-40009/tcp'   # passive mode
     volumes:
-      - "../../data:/var/ftp/data"
-      - "../../tmp/ftp/pass:/etc/pure-ftpd/passwd"
+      - "../data:/var/ftp/data"
+      - "../tmp/ftp/pass:/etc/pure-ftpd/passwd"
     environment:
       PUBLICHOST: "0.0.0.0"
       FTP_USER_NAME: "${DOCKER_FTP_USER}"
