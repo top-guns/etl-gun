@@ -209,7 +209,6 @@ export class KnexTableCollection<T = Record<string, any>> extends UpdatableColle
         }
         else {
             const whereExpr = conditionToSql(where);
-            console.log(whereExpr);
             
             await this.endpoint.database(this.table)
                 .whereRaw(whereExpr.expression, whereExpr.params)

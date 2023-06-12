@@ -41,8 +41,6 @@ export class RestEndpoint extends BaseEndpoint {
         if (!res.ok) throw new Error(await res.text());
 
         const jsonRes = await res.json();
-        //console.log(jsonRes);
-        //for (let key in jsonRes as any) console.log(key)
         return jsonRes as T;
     }
 

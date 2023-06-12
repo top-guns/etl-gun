@@ -13,10 +13,10 @@ export type Category = {
     children_data: any[];
 }
 
-export class CategoryCollection extends MagentoCollection<Partial<Category>> {
+export class CategoryCollection extends MagentoCollection<Category> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Category>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Category> = {}) {
         CategoryCollection.instanceNo++;
         super(endpoint, collectionName, 'category', 'categories', options);
     }

@@ -28,12 +28,20 @@ export type Product = {
     custom_attributes: {attribute_code: CustomAttributeCodes, value: any}[];
 }
 
-export class ProductCollection extends MagentoCollection<Partial<Product>> {
+export class ProductCollection extends MagentoCollection<Product> {
     protected static instanceNo = 0;
 
-    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Partial<Product>> = {}) {
+    constructor(endpoint: Endpoint, collectionName: string, options: CollectionOptions<Product> = {}) {
         ProductCollection.instanceNo++;
         super(endpoint, collectionName, 'product', 'products', options);
+    }
+
+    protected async _selectOne(sku: string): Promise<Product> {
+        return super._selectOne(sku);
+    }
+
+    public async selectOne(sku: string): Promise<Product> {
+        return super.selectOne(sku);
     }
 
     // "product": {

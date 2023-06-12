@@ -16,9 +16,7 @@ export class SmsRu extends BaseEndpoint implements MessangerService {
     async send(message: string, toPhone: string | string[], from?: string): Promise<SendError | undefined> {
         const httpHelper = new HttpClientHelper(this.apiUrl);
         const url = `${this.apiUrl}/send?api_id=${this.apiId}${from ? '&from=' + from : ''}&to=${typeof toPhone === 'string' ? toPhone : toPhone.join(',')}&msg=${message}&json=1`;
-        //console.log(url);
         const res: SendResult = await httpHelper.getJson(url);
-        //console.log(res);
         if (res.status == "OK") return undefined;
         return SendResultCodeMessages[res.status_code];
     }

@@ -129,7 +129,6 @@ export class Collection extends FilesystemCollection {
     protected async _insert(pathDetails: string | FilesystemItem, data?: string | string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | internal.Readable) {
         let path = (typeof pathDetails === 'string') ? pathDetails : pathDetails.path;
         const fullPath = this.getFullPath(path);
-        console.log("fullPath:", fullPath)
         
         if (await this.isExists(path)) throw new Error(`Path ${path} already exists`);
 

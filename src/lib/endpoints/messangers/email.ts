@@ -320,11 +320,10 @@ export class Collection extends BaseCollection<EMail> {
                         
                     this.connection.once('error', (err) => {
                         if (!subscriber.closed) subscriber.error(err);
-                        //console.log(err);
                     });
                         
                     this.connection.once('end', () => {
-                        //console.log('Connection ended');
+                        // Connection ended
                     });
                         
                     this.connection.connect();
@@ -340,8 +339,6 @@ export class Collection extends BaseCollection<EMail> {
     // TODO: make it stopable with await this.waitWhilePaused()
     protected _selectOnMessage(f: Imap.ImapFetch, subscriber: Subscriber<EMail>) {
         f.on('message', (msg, seqno) => {
-            //console.log('Message #%d', seqno);
-
             //let prefix = '(#' + seqno + ') ';
             
             const email: EMail = {
@@ -358,21 +355,21 @@ export class Collection extends BaseCollection<EMail> {
                 let buffer: string = '', count = 0;
 
                 if (info.which === 'TEXT') {
-                    //console.log(prefix + 'Body [%s] found, %d total bytes', inspect(info.which), info.size);
+                    //(prefix + 'Body [%s] found, %d total bytes', inspect(info.which), info.size);
                 }
 
                 stream.on('data', (chunk) => {
                     count += chunk.length;
                     buffer += chunk.toString('utf8');
                     if (info.which === 'TEXT') {
-                        //console.log(prefix + 'Body [%s] (%d/%d)', inspect(info.which), count, info.size);
+                        //(prefix + 'Body [%s] (%d/%d)', inspect(info.which), count, info.size);
                     }
                 });
 
                 stream.once('end', () => {
                     if (info.which === 'TEXT') {
                         email.body = buffer;
-                        //console.log(prefix + 'Body [%s] Finished', inspect(info.which));
+                        //(prefix + 'Body [%s] Finished', inspect(info.which));
                     }
                     else {
                         const header = Imap.parseHeader(buffer);
@@ -382,17 +379,17 @@ export class Collection extends BaseCollection<EMail> {
                         email.bcc = header.bcc;
                         email.subject = header.subject && header.subject[0] || '';
                         email.date = header.date && header.date[0] || undefined;
-                        //console.log(prefix + 'Parsed header: %s', inspect(Imap.parseHeader(buffer)));
+                        //(prefix + 'Parsed header: %s', inspect(Imap.parseHeader(buffer)));
                     }  
                 });
             });
 
             // msg.once('attributes', (attrs) => {
-            //     console.log(prefix + 'Attributes: %s', inspect(attrs, false, 8));
+            //     (prefix + 'Attributes: %s', inspect(attrs, false, 8));
             // });
 
             msg.once('end', () => {
-                //console.log(prefix + 'Finished');
+                //(prefix + 'Finished');
                 if (subscriber.closed) return;
                 //await this.waitWhilePaused();
                 //if (subscriber.closed) return;
@@ -402,12 +399,12 @@ export class Collection extends BaseCollection<EMail> {
         });
 
         f.once('error', (err) => {
-            //console.log('Fetch error: ' + err);
+            //'Fetch error: ' + err);
             if (!subscriber.closed) subscriber.error(err);
         });
 
         f.once('end', () => {
-            //console.log('Done fetching all messages!');
+            //('Done fetching all messages!');
             if (!subscriber.closed) subscriber.complete();
             this.closeConnection();
         });

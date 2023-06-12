@@ -23,8 +23,9 @@ export class MagentoCollection<T> extends ResourceCollection<T> {
         url = this.endpoint.makeUrl([url], [searchParams])
         
         const res = await this.endpoint.fetchJson(url);
-        const result = res ? res['items'] : null;
-        return result;
+        if (!res) return null;
+        if (typeof res['items'] !== 'undefined') return res['items'];
+        return [res];
     }
 
     public select(where?: Partial<T>, fields?: (keyof T)[]): Promise<T[]> {
@@ -52,14 +53,6 @@ export class MagentoCollection<T> extends ResourceCollection<T> {
         return super.selectStream(where);
     }
 
-    protected async _selectOne(sku: string): Promise<T> {
-        return super._selectOne(sku);
-    }
-
-    public async selectOne(sku: string): Promise<T> {
-        return super.selectOne(sku);
-    }
-
     protected static convertWhereToQueryParams(where: any = {}): string {
         let getParams = '';
         let n = 0;
@@ -73,7 +66,6 @@ export class MagentoCollection<T> extends ResourceCollection<T> {
         if (!getParams) getParams = 'searchCriteria';
         return getParams;
     }
-
 
     get endpoint(): Endpoint {
         return super.endpoint as Endpoint;

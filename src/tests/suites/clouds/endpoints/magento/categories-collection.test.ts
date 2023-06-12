@@ -1,10 +1,6 @@
-import { after, afterEach, before, beforeEach, describe, test } from 'node:test';
-import assert from 'node:assert';
+import { afterEach, beforeEach, describe, test } from 'node:test';
 import * as rx from 'rxjs';
 import * as etl from '../../../../../lib/index.js';
-import http from 'node:http';
-import https from 'node:https';
-import constants from 'constants';
 import { isNotNullish, isTruthy } from '../../../../utils.js';
 
 
@@ -18,19 +14,18 @@ function checkResultType(value: any) {
 }
 
 
-describe('Magento products', () => {
+describe('Magento categories', () => {
     let endpoint: etl.Magento.Endpoint = null;
-    let collection: etl.Magento.ProductCollection = null;
+    let collection: etl.Magento.CategoryCollection = null;
 
     beforeEach(async () => {
         endpoint = new etl.Magento.Endpoint(ENDPOINT_URL, ENDPOINT_LOGIN, ENDPOINT_PASSWORD);
-        //console.log(ENDPOINT_URL, ENDPOINT_LOGIN, ENDPOINT_PASSWORD)
-        collection = endpoint.getProducts();
+        collection = endpoint.getCategories();
     })
 
     afterEach(async () => {
         if (collection) {
-            endpoint.releaseProducts();
+            endpoint.releaseCategories();
             collection = null;
         }
         if (endpoint) {
@@ -41,7 +36,7 @@ describe('Magento products', () => {
 
     test('selectOne() method', async () => {
         const items = await collection.select();
-        const item = await collection.selectOne(items[0].sku);
+        const item = await collection.selectOne(items[0].id);
         checkResultType(item);
     });
 
