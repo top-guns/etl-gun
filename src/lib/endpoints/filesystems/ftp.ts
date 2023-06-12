@@ -1,34 +1,57 @@
 import * as ix from 'ix';
-import * as ftp from "basic-ftp";
-import { AccessOptions, Client, FileInfo } from "basic-ftp";
+import * as ftp from "comlog-ftp";
 import { Readable } from "stream";
 import { WritableStreamBuffer } from 'stream-buffers';
 import { BaseEndpoint} from "../../core/endpoint.js";
-import { extractParentFolderPath } from "../../utils/index.js";
+import { extractFileName, extractParentFolderPath } from "../../utils/index.js";
 import { BaseObservable } from "../../core/observable.js";
 import { RemoteFilesystemCollection } from "./remote_filesystem_collection.js";
 import { join } from "path";
 import { FilesystemCollectionOptions, FilesystemItem, FilesystemItemType } from './filesystem_collection.js';
+import { inspect } from 'util';
 
+
+export type FtpConnectionOptions = {
+    host: string;
+    port?: number;
+    user: string;
+    password: string;
+}
+
+type FtpFileInfo = {
+    name: string;
+    type: number;
+    time: number;
+    size: string;
+    owner: string;
+    group: string;
+    userPermissions: { read: boolean, write: boolean, exec: boolean },
+    groupPermissions: { read: boolean, write: boolean, exec: boolean },
+    otherPermissions: { read: boolean, write: boolean, exec: boolean }
+}
 
 export class Endpoint extends BaseEndpoint {
-    protected _client: Client | null = null;
+    protected _client: ftp.Client | null = null;
     protected verbose: boolean;
-    protected options: AccessOptions;
+    protected options: FtpConnectionOptions;
 
-    async getConnection(): Promise<Client> {
+    async getConnection(): Promise<ftp.Client> {
         if (!this._client) {
             this._client = new ftp.Client();
-            this._client.ftp.verbose = this.verbose;
+            //this._client.ftp.verbose = this.verbose;
+
+            await this._client.connectAsync(this.options.port ?? 21, this.options.host);
+            await this._client.login(this.options.user , this.options.password);
+            await this._client.pasv();
         }
 
-        if (this._client.closed) await this._client.access(this.options);
-        
+        //if (this._client.closed) await this._client.access(this.options);
+
         return this._client;
     }
 
     
-    constructor(options: AccessOptions, verbose: boolean = false) {
+    constructor(options: FtpConnectionOptions, verbose: boolean = false) {
         super();
         this.verbose = verbose;
         this.options = options;
@@ -44,7 +67,7 @@ export class Endpoint extends BaseEndpoint {
     }
 
     async releaseEndpoint(): Promise<void> {
-        if (this._client && !this._client.closed) this._client.close();
+        if (this._client) await this._client.quit();
     }
 
     get displayName(): string {
@@ -53,7 +76,7 @@ export class Endpoint extends BaseEndpoint {
 }
 
 
-export function getEndpoint(options: AccessOptions, verbose: boolean = false): Endpoint {
+export function getEndpoint(options: FtpConnectionOptions, verbose: boolean = false): Endpoint {
     return new Endpoint(options, verbose);
 }
 
@@ -70,24 +93,44 @@ export class Collection extends RemoteFilesystemCollection {
         if (this.rootPath.endsWith('/')) this.rootPath.substring(0, this.rootPath.lastIndexOf('/'));
     }
 
-    protected makeFilesystemItem(info: FileInfo, folderPath: string, contents?: string): FilesystemItem {
-        const path = join(folderPath, info.name);
+    protected makeFilesystemItem(info: FtpFileInfo, path: string, contents?: string): FilesystemItem {
         return {
-            name: info.name,
+            name: extractFileName(path),
             path,
             fullPath: this.getFullPath(path),
-            size: info.size,
-            type: info.isDirectory ? FilesystemItemType.Directory : info.isFile ? FilesystemItemType.File : info.isSymbolicLink ? FilesystemItemType.SymbolicLink : FilesystemItemType.Unknown,
-            modifiedAt: info.modifiedAt,
+            size: parseInt(info.size),
+            type: info.type === 1 ? FilesystemItemType.Directory : info.type === 0 ? FilesystemItemType.File : FilesystemItemType.Unknown,
+            modifiedAt: new Date(info.time),
             fileContents: contents
         }
     }
 
+    // protected async getFilesystemItem(path: string, contents?: string): Promise<FilesystemItem> {
+    //     if (!await this.isExists(path)) return undefined;
+    //     const fullPath = this.getFullPath(path);
+    //     const connection = await this.endpoint.getConnection();
+    //     return {
+    //         name: extractFileName(path),
+    //         path,
+    //         fullPath,
+    //         size: await connection.size(fullPath),
+    //         type: await this.isFolder(path) ? FilesystemItemType.Directory : FilesystemItemType.File,
+    //         modifiedAt: await connection.lastMod(path),
+    //         fileContents: contents
+    //     }
+    // }
+
     protected async _select(folderPath: string = ''): Promise<FilesystemItem[]> {
         const connection = await this.endpoint.getConnection();
-        const list: FileInfo[] = await connection.list(this.getFullPath(folderPath)) ?? [];
-        const result = list.map(info => this.makeFilesystemItem(info, folderPath));
+        const list: any[] = await connection.list(this.getFullPath(folderPath)) ?? [];
+        const result = list.map(info => this.makeFilesystemItem(info, join(folderPath, info.name)));
         return result;
+    }
+
+    public async selectOne(path: string = ''): Promise<FilesystemItem | undefined> {
+        const value = await this.getInfo(path);
+        this.sendSelectOneEvent(value);
+        return value;
     }
 
     public async select(folderPath?: string): Promise<FilesystemItem[]> {
@@ -249,16 +292,46 @@ export class Collection extends RemoteFilesystemCollection {
 
     // Get info
 
-    public async getInfo(path: string) {
+    public async getInfo(path: string): Promise<FilesystemItem | undefined> {
+        const fullPath = this.getFullPath(path);
         const connection = await this.endpoint.getConnection();
-        const list: FileInfo[] = await connection.list(this.getFullPath(path));
-        if (!list || !list.length) return null;
-        return list[0];
+
+        const res: FtpFileInfo[] = await connection.list(fullPath);
+        if (!res) return undefined;
+
+        if (res.length === 1 && !res[0].name.localeCompare(fullPath)) return this.makeFilesystemItem(res[0], path);
+
+        if (res.length) return {
+            name: extractFileName(path),
+            path,
+            fullPath: fullPath,
+            type: FilesystemItemType.Directory
+        }
+
+        // Test the folder existance
+        try {
+            const curpath = await connection.pwd();
+            const resp: { code: number, message: string }[] = await connection.cwd(fullPath);
+            await connection.cwd(curpath);
+        }
+        catch (err) {
+            // Can't change directory => folder is not exists
+            if (err.code == 550) return undefined;
+            throw err;
+        }
+        
+        return {
+            name: extractFileName(path),
+            path,
+            fullPath: this.getFullPath(path),
+            type: FilesystemItemType.Directory
+        }
     }
 
     public async isFolder(path: string): Promise<boolean | undefined> {
         const info = await this.getInfo(path);
-        return info?.isDirectory;
+        if (!info) return undefined;
+        return info.type === FilesystemItemType.Directory;
     }
 
     public async isExists(path: string) {

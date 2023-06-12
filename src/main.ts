@@ -13,16 +13,18 @@ const START = new Date;
 //GuiManager.startGui(true, 20);
 console.log("START", START);
 
-const res: number[] = [];
+// const res: number[] = [];
 
-const mem = etl.Memory.getEndpoint();
-const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
-let stream$ = src.selectRx().pipe(
-    //rx.tap(v => res.push(v))
-    etl.log()
-);
-//src.selectRx().subscribe(v => console.log(v))
-await etl.run(stream$);
+const ftp = new etl.filesystems.Ftp.Endpoint({ host: 'localhost', user: 'user', password: '123' });
+const src = ftp.getFolder('dir-3');
+const res = await src.select();
+console.log(res);
+// let stream$ = src.selectRx().pipe(
+//     //rx.tap(v => res.push(v))
+//     etl.log()
+// );
+// //src.selectRx().subscribe(v => console.log(v))
+// await etl.run(stream$);
 
 //const vals = await src.select()
 //console.log(vals)

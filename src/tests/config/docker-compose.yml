@@ -1,22 +1,62 @@
 version: '3.7'
 
 services:
+
   ftp:
+    container_name: etl-gun-test-ftp
     env_file:
       - "test.env"
     image: stilliard/pure-ftpd:hardened
     #image: stilliard/pure-ftpd
     ports:
-      - 20:20
-      - "21:21"
+      - $DOCKER_FTP_PORT:20
+      - "$DOCKER_FTPS_PORT:21"
       - "30000-30009:30000-30009"
       #- '40000-40009:40000-40009/tcp'   # passive mode
     volumes:
-      - "../data:/var/ftp/data"
-      - "../tmp/ftp/pass:/etc/pure-ftpd/passwd"
+      - "test-data:/var/ftp/data"
+      # - tmp:/etc/pure-ftpd
     environment:
       PUBLICHOST: "0.0.0.0"
       FTP_USER_NAME: "${DOCKER_FTP_USER}"
       FTP_USER_PASS: "${DOCKER_FTP_PASSWORD}"
       FTP_USER_HOME: "${DOCKER_FTP_HOME}"
     restart: always
+    networks:
+      - default
+
+  postgres:
+    container_name: etl-gun-test-postgres
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=$DOCKER_PG_PASSWORD
+      - POSTGRES_USER=$DOCKER_PG_USER
+      - POSTGRES_DB=$DOCKER_PG_DB
+    volumes:
+      # - postgres-data:/var/lib/postgresql/data
+      - ./init-pg:/docker-entrypoint-initdb.d
+    ports:
+      - '$DOCKER_PG_PORT:5432'
+    networks:
+      - default
+
+volumes:
+    # tmp:
+    #   driver: local
+    #   driver_opts:
+    #     o: bind
+    #     type: none
+    #     device: ../tmp
+    test-data:
+      name: etl-gun-test-data
+      driver: local
+      driver_opts:
+        o: bind
+        type: none
+        device: ../data
+    # postgres-data:
+    #   external: false
+
+networks:
+  default:
+    name: etl-gun-test-network
