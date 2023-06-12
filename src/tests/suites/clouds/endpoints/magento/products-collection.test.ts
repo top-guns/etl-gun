@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, test } from 'node:test';
 import * as rx from 'rxjs';
 import * as etl from '../../../../../lib/index.js';
-import { isNotNullish, isTruthy } from '../../../../utils.js';
+import { strictNotNullish, strictTruthy } from '../../../../utils.js';
 
 
 const ENDPOINT_URL = process.env.CLOUDS_MAGENTO_URL;
@@ -9,8 +9,8 @@ const ENDPOINT_LOGIN = process.env.CLOUDS_MAGENTO_LOGIN;
 const ENDPOINT_PASSWORD = process.env.CLOUDS_MAGENTO_PASSWORD;
 
 function checkResultType(value: any) {
-    isNotNullish(value);
-    isTruthy(value.id);
+    strictNotNullish(value);
+    strictTruthy(value.id);
 }
 
 
@@ -42,31 +42,31 @@ describe('Magento products', () => {
 
     test('select() method', async () => {
         const items = await collection.select();
-        isNotNullish(items);
-        isTruthy(items.length);
+        strictNotNullish(items);
+        strictTruthy(items.length);
         checkResultType(items[0]);
     });
 
     test('selectGen() method', async () => {
         const generator = await collection.selectGen();
-        isNotNullish(generator);
+        strictNotNullish(generator);
 
         const first = await generator.next();
-        isNotNullish(first);
+        strictNotNullish(first);
 
         checkResultType(first.value);
     });
 
     test('selectIx() method', async () => {
         const iterable = await collection.selectIx();
-        isNotNullish(iterable);
+        strictNotNullish(iterable);
         const value = await iterable.first();
         checkResultType(value);
     });
 
     test('selectRx() method', async () => {
         const observable = collection.selectRx();
-        isNotNullish(observable);
+        strictNotNullish(observable);
 
         let value: any;
         await etl.run(observable.pipe(
@@ -79,13 +79,13 @@ describe('Magento products', () => {
 
     test('selectStream() method', async () => {
         const stream = collection.selectStream();
-        isNotNullish(stream);
+        strictNotNullish(stream);
 
         const reader = stream.getReader();
-        isNotNullish(reader);
+        strictNotNullish(reader);
 
         let first = await reader.read();
-        isNotNullish(first);
+        strictNotNullish(first);
 
         checkResultType(first.value);
     });
