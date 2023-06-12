@@ -23,8 +23,9 @@ export class ResourceCollection<T> extends UpdatableCollection<T> {
         const params: Partial<T> = where;
         const res = await this.endpoint.fetchJson(this.getSearchUrl(), 'GET', { params });
         if (!res) return null;
-        if (typeof res[this.resourceNameS] !== 'undefined') return res[this.resourceNameS];
-        if (typeof res['items'] !== 'undefined') return res['items'];
+        if (typeof res[this.resourceNameS] !== 'undefined' && Array.isArray(res[this.resourceNameS])) return res[this.resourceNameS];
+        if (typeof res['items'] !== 'undefined' && Array.isArray(res['items'])) return res['items'];
+        if (typeof res[this.resourceName] === 'object') return [res[this.resourceName]];
         return [res];
     }
 
