@@ -3,10 +3,32 @@
 bold () { printf "\e[1m" ; $@ ; printf "\e[0m"; }
 selected () { printf "\e[4m" ; $@ ; printf "\e[0m"; }
 upper () { printf '%s\n' "$@" | tr '[:lower:]' '[:upper:]'; }
-
-header1 () { printf "\e[32m\e[1m\e[4m" ; $@ | tr '[:lower:]' '[:upper:]'; printf "\e[0m"; }
 header2 () { printf "\e[92m" ; $@ ; printf "\e[0m"; }
 
+S="+"
+COLUMNS=`stty size | awk '{print $2}'`
+LENGTH=$((${COLUMNS}-6))
+
+# ▁▂▃▄▅▆▇█ ▔‾¯
+
+
+header () { 
+    text=`echo $@ | tr '[:lower:]' '[:upper:]' | tr ' ' "$S"`
+    printf "\e[32m\e[1m\e[4m"; 
+
+    #printf %-${COLUMNS}s " " | tr ' ' "_"
+    #printf "\n"
+
+    printf "░░░░░ "; 
+    printf %-${LENGTH}s $text$S | tr ' ' "░" | tr "$S" " "
+    printf "\n"
+
+    #printf %-${COLUMNS}s " " | tr ' ' "‾"
+    #printf "\n"
+
+    printf "\e[0m"
+}
 
 echo ''
-header1 echo "=============== $1 ==============="
+header $1
+echo ''
