@@ -5,30 +5,36 @@ selected () { printf "\e[4m" ; $@ ; printf "\e[0m"; }
 upper () { printf '%s\n' "$@" | tr '[:lower:]' '[:upper:]'; }
 header2 () { printf "\e[92m" ; $@ ; printf "\e[0m"; }
 
+# \e[5m blink
+
 S="+"
+F="☰"
+LOGO="︻╦̵̵̿╤──"
 COLUMNS=`stty size | awk '{print $2}'`
-LENGTH=$((${COLUMNS}-6))
+LENGTH=$((${COLUMNS}-5))
 
-# ▁▂▃▄▅▆▇█ ▔‾¯
-
+# ▁▂▃▄▅▆▇█ ▔‾¯ ❚ ⠿ 𝌆 ☰ ☷ █ ▓ ▒ ░ ⚌ ═ = ⚏ » ╍ ↯ ✔️
+# ✨ ⚡ 🤞 ☕ ⛚ 🔆 🔅 💣 🏁 🚩 🔫 ⏳ 🔥 🧨 💡 📁 🙏 ⏱️
 
 header () { 
-    text=`echo $@ | tr '[:lower:]' '[:upper:]' | tr ' ' "$S"`
-    printf "\e[32m\e[1m\e[4m"; 
+    text=`echo "$@ 🚩" | tr '[:lower:]' '[:upper:]' | tr ' ' "$S"`
+    #printf "\e[32m\e[1m\e[4m"; 
+    printf "\e[32m\e[1m"; 
 
     #printf %-${COLUMNS}s " " | tr ' ' "_"
     #printf "\n"
 
-    printf "░░░░░ "; 
-    printf %-${LENGTH}s $text$S | tr ' ' "░" | tr "$S" " "
+    printf "$F$F$F$F$F "; 
+    printf %-${LENGTH}s $text$S | tr ' ' "$F" | tr "$S" " "
     printf "\n"
 
     #printf %-${COLUMNS}s " " | tr ' ' "‾"
     #printf "\n"
 
-    printf "\e[0m"
+    #printf "\e[0m"
+    tput sgr0
 }
 
 echo ''
-header $1
+header "$1"
 echo ''
