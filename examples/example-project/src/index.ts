@@ -1,5 +1,5 @@
 import * as rx from "rxjs";
-import * as etl from 'etl-gun';
+import * as etl from "etl-gun";
 
 
 // ---
@@ -30,7 +30,7 @@ const books = csv.getFile('books.csv');
 // 3. Create pipline to print all records from books.csv, which have 'fiction' category
 
 // Create pipline to read all records from books.csv with skip the first record which is header and all empty lines if and
-const PrintFictionsAsObjects$ = books.select(true, true).pipe(
+const PrintFictionsAsObjects$ = books.selectRx(true, true).pipe(
     // Convert array type to the object type
     rx.map(v => header.arrToObj(v)),
     // Filter only records with 'fiction' category
