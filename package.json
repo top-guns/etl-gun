@@ -106,6 +106,7 @@
   "license": "MIT",
   "dependencies": {
     "@google-cloud/translate": "^7.2.1",
+    "@types/chai": "^4.3.5",
     "chalk": "^5.2.0",
     "comlog-ftp": "^2.1.0",
     "console-gui-tools": "^3.0.4",
@@ -140,6 +141,7 @@
     "@types/nodemailer": "^6.4.8",
     "@types/ssh2-sftp-client": "^9.0.0",
     "@types/stream-buffers": "^3.0.4",
+    "chai": "^4.3.7",
     "codecov": "^3.8.3",
     "dotenv-cli": "^7.2.1",
     "faucet": "^0.0.4",

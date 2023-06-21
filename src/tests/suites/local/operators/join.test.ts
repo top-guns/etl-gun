@@ -1,5 +1,5 @@
 import { describe, test } from 'node:test';
-import assert from 'node:assert';
+import { should, expect, assert } from "chai";
 import * as rx from 'rxjs';
 import * as etl from '../../../../lib/index.js';
 import { Memory } from '../../../../lib/endpoints/index.js'
@@ -40,7 +40,7 @@ describe('Operator join()', () => {
     });
 
     test('join scalars', async () => {
-        let res: number[] = [];
+        let res: number[][] = [];
 
         const mem = Memory.getEndpoint();
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);
@@ -128,7 +128,7 @@ describe('Operator join()', () => {
 
 
     test('join object and scalar with field name specified', async () => {
-        let res: number[][] = [];
+        let res: { f1: number; f2: number; }[] = [];
 
         const mem = Memory.getEndpoint();
         const src1 = mem.getBuffer<{f1: number}>('bufer1', [{f1: 1}, {f1: 2}]);
@@ -163,7 +163,7 @@ describe('Operator join()', () => {
 
 
     test('join scalar and object with field name specified', async () => {
-        let res: number[][] = [];
+        let res: { f1: number; f2: number; }[] = [];
 
         const mem = Memory.getEndpoint();
         const src1 = mem.getBuffer<number>('bufer1', [1, 2]);

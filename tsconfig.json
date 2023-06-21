@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     //"strict": true,
+    "strictNullChecks": false,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "moduleResolution": "Node",
@@ -29,7 +30,7 @@
     "node_modules"
   ],
   "include": [
-    "src/lib/**/*.ts"
+    "src/**/*.ts"
   ],
   // "ts-node": {
   //   "esm": true,

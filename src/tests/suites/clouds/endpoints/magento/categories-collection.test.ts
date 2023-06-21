@@ -4,9 +4,9 @@ import * as etl from '../../../../../lib/index.js';
 import { strictNotNullish, strictTruthy } from '../../../../utils.js';
 
 
-const ENDPOINT_URL = process.env.CLOUDS_MAGENTO_URL;
-const ENDPOINT_LOGIN = process.env.CLOUDS_MAGENTO_LOGIN;
-const ENDPOINT_PASSWORD = process.env.CLOUDS_MAGENTO_PASSWORD;
+const ENDPOINT_URL = process.env.CLOUDS_MAGENTO_URL!;
+const ENDPOINT_LOGIN = process.env.CLOUDS_MAGENTO_LOGIN!;
+const ENDPOINT_PASSWORD = process.env.CLOUDS_MAGENTO_PASSWORD!;
 
 function checkResultType(value: any) {
     strictNotNullish(value);
@@ -15,8 +15,8 @@ function checkResultType(value: any) {
 
 
 describe('Magento categories', () => {
-    let endpoint: etl.Magento.Endpoint = null;
-    let collection: etl.Magento.CategoryCollection = null;
+    let endpoint: etl.Magento.Endpoint= null;
+    let collection: etl.Magento.CategoryCollection= null;
 
     beforeEach(async () => {
         endpoint = new etl.Magento.Endpoint(ENDPOINT_URL, ENDPOINT_LOGIN, ENDPOINT_PASSWORD);

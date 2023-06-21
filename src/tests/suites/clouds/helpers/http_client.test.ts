@@ -1,5 +1,5 @@
 import { after, before, describe, test } from 'node:test';
-import assert from 'node:assert';
+import { should, expect, assert } from "chai";
 import * as rx from 'rxjs';
 import * as etl from '../../../../lib/index.js';
 import http from 'node:http';

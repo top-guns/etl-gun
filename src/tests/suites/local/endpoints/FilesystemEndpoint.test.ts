@@ -1,5 +1,5 @@
 import { describe, test } from 'node:test';
-import assert from 'node:assert';
+import { should, expect, assert } from "chai";
 import path from 'path';
 import * as fs from "fs";
 import * as rx from 'rxjs';

@@ -1,5 +1,5 @@
 import { describe, test } from 'node:test';
-import assert from 'node:assert';
+import { should, expect, assert } from "chai";
 import { tap } from 'rxjs';
 import * as etl from '../../../../lib/index.js';
 import { Memory } from '../../../../lib/endpoints/index.js'
