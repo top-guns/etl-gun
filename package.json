@@ -4,9 +4,9 @@
   "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "node": ">=20",
   "type": "module",
-  "types": "main.d.ts",
-  "main": "dist/main.js",
-  "module": "./dist/main.js",
+  "types": "./dist/lib/index.d.ts",
+  "main": "./dist/lib/index.js",
+  "module": "./dist/lib/index.js",
   "--es2015": "./dist/esm/main.js",
   "--sideEffects": false,
   "exports": {
