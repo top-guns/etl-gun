@@ -3,9 +3,9 @@ This file contains temporary code to test library while development process.
 It is not contains any usefull code, is not a part of library and is not an example of library using.
 ************************************************************************************************************************************/
 
-import * as rx from "rxjs";
-import * as etl from "./lib/index.js";
-import { deleteFileIfExists } from "./utils/filesystem.js";
+// import * as rx from "rxjs";
+// import * as etl from "./lib/index.js";
+// import { deleteFileIfExists } from "./utils/filesystem.js";
 //import { DiscordHelper } from "./lib/index.js";
 
 
@@ -15,10 +15,11 @@ console.log("START", START);
 
 // const res: number[] = [];
 
-const ftp = new etl.filesystems.Ftp.Endpoint({ host: 'localhost', user: 'user', password: '123' });
-const src = ftp.getFolder('dir-3');
-const res = await src.select();
-console.log(res);
+// const ftp = new etl.filesystems.Ftp.Endpoint({ host: 'localhost', user: 'user', password: '123' });
+// const src = ftp.getFolder('dir-3');
+// const res = await src.select();
+// console.log(res);
+
 // let stream$ = src.selectRx().pipe(
 //     //rx.tap(v => res.push(v))
 //     etl.log()
