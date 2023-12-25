@@ -2,25 +2,70 @@
   "name": "etl-gun",
   "version": "2.2.9",
   "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
-  "type": "module",
-  "--main": "dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./Errors": "./dist/endpoints/errors.js",
-    "./Trello": "./dist/endpoints/trello/index.js",
-    "./Zendesk": "./dist/endpoints/zendesk/index.js",
-    "./Csv": "./dist/endpoints/csv.js",
-    "./Xml": "./dist/endpoints/xml.js",
-    "./Json": "./dist/endpoints/json.js",
-    "./Filesystem": "./dist/endpoints/filesystem.js",
-    "./Interval": "./dist/endpoints/interval.js",
-    "./Magento": "./dist/endpoints/magento.js",
-    "./Memory": "./dist/endpoints/memory.js",
-    "./databases": "./dist/endpoints/databases/index.js",
-    "./Telegram": "./dist/endpoints/telegram.js"
-  },
-  "types": "./dist/index.d.ts",
   "node": ">=20",
+  "type": "module",
+  "types": "main.d.ts",
+  "main": "dist/main.js",
+  "module": "./dist/main.js",
+  "--es2015": "./dist/esm/main.js",
+  "--sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "--node": "./dist/cjs/index.js",
+      "--require": "./dist/cjs/index.js",
+      "--es2015": "./dist/esm/index.js",
+      "default": "./dist/main.js"
+    },
+    "./Errors": {
+      "types": "./dist/lib/endpoints/errors.d.ts",
+      "default": "./dist/lib/endpoints/errors.js"
+    },
+    "./Trello": {
+      "types": "./dist/lib/endpoints/trello/index.d.ts",
+      "default": "./dist/lib/endpoints/trello/index.js"
+    },
+    "./Zendesk": {
+      "types": "./dist/lib/endpoints/zendesk/index.d.ts",
+      "default": "./dist/lib/endpoints/zendesk/index.js"
+    },
+    "./Csv": {
+      "types": "./dist/lib/endpoints/csv.d.ts",
+      "default": "./dist/lib/endpoints/csv.js"
+    },
+    "./Xml": {
+      "types": "./dist/lib/endpoints/xml.d.ts",
+      "default": "./dist/lib/endpoints/xml.js"
+    },
+    "./Json": {
+      "types": "./dist/lib/endpoints/json.d.ts",
+      "default": "./dist/lib/endpoints/json.js"
+    },
+    "./Filesystem": {
+      "types": "./dist/lib/endpoints/filesystem/index.d.ts",
+      "default": "./dist/lib/endpoints/filesystem/index.js"
+    },
+    "./Interval": {
+      "types": "./dist/lib/endpoints/interval.d.ts",
+      "default": "./dist/lib/endpoints/interval.js"
+    },
+    "./Magento": {
+      "types": "./dist/lib/endpoints/magento/index.d.ts",
+      "default": "./dist/lib/endpoints/magento/index.js"
+    },
+    "./Memory": {
+      "types": "./dist/lib/endpoints/memory/index.d.ts",
+      "default": "./dist/lib/endpoints/memory/index.js"
+    },
+    "./databases": {
+      "types": "./dist/lib/endpoints/databases/index.d.ts",
+      "default": "./dist/lib/endpoints/databases/index.js"
+    },
+    "./messangers": {
+      "types": "./dist/lib/endpoints/messangers/index.d.ts",
+      "default": "./dist/lib/endpoints/messangers/index.js"
+    }
+  },
   "scripts": {
     "--start:ts-node": "dotenv -e .env -- ts-node-esm src/main.ts",
     "--start:tsx": "dotenv -e .env -- tsx src/main.ts",
