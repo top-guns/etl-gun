@@ -1,6 +1,6 @@
 {
   "name": "etl-gun",
-  "version": "2.2.16",
+  "version": "2.2.17",
   "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "node": ">=20.10.0",
   "type": "module",
@@ -11,7 +11,9 @@
   "--sideEffects": false,
   "typesVersions": {
     ">=3.1": {
-      "*": ["./dist/types/lib/*"]
+      "*": [
+        "./dist/types/lib/*"
+      ]
     }
   },
   "exports": {
