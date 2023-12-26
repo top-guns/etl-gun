@@ -5,6 +5,7 @@
     "target": "ESNext",
     "declaration": true,
     "declarationDir": "./dist/types",
+    "declarationMap": true,
     "sourceMap": true,
     "noImplicitAny": false,
     //"types": ["node", "jest", "node/test"],
