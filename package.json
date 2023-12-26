@@ -10,10 +10,12 @@
   "--es2015": "./dist/esm/main.js",
   "--sideEffects": false,
   "typesVersions": {
-    ">=3.1": {
-      "*": [
-        "./dist/types/lib/*"
-      ]
+    "*": {
+      "*": ["./dist/types/lib/index.d.ts"],
+      "operators": ["./dist/types/lib/operators/index.d.ts"],
+      "helpers": ["./dist/types/lib/helpers/index.js.d.ts"],
+      "utils": ["./dist/types/lib/utils/index.d.ts"],
+      "endpoints": ["./dist/types/lib/endpoints/index.d.ts"]
     }
   },
   "exports": {
