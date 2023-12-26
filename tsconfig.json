@@ -2,7 +2,7 @@
   // "--extends": "@sindresorhus/tsconfig",
   //"extends": "@tsconfig/node20/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
@@ -23,7 +23,7 @@
     "baseUrl": ".",
     "noFallthroughCasesInSwitch": true,
     "outDir": "./dist",
-    "lib": ["ES2022"],
+    "lib": ["ESNext", "esnext.asynciterable"],
   },
   "compileOnSave": true,
   "exclude": [
@@ -32,10 +32,10 @@
   "include": [
     "src/**/*.ts"
   ],
-  // "ts-node": {
-  //   "esm": true,
-  //   "experimentalSpecifierResolution": "node"
-  // }
+  "ts-node": {
+    "esm": true,
+    // "experimentalSpecifierResolution": "node"
+  }
   // "ts-node": {
 	// 	"transpileOnly": true,
 	// 	"files": true,
