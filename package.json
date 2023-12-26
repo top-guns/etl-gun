@@ -1,6 +1,6 @@
 {
   "name": "etl-gun",
-  "version": "2.2.15",
+  "version": "2.2.16",
   "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "node": ">=20.10.0",
   "type": "module",
@@ -11,11 +11,21 @@
   "--sideEffects": false,
   "typesVersions": {
     "*": {
-      "*": ["./dist/lib/index.d.ts"],
-      "operators": ["./dist/lib/operators/index.d.ts"],
-      "helpers": ["./dist/lib/helpers/index.js.d.ts"],
-      "utils": ["./dist/lib/utils/index.d.ts"],
-      "endpoints": ["./dist/lib/endpoints/index.d.ts"]
+      "*": [
+        "./dist/lib/index.d.ts"
+      ],
+      "operators": [
+        "./dist/lib/operators/index.d.ts"
+      ],
+      "helpers": [
+        "./dist/lib/helpers/index.js.d.ts"
+      ],
+      "utils": [
+        "./dist/lib/utils/index.d.ts"
+      ],
+      "endpoints": [
+        "./dist/lib/endpoints/index.d.ts"
+      ]
     }
   },
   "exports": {
