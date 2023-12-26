@@ -4,6 +4,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "declaration": true,
+    "declarationDir": "./dist/types",
     "sourceMap": true,
     "noImplicitAny": false,
     //"types": ["node", "jest", "node/test"],
@@ -23,7 +24,7 @@
     "baseUrl": ".",
     "noFallthroughCasesInSwitch": true,
     "outDir": "./dist",
-    "lib": ["ESNext", "esnext.asynciterable"],
+    "lib": ["ESNext"],
   },
   "compileOnSave": true,
   "exclude": [

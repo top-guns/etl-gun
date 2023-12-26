@@ -4,94 +4,90 @@
   "description": "ETL toolkit which supports RxJS streams, error handling, business rules and many more",
   "node": ">=20.10.0",
   "type": "module",
-  "types": "./dist/lib/index.d.ts",
+  "types": "./dist/types/lib/index.d.ts",
   "main": "./dist/lib/index.js",
   "module": "./dist/lib/index.js",
   "--es2015": "./dist/esm/main.js",
   "--sideEffects": false,
   "typesVersions": {
-    "*": {
-      "*": ["./dist/lib/index.d.ts"],
-      "operators": ["./dist/lib/operators/index.d.ts"],
-      "helpers": ["./dist/lib/helpers/index.js.d.ts"],
-      "utils": ["./dist/lib/utils/index.d.ts"],
-      "endpoints": ["./dist/lib/endpoints/index.d.ts"]
+    ">=3.1": {
+      "*": ["./dist/types/lib/*"]
     }
   },
   "exports": {
     ".": {
-      "types": "./dist/lib/index.d.ts",
+      "types": "./dist/types/lib/index.d.ts",
       "default": "./dist/lib/index.js",
       "--node": "./dist/cjs/index.js",
       "--require": "./dist/cjs/index.js",
       "--es2015": "./dist/esm/index.js"
     },
     "./operators": {
-      "types": "./dist/lib/operators/index.d.ts",
+      "types": "./dist/types/lib/operators/index.d.ts",
       "default": "./dist/lib/operators/index.js"
     },
     "./helpers": {
-      "types": "./dist/lib/helpers/index.d.ts",
+      "types": "./dist/types/lib/helpers/index.d.ts",
       "default": "./dist/lib/helpers/index.js"
     },
     "./utils": {
-      "types": "./dist/lib/utils/index.d.ts",
+      "types": "./dist/types/lib/utils/index.d.ts",
       "default": "./dist/lib/utils/index.js"
     },
     "./endpoints": {
-      "types": "./dist/lib/endpoints/index.d.ts",
+      "types": "./dist/types/lib/endpoints/index.d.ts",
       "default": "./dist/lib/endpoints/index.js"
     },
     "./endpoints/Magento": {
-      "types": "./dist/lib/endpoints/magento/index.d.ts",
+      "types": "./dist/types/lib/endpoints/magento/index.d.ts",
       "default": "./dist/lib/endpoints/magento/index.js"
     },
     "./endpoints/Trello": {
-      "types": "./dist/lib/endpoints/trello/index.d.ts",
+      "types": "./dist/types/lib/endpoints/trello/index.d.ts",
       "default": "./dist/lib/endpoints/trello/index.js"
     },
     "./endpoints/Zendesk": {
-      "types": "./dist/lib/endpoints/zendesk/index.d.ts",
+      "types": "./dist/types/lib/endpoints/zendesk/index.d.ts",
       "default": "./dist/lib/endpoints/zendesk/index.js"
     },
     "./endpoints/Memory": {
-      "types": "./dist/lib/endpoints/memory/index.d.ts",
+      "types": "./dist/types/lib/endpoints/memory/index.d.ts",
       "default": "./dist/lib/endpoints/memory/index.js"
     },
     "./endpoints/databases": {
-      "types": "./dist/lib/endpoints/databases/index.d.ts",
+      "types": "./dist/types/lib/endpoints/databases/index.d.ts",
       "default": "./dist/lib/endpoints/databases/index.js"
     },
     "./endpoints/filesystems": {
-      "types": "./dist/lib/endpoints/filesystems/index.d.ts",
+      "types": "./dist/types/lib/endpoints/filesystems/index.d.ts",
       "default": "./dist/lib/endpoints/filesystems/index.js"
     },
     "./endpoints/messangers": {
-      "types": "./dist/lib/endpoints/messangers/index.d.ts",
+      "types": "./dist/types/lib/endpoints/messangers/index.d.ts",
       "default": "./dist/lib/endpoints/messangers/index.js"
     },
     "./endpoints/rest": {
-      "types": "./dist/lib/endpoints/rest/index.d.ts",
+      "types": "./dist/types/lib/endpoints/rest/index.d.ts",
       "default": "./dist/lib/endpoints/rest/index.js"
     },
     "./endpoints/errors": {
-      "types": "./dist/lib/endpoints/errors.d.ts",
+      "types": "./dist/types/lib/endpoints/errors.d.ts",
       "default": "./dist/lib/endpoints/errors.js"
     },
     "./endpoints/Interval": {
-      "types": "./dist/lib/endpoints/interval.d.ts",
+      "types": "./dist/types/lib/endpoints/interval.d.ts",
       "default": "./dist/lib/endpoints/interval.js"
     },
     "./endpoints/Csv": {
-      "types": "./dist/lib/endpoints/csv.d.ts",
+      "types": "./dist/types/lib/endpoints/csv.d.ts",
       "default": "./dist/lib/endpoints/csv.js"
     },
     "./endpoints/Xml": {
-      "types": "./dist/lib/endpoints/xml.d.ts",
+      "types": "./dist/types/lib/endpoints/xml.d.ts",
       "default": "./dist/lib/endpoints/xml.js"
     },
     "./endpoints/Json": {
-      "types": "./dist/lib/endpoints/json.d.ts",
+      "types": "./dist/types/lib/endpoints/json.d.ts",
       "default": "./dist/lib/endpoints/json.js"
     }
   },
