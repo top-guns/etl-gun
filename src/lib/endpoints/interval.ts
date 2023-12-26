@@ -39,7 +39,7 @@ export class Collection extends BaseCollection<number> {
     protected static instanceNo = 0;
 
     protected interval: number;
-    protected intervalId: NodeJS.Timer | null = null;
+    protected intervalId: NodeJS.Timeout | null = null;
     protected counter: number = 0;
     protected subscriber: Subscriber<number> | null = null;
     protected stoped: Boolean = true;

@@ -260,7 +260,7 @@ export class KnexQueryCollection<T = Record<string, any>> extends BaseCollection
     }
 
     protected async _select(params?: any[]): Promise<T[]> {
-        const result = await this.endpoint.database.raw(this.query, ...params!);
+        const result = await this.endpoint.database.raw(this.query, params);
         return result.rows;
     }
 
