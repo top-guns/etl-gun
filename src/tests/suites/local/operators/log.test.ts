@@ -14,6 +14,8 @@ describe('Operator log()', () => {
 
         await etl.operators.run(src$);
 
-        assert.strictEqual(res.toString(), "h 100\n");
+        const strVal = res.toString().replace(/\u001b[^m]*?m/g,"");
+
+        expect(strVal).to.equal('h 100\n');
     });
 });
