@@ -9,6 +9,15 @@
   "module": "./dist/lib/index.js",
   "--es2015": "./dist/esm/main.js",
   "--sideEffects": false,
+  "typesVersions": {
+    "*": {
+      "*": ["./dist/lib/index.d.ts"],
+      "operators": ["./dist/lib/operators/index.d.ts"],
+      "helpers": ["./dist/lib/helpers/index.js.d.ts"],
+      "utils": ["./dist/lib/utils/index.d.ts"],
+      "endpoints": ["./dist/lib/endpoints/index.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/lib/index.d.ts",
