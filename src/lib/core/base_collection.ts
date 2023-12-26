@@ -1,12 +1,9 @@
 import * as rx from "rxjs";
 import * as ix from 'ix';
-import * as internal from "stream";
 import { GuiManager } from "./gui.js";
 import { BaseEndpoint } from "./endpoint.js";
-import { Errors, run } from "../index.js";
-import { EtlError } from "../endpoints/errors.js";
+import { ErrorsQueue } from "../endpoints/errors.js";
 import { BaseObservable } from "./observable.js";
-import { generator2Iterable, observable2Stream } from "../utils/flows.js";
 
 
 export type CollectionOptions<T> = {
@@ -42,8 +39,8 @@ export abstract class BaseCollection<T> {
         return this._endpoint;
     }
 
-    protected _errors: Errors.ErrorsQueue | null = null;
-    get errors(): Errors.ErrorsQueue | null {
+    protected _errors: ErrorsQueue | null = null;
+    get errors(): ErrorsQueue | null {
         if (this._errors) return this._errors;
         if (!this.options.disableErrorsCollectionCreation && !['ErrorsQueue'].includes(this.constructor.name)) {
             // TODO
@@ -51,7 +48,7 @@ export abstract class BaseCollection<T> {
         }
         return this._errors;
     }
-    set errors(errorsQueue: Errors.ErrorsQueue) {
+    set errors(errorsQueue: ErrorsQueue) {
         this._errors = errorsQueue;
     }
 

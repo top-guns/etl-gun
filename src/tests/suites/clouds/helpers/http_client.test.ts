@@ -9,7 +9,7 @@ import constants from 'constants';
 
 describe('HttpClientHelper with clouds', () => {
     test('Fetch from clouds https', async () => {
-        const helper = new etl.HttpClientHelper(process.env.CLOUDS_HTTPS_URL);
+        const helper = new etl.helpers.HttpClientHelper(process.env.CLOUDS_HTTPS_URL);
         const res = await helper.fetch();
         assert.strictEqual(res.status, 200);
     });

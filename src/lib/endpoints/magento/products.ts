@@ -1,6 +1,6 @@
 import { OperatorFunction } from 'rxjs';
 import { CollectionOptions } from '../../core/base_collection.js';
-import { mapAsync } from '../../index.js';
+import { mapAsync } from '../../operators/index.js';
 import { Endpoint } from './endpoint.js';
 import { MagentoCollection } from './magento_collection.js';
 

@@ -15,11 +15,11 @@ function checkResultType(value: any) {
 
 
 describe('Magento categories', () => {
-    let endpoint: etl.Magento.Endpoint= null;
-    let collection: etl.Magento.CategoryCollection= null;
+    let endpoint: etl.endpoints.Magento.Endpoint= null;
+    let collection: etl.endpoints.Magento.CategoryCollection= null;
 
     beforeEach(async () => {
-        endpoint = new etl.Magento.Endpoint(ENDPOINT_URL, ENDPOINT_LOGIN, ENDPOINT_PASSWORD);
+        endpoint = new etl.endpoints.Magento.Endpoint(ENDPOINT_URL, ENDPOINT_LOGIN, ENDPOINT_PASSWORD);
         collection = endpoint.getCategories();
     })
 
@@ -69,7 +69,7 @@ describe('Magento categories', () => {
         strictNotNullish(observable);
 
         let value: any;
-        await etl.run(observable.pipe(
+        await etl.operators.run(observable.pipe(
             rx.take(1),
             rx.tap(v => value = v)
         ));

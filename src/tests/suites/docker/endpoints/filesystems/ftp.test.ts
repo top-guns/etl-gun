@@ -7,11 +7,11 @@ import { strictNullish, strictUndefined } from '../../../../utils.js';
 const ROOT_FOLDER = 'ftp';
 
 describe('FTP endpoint', () => {
-    let ftp: etl.filesystems.Ftp.Endpoint;
-    let folder: etl.filesystems.Ftp.Collection;
+    let ftp: etl.endpoints.filesystems.Ftp.Endpoint;
+    let folder: etl.endpoints.filesystems.Ftp.Collection;
 
     before(() => {
-        ftp = new etl.filesystems.Ftp.Endpoint({host: "localhost", user: process.env.DOCKER_FTP_USER, password: process.env.DOCKER_FTP_PASSWORD});
+        ftp = new etl.endpoints.filesystems.Ftp.Endpoint({host: "localhost", user: process.env.DOCKER_FTP_USER, password: process.env.DOCKER_FTP_PASSWORD});
     })
 
     after(async () => {
@@ -78,7 +78,7 @@ describe('FTP endpoint', () => {
         let stream$ = folder.selectRx('dir-1').pipe(
             rx.tap(v => res.push(v.name))
         );
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, ['child-dir-1', 'file-1.txt', 'file-2.txt']);
     });

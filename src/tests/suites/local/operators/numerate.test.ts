@@ -13,11 +13,11 @@ describe('Operator numerate()', () => {
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.selectRx().pipe(
-            etl.numerate(10),
+            etl.operators.numerate(10),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [2, 11], [3, 12]]);
     });
@@ -29,11 +29,11 @@ describe('Operator numerate()', () => {
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
         let stream$ = src.selectRx().pipe(
-            etl.numerate(10, "index"),
+            etl.operators.numerate(10, "index"),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [{f1: 1, index: 10}, {f1: 2, index: 11}, {f1: 3, index: 12}]);
     });
@@ -45,11 +45,11 @@ describe('Operator numerate()', () => {
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
         let stream$ = src.selectRx().pipe(
-            etl.numerate(10),
+            etl.operators.numerate(10),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [2, 11], [3, 12]]);
     });
@@ -60,11 +60,11 @@ describe('Operator numerate()', () => {
         const src = mem.getBuffer<{}>('bufer1', [{f1: 1}, {f1: 2}, {f1: 3}]);
 
         let stream$ = src.selectRx().pipe(
-            etl.numerate(10),
+            etl.operators.numerate(10),
         );
 
         //expect(() => {etl.run(stream$)}).toThrow();
-        const error = await getError(async () => etl.run(stream$));
+        const error = await getError(async () => etl.operators.run(stream$));
         assert.strictEqual(error.constructor, Error);
     });
 
@@ -73,10 +73,10 @@ describe('Operator numerate()', () => {
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.selectRx().pipe(
-            etl.numerate(10, "index"),
+            etl.operators.numerate(10, "index"),
         );
 
-        const error = await getError(async () => etl.run(stream$));
+        const error = await getError(async () => etl.operators.run(stream$));
         assert.strictEqual(error.constructor, Error);
     });
 
@@ -86,10 +86,10 @@ describe('Operator numerate()', () => {
 
         let stream$ = src.selectRx().pipe(
             rx.map(v => v as unknown as Record<string, any>),
-            etl.numerate(10, "index"),
+            etl.operators.numerate(10, "index"),
         );
 
-        const error = await getError(async () => etl.run(stream$));
+        const error = await getError(async () => etl.operators.run(stream$));
         assert.strictEqual(error.constructor, Error);
     });
 });

@@ -12,7 +12,7 @@ describe('Operator push()', () => {
         const buf = mem.getBuffer<number>('bufer1');
 
         const src$ = rx.of(1, 2, 3).pipe(
-            etl.push(buf)
+            etl.operators.push(buf)
         )
 
         await rx.lastValueFrom(src$);
@@ -21,7 +21,7 @@ describe('Operator push()', () => {
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [1, 2, 3]);
     });

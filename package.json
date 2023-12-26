@@ -11,59 +11,11 @@
   "--sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/main.d.ts",
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js",
       "--node": "./dist/cjs/index.js",
       "--require": "./dist/cjs/index.js",
-      "--es2015": "./dist/esm/index.js",
-      "default": "./dist/main.js"
-    },
-    "./Errors": {
-      "types": "./dist/lib/endpoints/errors.d.ts",
-      "default": "./dist/lib/endpoints/errors.js"
-    },
-    "./Trello": {
-      "types": "./dist/lib/endpoints/trello/index.d.ts",
-      "default": "./dist/lib/endpoints/trello/index.js"
-    },
-    "./Zendesk": {
-      "types": "./dist/lib/endpoints/zendesk/index.d.ts",
-      "default": "./dist/lib/endpoints/zendesk/index.js"
-    },
-    "./Csv": {
-      "types": "./dist/lib/endpoints/csv.d.ts",
-      "default": "./dist/lib/endpoints/csv.js"
-    },
-    "./Xml": {
-      "types": "./dist/lib/endpoints/xml.d.ts",
-      "default": "./dist/lib/endpoints/xml.js"
-    },
-    "./Json": {
-      "types": "./dist/lib/endpoints/json.d.ts",
-      "default": "./dist/lib/endpoints/json.js"
-    },
-    "./Filesystem": {
-      "types": "./dist/lib/endpoints/filesystem/index.d.ts",
-      "default": "./dist/lib/endpoints/filesystem/index.js"
-    },
-    "./Interval": {
-      "types": "./dist/lib/endpoints/interval.d.ts",
-      "default": "./dist/lib/endpoints/interval.js"
-    },
-    "./Magento": {
-      "types": "./dist/lib/endpoints/magento/index.d.ts",
-      "default": "./dist/lib/endpoints/magento/index.js"
-    },
-    "./Memory": {
-      "types": "./dist/lib/endpoints/memory/index.d.ts",
-      "default": "./dist/lib/endpoints/memory/index.js"
-    },
-    "./databases": {
-      "types": "./dist/lib/endpoints/databases/index.d.ts",
-      "default": "./dist/lib/endpoints/databases/index.js"
-    },
-    "./messangers": {
-      "types": "./dist/lib/endpoints/messangers/index.d.ts",
-      "default": "./dist/lib/endpoints/messangers/index.js"
+      "--es2015": "./dist/esm/index.js"      
     }
   },
   "scripts": {

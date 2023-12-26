@@ -21,7 +21,7 @@ describe('Operator run()', () => {
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream1$, stream2$);
+        await etl.operators.run(stream1$, stream2$);
 
         assert.deepStrictEqual(res, [10, 11, 1, 2]);
     });

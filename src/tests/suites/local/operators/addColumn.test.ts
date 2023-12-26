@@ -12,11 +12,11 @@ describe('Operator addColumn()', () => {
         const src = mem.getBuffer<number[]>('bufer1', [[1], [2], [3]]);
 
         let stream$ = src.selectRx().pipe(
-            etl.addColumn(v => v[0] * 10),
+            etl.operators.addColumn(v => v[0] * 10),
             rx.tap(v => res.push(v)),
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [2, 20], [3, 30]]);
     });
@@ -28,11 +28,11 @@ describe('Operator addColumn()', () => {
         const src = mem.getBuffer<number>('bufer1', [1, 2, 3]);
 
         let stream$ = src.selectRx().pipe(
-            etl.addColumn<number, number[]>(v => v * 10),
+            etl.operators.addColumn<number, number[]>(v => v * 10),
             rx.tap(v => res.push(v)),
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [2, 20], [3, 30]]);
     });

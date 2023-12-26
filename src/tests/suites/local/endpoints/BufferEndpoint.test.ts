@@ -64,7 +64,7 @@ describe('BufferEndpoint', () => {
         let stream$ = src.selectRx().pipe(
             rx.tap(v => res.push(v))
         );
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [1, 2, 3]);
     });
@@ -109,7 +109,7 @@ describe('BufferEndpoint', () => {
         const stream$ = src.selectRx().pipe(
             rx.tap(v => res.push(v))
         );
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [1, 2, 3]);
     });

@@ -1,11 +1,4 @@
-import * as Local from './local.js';
-import * as Ftp from './ftp.js';
-import * as SFtp from './sftp.js';
-import * as WebDav from './webdav.js';
-
-export {
-    Local,
-    Ftp,
-    SFtp,
-    WebDav
-}
+export * as Local from './local.js';
+export * as Ftp from './ftp.js';
+export * as SFtp from './sftp.js';
+export * as WebDav from './webdav.js';

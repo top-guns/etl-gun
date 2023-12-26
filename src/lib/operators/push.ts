@@ -1,6 +1,6 @@
 import { mergeMap, from, OperatorFunction, Observable } from "rxjs";
 import _ from 'lodash';
-import { GuiManager } from "../index.js";
+import { GuiManager } from "../core/gui.js";
 import { UpdatableCollection } from "../core/updatable_collection.js";
 
 

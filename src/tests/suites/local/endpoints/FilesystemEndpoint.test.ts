@@ -8,7 +8,7 @@ import { deleteFileIfExists, loadFileContent } from '../../../../utils/filesyste
 
 const TEMP_FOLDER = "./src/tests/tmp/";
 
-describe('Etl.filesystems.Local.Endpoint', () => {
+describe('etl.endpoints.filesystems.Local.Endpoint', () => {
     test('push method with simple parameters to create file', async () => {
         const OUT_FILE_NAME = 'test_output.tmp';
         const ROOT_FOLDER = TEMP_FOLDER;
@@ -16,7 +16,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(OUT_FILE_FULL_PATH);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME, 'test');
 
@@ -35,7 +35,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(OUT_FOLDER_FULL_PATH);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FOLDER_NAME);
 
@@ -54,7 +54,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME, 'test');
 
@@ -83,7 +83,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');
@@ -108,7 +108,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');
@@ -131,7 +131,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');
@@ -156,7 +156,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');
@@ -165,7 +165,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
             let stream$ = src.selectRx().pipe(
                 rx.tap(v => res.push(v.name))
             );
-            await etl.run(stream$);
+            await etl.operators.run(stream$);
 
             res.sort((a, b) => (a > b) ? 1 : -1)
             assert.deepStrictEqual(res, [ OUT_FILE_NAME1, OUT_FILE_NAME2 ]);
@@ -182,7 +182,7 @@ describe('Etl.filesystems.Local.Endpoint', () => {
         try {
             deleteFileIfExists(ROOT_FOLDER);
 
-            const ep = new etl.filesystems.Local.Endpoint(ROOT_FOLDER);
+            const ep = new etl.endpoints.filesystems.Local.Endpoint(ROOT_FOLDER);
             const src = ep.getFolder('.');
             await src.insert(OUT_FILE_NAME1, 'test1');
             await src.insert(OUT_FILE_NAME2, 'test2');

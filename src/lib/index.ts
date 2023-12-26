@@ -1,7 +1,5 @@
-export * from './core/gui.js';
-export * from './operators/index.js';
-export * from './helpers/index.js';
-export * from './utils/index.js';
-export * from './endpoints/index.js';
-
-export * from './core/condition.js';
+export * as core from './core/index.js';
+export * as operators from './operators/index.js';
+export * as helpers from './helpers/index.js';
+export * as utils from './utils/index.js';
+export * as endpoints from './endpoints/index.js';

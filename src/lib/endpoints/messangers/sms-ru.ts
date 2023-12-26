@@ -1,4 +1,4 @@
-import { HttpClientHelper } from '../../index.js';
+import { HttpClientHelper } from '../../helpers/index.js';
 import { BaseEndpoint } from '../../core/endpoint.js';
 import { MessangerService, SendError } from './messanger-service.js';
 

@@ -58,7 +58,7 @@ describe('CsvEndpoint', () => {
             let stream$ = src.selectRx().pipe(
                 rx.tap(v => res.push(v))
             );
-            await etl.run(stream$);
+            await etl.operators.run(stream$);
 
             assert.deepStrictEqual(res, [ [ '10', 'abc' ], [ '11', ' a\\b/c;' ], [ '33', '66,55' ] ]);
         }

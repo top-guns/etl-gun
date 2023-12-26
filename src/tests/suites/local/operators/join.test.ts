@@ -13,11 +13,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number[]>('bufer2',[[10], [11]]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
@@ -30,11 +30,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 11}]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
     });
@@ -47,11 +47,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number>('bufer2', [10, 11]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
@@ -65,11 +65,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<{f1: number}>('bufer2', [{f1: 1}, {f1: 2}]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 1], [1, 2], [2, 1], [2, 2]]);
     });
@@ -82,11 +82,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number[]>('bufer2', [[1], [2]]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 1], [1, 2], [2, 1], [2, 2]]);
     });
@@ -100,11 +100,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
@@ -117,11 +117,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number[]>('bufer2', [[1], [2]]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[10, 1], [10, 2], [20, 1], [20, 2]]);
     });
@@ -135,11 +135,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx(), 'f2'),
+            etl.operators.join(src2.selectRx(), 'f2'),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
     });
@@ -152,11 +152,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number>('bufer2', [10, 20]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
@@ -170,11 +170,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 20}]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx(), 'f1'),
+            etl.operators.join(src2.selectRx(), 'f1'),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 20}, {f1: 2, f2: 10}, {f1: 2, f2: 20}]);
     });
@@ -186,11 +186,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<{f1: number}>('bufer2', [{f1: 10}, {f1: 20}]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.join(src2.selectRx()),
+            etl.operators.join(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 20], [2, 10], [2, 20]]);
     });
@@ -204,11 +204,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<number[]>('bufer2', [[10], [11]]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.joinArrays(src2.selectRx()),
+            etl.operators.joinArrays(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [[1, 10], [1, 11], [2, 10], [2, 11]]);
     });
@@ -221,11 +221,11 @@ describe('Operator join()', () => {
         const src2 = mem.getBuffer<{f2: number}>('bufer2', [{f2: 10}, {f2: 11}]);
 
         let stream$ = src1.selectRx().pipe(
-            etl.joinObjects(src2.selectRx()),
+            etl.operators.joinObjects(src2.selectRx()),
             rx.tap(v => res.push(v))
         );
 
-        await etl.run(stream$);
+        await etl.operators.run(stream$);
 
         assert.deepStrictEqual(res, [{f1: 1, f2: 10}, {f1: 1, f2: 11}, {f1: 2, f2: 10}, {f1: 2, f2: 11}]);
     });

@@ -1,8 +1,8 @@
 import { Observable, OperatorFunction } from "rxjs";
 import { BaseCollection_I } from "../core/base_collection_i.js";
 import { BaseObservable } from "../core/observable.js";
-import { ErrorsQueue, EtlError, EtlErrorData } from "../endpoints/errors.js";
-import { Condition, findDifference } from "../index.js";
+import { ErrorsQueue, EtlErrorData } from "../endpoints/errors.js";
+import { Condition, findDifference } from "../core/index.js";
 
 type EtlErrorDataUnexpected<T> = EtlErrorData & {
     condition: Condition<T>;

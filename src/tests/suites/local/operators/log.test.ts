@@ -9,10 +9,10 @@ describe('Operator log()', () => {
         const res = new StringWritable();
 
         const src$ = rx.of(100).pipe(
-            etl.log('h', null, res)
+            etl.operators.log('h', null, res)
         )
 
-        await etl.run(src$);
+        await etl.operators.run(src$);
 
         assert.strictEqual(res.toString(), "h 100\n");
     });
