@@ -88,14 +88,14 @@ export class ResourceCollection<T> extends UpdatableCollection<T> {
     protected async _insert(value: Partial<Omit<T, 'id'>> | any): Promise<any> {
         const body = {};
         body[this.resourceName] = value;
-        return await this.endpoint.fetchJson(this.getResourceListUrl(), 'POST', body);
+        return await this.endpoint.fetchJson(this.getResourceListUrl(), 'POST', { body });
     }
 
     public async update(value: Partial<Omit<T, 'id'>>, id: string): Promise<void> {
         this.sendUpdateEvent(value, id);
         const body = {};
         body[this.resourceName] = value;
-        await this.endpoint.fetchJson(this.getResourceUrl(id), 'PUT', body);
+        await this.endpoint.fetchJson(this.getResourceUrl(id), 'PUT', { body });
     }
 
     public async upsert(value: Partial<Omit<T, 'id'>>, id: string): Promise<boolean> {
