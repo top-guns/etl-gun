@@ -8,6 +8,8 @@ import { UpdatableCollection } from "../core/updatable_collection.js";
 import { CollectionOptions } from "../core/base_collection.js";
 import { observable2Generator, observable2Iterable, observable2Promise, observable2Stream, selectOne_from_Observable, wrapObservable, wrapPromise } from '../utils/flows.js';
 
+export type Order = 'forward' | 'backward';
+
 export class Endpoint extends BaseEndpoint {
     protected rootFolder: string | null = null;
     constructor(rootFolder: string | null = null) {
@@ -59,32 +61,32 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
     }
 
     public select(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): Promise<CsvCellType[][]> {
-        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, 'forward', options);
         return wrapPromise(observable2Promise(observable), this);
     }
-    public async* selectGen(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): AsyncGenerator<CsvCellType[], void, void> {
-        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+    public async* selectGen(skipFirstLine?: boolean, skipEmptyLines?: boolean, order: Order = 'forward', options: Options = {}): AsyncGenerator<CsvCellType[], void, void> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, order, options);
         const generator = observable2Generator(observable);
         for await (const value of generator) yield value;
     }
-    public selectIx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): ix.AsyncIterable<CsvCellType[]> {
-        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+    public selectIx(skipFirstLine?: boolean, skipEmptyLines?: boolean, order: Order = 'forward', options: Options = {}): ix.AsyncIterable<CsvCellType[]> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, order, options);
         return observable2Iterable(observable);
     }
 
-    public selectStream(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): ReadableStream<CsvCellType[]> {
-        const observable = this.selectRx(skipFirstLine, skipEmptyLines, options);
+    public selectStream(skipFirstLine?: boolean, skipEmptyLines?: boolean, order: Order = 'forward', options: Options = {}): ReadableStream<CsvCellType[]> {
+        const observable = this.selectRx(skipFirstLine, skipEmptyLines, order, options);
         return observable2Stream(observable);
     }
     public async selectOne(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): Promise<CsvCellType[] | null> {
-        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, 'forward', options);
         const value = await selectOne_from_Observable(observable);
         this.sendSelectOneEvent(value);
         return value;
     }
 
-    public selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): BaseObservable<CsvCellType[]> {
-        const observable = this._selectRx(skipFirstLine, skipEmptyLines, options);
+    public selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, order: Order = 'forward', options: Options = {}): BaseObservable<CsvCellType[]> {
+        const observable = this._selectRx(skipFirstLine, skipEmptyLines, order, options);
         return wrapObservable(observable, this);
     }
 
@@ -93,7 +95,7 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
     * @param skipEmptyLines skip empty lines in file
     * @return Observable<string[]> 
     */
-    protected _selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, options: Options = {}): BaseObservable<CsvCellType[]> {
+    protected _selectRx(skipFirstLine?: boolean, skipEmptyLines?: boolean, order: Order = 'forward', options: Options = {}): BaseObservable<CsvCellType[]> {
         const rows: any[] = [];
         const observable = new BaseObservable<CsvCellType[]>(this, (subscriber) => {
             try {
@@ -111,7 +113,8 @@ export class Collection extends UpdatableCollection<CsvCellType[]> {
                 })
                 .on("end", () => {
                     (async () => {
-                        for (const row of rows) {
+                        for (let i = 0; i < rows.length; i++) {
+                            const row = rows[order == 'forward' ? i : rows.length - i - 1];
                             if (subscriber.closed) break;
                             await this.waitWhilePaused();
                             if (skipEmptyLines && (row.length == 0 || (row.length == 1 && row[0].trim() == ''))) {
