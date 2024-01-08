@@ -65,14 +65,13 @@ export class GoogleTranslateHelper {
             const translateKeyValues = p2;
             from = p3 ?? this.from;
             to = p4 ?? this.to;
-            const res = {};
 
             // Translate values
             if (translateKeyValues) {
                 for (const lodashPath of translateKeyValues) {
                     let v = _.get(value, lodashPath);
                     v = await this.translateStr(v, from, to);
-                    _.set(res, lodashPath, v);
+                    _.set(value, lodashPath, v);
                 }
             }
             else {
@@ -82,7 +81,7 @@ export class GoogleTranslateHelper {
     
                     let v = value[key];
                     v = await this.translateStr(value[key], from, to);
-                    res[key] = v;
+                    value[key] = v;
                 }
             }
 
@@ -93,10 +92,10 @@ export class GoogleTranslateHelper {
                 let v = value[key];
                 if (translateKeyNames && translateKeyNames.includes(key)) key = await this.translateStr(key, from, to);
                 else if (!translateKeyNames) key = await this.translateStr(key, from, to);
-                res[key] = v;
+                value[key] = v;
             }
             
-            return res;
+            return value;
         }
 
         return this.translateStr('' + value, from, to);
