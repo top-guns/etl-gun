@@ -1,6 +1,7 @@
 export * from './run.js';
 export * from './log.js';
 export * from './push.js';
+export * from './remove.js';
 export * from './where.js';
 export * from './numerate.js';
 export * from './addField.js';

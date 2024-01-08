@@ -1,7 +1,7 @@
 import { map, OperatorFunction } from "rxjs";
 import _ from 'lodash';
 
-export function move<R, T = any>(options: {from?: (keyof T) | string, to?: (keyof R) | string}): OperatorFunction<T, R> {
+export function propMove<R, T = any>(options: {from?: (keyof T) | string, to?: (keyof R) | string}): OperatorFunction<T, R> {
     return map<T, R>(value => {
         if (!options.from && !options.to) throw new Error('Error: fromPropertyPath and toPropertyPath in operator move() cannot be empty at the same time');
         if (options.from == options.to) return value as unknown as R;
@@ -20,7 +20,7 @@ export function move<R, T = any>(options: {from?: (keyof T) | string, to?: (keyo
     });
 }
 
-export function copy<R, T = any>(fromPropertyPath: (keyof T) | string, toPropertyPath: (keyof R) | string): OperatorFunction<T, R> {
+export function propCopy<R, T = any>(fromPropertyPath: (keyof T) | string, toPropertyPath: (keyof R) | string): OperatorFunction<T, R> {
     return map<T, R>(value => {
         if (!fromPropertyPath || !toPropertyPath) throw new Error('Error: fromPropertyPath and toPropertyPath in operator copy() cannot be empty');
         if (fromPropertyPath == toPropertyPath) return value as unknown as R;
@@ -34,7 +34,7 @@ export function copy<R, T = any>(fromPropertyPath: (keyof T) | string, toPropert
     });
 }
 
-export function update<T>(value: Partial<T> | Record<(keyof T) | string, any>): OperatorFunction<T, T> {
+export function propUpdate<T>(value: Partial<T> | Record<(keyof T) | string, any>): OperatorFunction<T, T> {
     return map<T, T>(value => {
         for (let key in value) {
             if (!value.hasOwnProperty(key)) continue;
@@ -44,7 +44,7 @@ export function update<T>(value: Partial<T> | Record<(keyof T) | string, any>): 
     });
 }
 
-export function remove<T>(...propertyPaths: ((keyof T) | string)[]): OperatorFunction<T, T> {
+export function propRemove<T>(...propertyPaths: ((keyof T) | string)[]): OperatorFunction<T, T> {
     return map<T, T>(value => {
         for (let path of propertyPaths) _.unset(value, path);
         return value;
