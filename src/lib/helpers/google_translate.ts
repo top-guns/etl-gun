@@ -1,5 +1,6 @@
 // Imports the Google Cloud client library
 import * as Translate from '@google-cloud/translate';
+import _ from 'lodash';
 import * as rx from 'rxjs';
 import { MonoTypeOperatorFunction, OperatorFunction } from 'rxjs';
 
@@ -65,16 +66,36 @@ export class GoogleTranslateHelper {
             from = p3 ?? this.from;
             to = p4 ?? this.to;
             const res = {};
+
+            // Translate values
+            if (translateKeyValues) {
+                for (const lodashPath of translateKeyValues) {
+                    let v = _.get(value, lodashPath);
+                    v = await this.translateStr(v, from, to);
+                    _.set(res, lodashPath, v);
+                }
+            }
+            else {
+                for (let key in value) {
+                    if (!value.hasOwnProperty) continue;
+                    if (typeof value[key] != 'string') continue;
+    
+                    let v = value[key];
+                    v = await this.translateStr(value[key], from, to);
+                    res[key] = v;
+                }
+            }
+
+            // Translate key names
             for (let key in value) {
                 if (!value.hasOwnProperty) continue;
 
                 let v = value[key];
-                if (translateKeyValues && translateKeyValues.includes(key)) v = await this.translateStr(value[key], from, to);
-                else if (!translateKeyValues && typeof value[key] == 'string') v = await this.translateStr(value[key], from, to);
                 if (translateKeyNames && translateKeyNames.includes(key)) key = await this.translateStr(key, from, to);
                 else if (!translateKeyNames) key = await this.translateStr(key, from, to);
                 res[key] = v;
             }
+            
             return res;
         }
 
